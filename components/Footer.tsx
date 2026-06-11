@@ -38,7 +38,7 @@ export default function Footer() {
   const whatsappLink = getSetting("whatsapp_link") || (contactPhone ? `https://wa.me/233${contactPhone.replace(/^0/, "")}` : "");
 
   return (
-    <footer className="bg-[#3D2B21] text-white rounded-t-[2.5rem] mt-8 lg:mt-0 overflow-hidden">
+    <footer className="bg-[#5A4234] text-white rounded-t-[2.5rem] mt-8 lg:mt-0 overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 py-8 lg:py-10">
         <div className="grid lg:grid-cols-4 gap-8 lg:gap-10">
 
@@ -46,9 +46,9 @@ export default function Footer() {
           <div className="lg:col-span-1 space-y-4">
             <Link href="/" className="inline-block">
               <img
-                src="/logo.png"
+                src="/logo-white.png"
                 alt={siteName}
-                className="h-14 sm:h-16 w-auto object-contain"
+                className="h-12 sm:h-14 w-auto object-contain"
               />
             </Link>
             <p className="text-[#A8826B]/80 leading-relaxed text-sm">
@@ -62,7 +62,7 @@ export default function Footer() {
                   href={socialInstagram.startsWith("http") ? socialInstagram : `https://www.instagram.com/${socialInstagram.replace(/^@/, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 bg-[#3D2B21]/50 rounded-full flex items-center justify-center text-[#C9A24B] hover:bg-[#C9A24B] hover:text-[#3D2B21] transition-all hover:-translate-y-1"
+                  className="w-10 h-10 bg-[#5A4234]/50 rounded-full flex items-center justify-center text-[#C9A24B] hover:bg-[#C9A24B] hover:text-[#5A4234] transition-all hover:-translate-y-1"
                   aria-label="Follow us on Instagram"
                 >
                   <i className="ri-instagram-line"></i>
@@ -73,7 +73,7 @@ export default function Footer() {
                   href={socialTiktok.startsWith("http") ? socialTiktok : `https://www.tiktok.com/@${socialTiktok.replace(/^@/, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 bg-[#3D2B21]/50 rounded-full flex items-center justify-center text-[#C9A24B] hover:bg-[#C9A24B] hover:text-[#3D2B21] transition-all hover:-translate-y-1"
+                  className="w-10 h-10 bg-[#5A4234]/50 rounded-full flex items-center justify-center text-[#C9A24B] hover:bg-[#C9A24B] hover:text-[#5A4234] transition-all hover:-translate-y-1"
                   aria-label="Follow us on TikTok"
                 >
                   <i className="ri-tiktok-line"></i>
@@ -84,7 +84,7 @@ export default function Footer() {
                   href={whatsappLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 bg-[#3D2B21]/50 rounded-full flex items-center justify-center text-[#C9A24B] hover:bg-[#C9A24B] hover:text-[#3D2B21] transition-all hover:-translate-y-1"
+                  className="w-10 h-10 bg-[#5A4234]/50 rounded-full flex items-center justify-center text-[#C9A24B] hover:bg-[#C9A24B] hover:text-[#5A4234] transition-all hover:-translate-y-1"
                   aria-label="Chat on WhatsApp"
                 >
                   <i className="ri-whatsapp-line"></i>

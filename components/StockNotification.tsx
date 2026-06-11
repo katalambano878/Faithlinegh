@@ -32,7 +32,7 @@ export default function StockNotification({ stockCount, threshold = 10, viewCoun
 
       {viewCount && viewCount > 50 && (
         <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#A8826B]/10 border border-[#A8826B]/30">
-          <div className="w-6 h-6 flex items-center justify-center bg-[#3D2B21] rounded-full">
+          <div className="w-6 h-6 flex items-center justify-center bg-[#5A4234] rounded-full">
             <i className="ri-eye-fill text-white text-xs"></i>
           </div>
           <span className="text-sm font-semibold text-[#A8826B]">

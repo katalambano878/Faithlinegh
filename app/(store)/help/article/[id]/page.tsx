@@ -207,7 +207,7 @@ export default function ArticlePage() {
                     </p>
                     <Link
                       href="/support/ticket"
-                      className="inline-block bg-[#3D2B21] hover:bg-[#3D2B21]/90 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                      className="inline-block bg-[#5A4234] hover:bg-[#5A4234]/90 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
                     >
                       Contact Support
                     </Link>

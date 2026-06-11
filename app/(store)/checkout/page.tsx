@@ -312,7 +312,7 @@ export default function CheckoutPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty</h1>
           <p className="text-gray-600 mb-8">Add some items to start the checkout process.</p>
-          <Link href="/shop" className="inline-block bg-[#3D2B21] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#3D2B21]/90 transition-colors">
+          <Link href="/shop" className="inline-block bg-[#5A4234] text-white px-8 py-3 rounded-lg font-semibold hover:bg-[#5A4234]/90 transition-colors">
             Return to Shop
           </Link>
         </div>
@@ -339,14 +339,14 @@ export default function CheckoutPage() {
               <button
                 onClick={() => !user && setCheckoutType('guest')}
                 className={`p-6 rounded-xl border-2 transition-all text-left cursor-pointer ${checkoutType === 'guest'
-                  ? 'border-[#3D2B21] bg-[#F3F3F3]'
+                  ? 'border-[#5A4234] bg-[#F3F3F3]'
                   : 'border-gray-200 hover:border-gray-300'
                   } ${user ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={!!user}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <i className="ri-user-line text-3xl text-[#3D2B21]"></i>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'guest' ? 'border-[#3D2B21] bg-[#3D2B21]' : 'border-gray-300'
+                  <i className="ri-user-line text-3xl text-[#5A4234]"></i>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'guest' ? 'border-[#5A4234] bg-[#5A4234]' : 'border-gray-300'
                     }`}>
                     {checkoutType === 'guest' && <i className="ri-check-line text-white text-sm"></i>}
                   </div>
@@ -359,13 +359,13 @@ export default function CheckoutPage() {
               <button
                 onClick={() => setCheckoutType('account')}
                 className={`p-6 rounded-xl border-2 transition-all text-left cursor-pointer ${checkoutType === 'account'
-                  ? 'border-[#3D2B21] bg-[#F3F3F3]'
+                  ? 'border-[#5A4234] bg-[#F3F3F3]'
                   : 'border-gray-200 hover:border-gray-300'
                   }`}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <i className="ri-account-circle-line text-3xl text-[#3D2B21]"></i>
-                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'account' ? 'border-[#3D2B21] bg-[#3D2B21]' : 'border-gray-300'
+                  <i className="ri-account-circle-line text-3xl text-[#5A4234]"></i>
+                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${checkoutType === 'account' ? 'border-[#5A4234] bg-[#5A4234]' : 'border-gray-300'
                     }`}>
                     {checkoutType === 'account' && <i className="ri-check-line text-white text-sm"></i>}
                   </div>
@@ -506,7 +506,7 @@ export default function CheckoutPage() {
                           type="checkbox"
                           checked={saveAddress}
                           onChange={(e) => setSaveAddress(e.target.checked)}
-                          className="w-5 h-5 text-[#3D2B21] rounded border-gray-300 focus:ring-[#A8826B]"
+                          className="w-5 h-5 text-[#5A4234] rounded border-gray-300 focus:ring-[#A8826B]"
                         />
                         <span className="text-sm text-gray-700">Save this address for future orders</span>
                       </label>
@@ -515,7 +515,7 @@ export default function CheckoutPage() {
 
                   <button
                     onClick={handleContinueToDelivery}
-                    className="w-full mt-6 bg-[#3D2B21] hover:bg-[#3D2B21]/90 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                    className="w-full mt-6 bg-[#5A4234] hover:bg-[#5A4234]/90 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
                   >
                     Continue to Delivery
                   </button>
@@ -530,7 +530,7 @@ export default function CheckoutPage() {
                 <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
                   <h2 className="text-xl font-bold text-gray-900 mb-6">Delivery Method</h2>
                   <div className="space-y-4">
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'pickup' ? 'border-[#3D2B21] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'pickup' ? 'border-[#5A4234] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
                         <input
@@ -539,17 +539,17 @@ export default function CheckoutPage() {
                           value="pickup"
                           checked={deliveryMethod === 'pickup'}
                           onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className="w-5 h-5 text-[#3D2B21]"
+                          className="w-5 h-5 text-[#5A4234]"
                         />
                         <div>
                           <p className="font-semibold text-gray-900">Store Pickup</p>
                           <p className="text-sm text-gray-600">Pick up from our store — Ready in 24 hours</p>
                         </div>
                       </div>
-                      <p className="font-bold text-[#3D2B21]">FREE</p>
+                      <p className="font-bold text-[#5A4234]">FREE</p>
                     </label>
 
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'doorstep' ? 'border-[#3D2B21] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'doorstep' ? 'border-[#5A4234] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
                         <input
@@ -558,7 +558,7 @@ export default function CheckoutPage() {
                           value="doorstep"
                           checked={deliveryMethod === 'doorstep'}
                           onChange={(e) => setDeliveryMethod(e.target.value)}
-                          className="w-5 h-5 text-[#3D2B21]"
+                          className="w-5 h-5 text-[#5A4234]"
                         />
                         <div>
                           <p className="font-semibold text-gray-900">Doorstep Delivery</p>
@@ -569,10 +569,10 @@ export default function CheckoutPage() {
                     </label>
 
                     {/* Comprehensive delivery options - to be re-enabled later
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'accra' ? 'border-[#3D2B21] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'accra' ? 'border-[#5A4234] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
-                        <input type="radio" name="delivery" value="accra" checked={deliveryMethod === 'accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-[#3D2B21]" />
+                        <input type="radio" name="delivery" value="accra" checked={deliveryMethod === 'accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-[#5A4234]" />
                         <div>
                           <p className="font-semibold text-gray-900">Accra Delivery</p>
                           <p className="text-sm text-gray-600">Delivery within Accra</p>
@@ -580,10 +580,10 @@ export default function CheckoutPage() {
                       </div>
                       <p className="font-bold text-gray-900">₵ 40.00</p>
                     </label>
-                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'outside-accra' ? 'border-[#3D2B21] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
+                    <label className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${deliveryMethod === 'outside-accra' ? 'border-[#5A4234] bg-[#F3F3F3]' : 'border-gray-300 hover:border-gray-400'
                       }`}>
                       <div className="flex items-center space-x-4">
-                        <input type="radio" name="delivery" value="outside-accra" checked={deliveryMethod === 'outside-accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-[#3D2B21]" />
+                        <input type="radio" name="delivery" value="outside-accra" checked={deliveryMethod === 'outside-accra'} onChange={(e) => setDeliveryMethod(e.target.value)} className="w-5 h-5 text-[#5A4234]" />
                         <div>
                           <p className="font-semibold text-gray-900">Outside Accra Delivery</p>
                           <p className="text-sm text-gray-600">Delivery to bus/lorry stations (VIP, STC, etc.)</p>
@@ -605,7 +605,7 @@ export default function CheckoutPage() {
                     <button
                       onClick={handleContinueToPayment}
                       disabled={isLoading}
-                      className="flex-1 bg-[#3D2B21] hover:bg-[#3D2B21]/90 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-70 flex items-center justify-center"
+                      className="flex-1 bg-[#5A4234] hover:bg-[#5A4234]/90 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer disabled:opacity-70 flex items-center justify-center"
                     >
                       {isLoading ? (
                         <>

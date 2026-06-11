@@ -88,7 +88,7 @@ export default function AboutPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/shop"
-                  className="inline-flex items-center rounded-full bg-brand-brown px-7 py-3 text-sm font-semibold text-white hover:bg-[#5A4234] transition-colors"
+                  className="inline-flex items-center rounded-full bg-brand-brown px-7 py-3 text-sm font-semibold text-white hover:bg-[#473327] transition-colors"
                 >
                   Browse products
                   <i className="ri-arrow-right-up-line ml-2" />
@@ -219,7 +219,7 @@ export default function AboutPage() {
 
       <section className="pb-12 sm:pb-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#A8826B] via-[#8A7750] to-[#3D2B21] text-white border border-[#A8826B]/30 shadow-[0_16px_45px_rgba(171,148,98,0.2)] flex flex-col md:flex-row md:items-stretch md:max-h-[200px]">
+          <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#A8826B] via-[#8A7750] to-[#5A4234] text-white border border-[#A8826B]/30 shadow-[0_16px_45px_rgba(171,148,98,0.2)] flex flex-col md:flex-row md:items-stretch md:max-h-[200px]">
             <div className="relative w-full md:w-3/5 px-4 sm:px-6 py-4 sm:py-5 flex flex-col justify-center gap-1.5 sm:gap-2 text-center md:text-left">
               <span className="inline-flex items-center justify-center md:justify-start text-[9px] sm:text-[10px] font-semibold tracking-[0.22em] uppercase text-white/80">
                 Shop with {siteName}
@@ -234,7 +234,7 @@ export default function AboutPage() {
               <div className="pt-0.5 sm:pt-1 flex flex-wrap gap-2 justify-center md:justify-start">
                 <Link
                   href="/shop"
-                  className="inline-flex items-center rounded-full bg-white text-[#3D2B21] px-5 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-sm font-semibold shadow-lg hover:bg-[#F3F3F3] transition-colors"
+                  className="inline-flex items-center rounded-full bg-white text-[#5A4234] px-5 sm:px-6 py-1.5 sm:py-2 text-[11px] sm:text-sm font-semibold shadow-lg hover:bg-[#F3F3F3] transition-colors"
                 >
                   Start shopping
                   <i className="ri-arrow-right-up-line ml-1.5 sm:ml-2" />

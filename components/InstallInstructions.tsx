@@ -95,7 +95,7 @@ export default function InstallInstructions() {
                   </div>
                   <div className="flex-1 pt-2">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="w-6 h-6 bg-[#3D2B21] text-white rounded-full flex items-center justify-center text-xs font-bold">
+                      <span className="w-6 h-6 bg-[#5A4234] text-white rounded-full flex items-center justify-center text-xs font-bold">
                         {index + 1}
                       </span>
                       <span className="font-medium text-gray-900">{step.text}</span>
@@ -132,7 +132,7 @@ export default function InstallInstructions() {
 
             <button
               onClick={() => setShowModal(false)}
-              className="w-full bg-[#3D2B21] hover:bg-[#3D2B21] text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+              className="w-full bg-[#5A4234] hover:bg-[#5A4234] text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
             >
               Got It!
             </button>

@@ -287,7 +287,7 @@ export default function ContactPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting || verifying}
-                    className="w-full bg-[#3D2B21] text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-brand-carton transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full bg-[#5A4234] text-white py-3.5 rounded-xl font-semibold text-sm hover:bg-brand-carton transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {isSubmitting || verifying ? (verifying ? 'Verifying...' : 'Sending...') : 'Send Message'}
                   </button>
@@ -318,7 +318,7 @@ export default function ContactPage() {
               </div>
 
               {/* WhatsApp CTA */}
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#A8826B] via-[#8A7750] to-[#3D2B21] p-6 text-white">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#A8826B] via-[#8A7750] to-[#5A4234] p-6 text-white">
                 <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full bg-white/10 blur-2xl pointer-events-none" />
                 <div className="relative">
                   <div className="w-11 h-11 bg-white/15 rounded-xl flex items-center justify-center mb-4">
@@ -332,7 +332,7 @@ export default function ContactPage() {
                     href={`https://wa.me/233${contactPhone.replace(/^0/, '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 bg-white text-[#3D2B21] px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-[#F3F3F3] transition-colors"
+                    className="inline-flex items-center gap-2 bg-white text-[#5A4234] px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-[#F3F3F3] transition-colors"
                   >
                     <i className="ri-whatsapp-line text-lg"></i>
                     Chat on WhatsApp

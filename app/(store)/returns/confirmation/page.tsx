@@ -122,7 +122,7 @@ export default function ReturnConfirmationPage() {
             <div className="flex items-start space-x-3">
               <i className="ri-alert-line text-2xl text-[#8C6A52] mt-0.5"></i>
               <div>
-                <p className="font-semibold text-[#3D2B21] mb-2">Important Reminders</p>
+                <p className="font-semibold text-[#5A4234] mb-2">Important Reminders</p>
                 <ul className="text-sm text-[#8C6A52] space-y-1">
                   <li>• Return must be shipped within 7 days</li>
                   <li>• Items must be unused with original tags</li>

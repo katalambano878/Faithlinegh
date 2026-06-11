@@ -230,7 +230,7 @@ function OrderTrackingContent() {
               <div className="flex items-start space-x-3">
                 <i className="ri-information-line text-xl text-[#A8826B] mt-0.5"></i>
                 <div>
-                  <p className="text-sm font-semibold text-[#3D2B21]">Need Help?</p>
+                  <p className="text-sm font-semibold text-[#5A4234]">Need Help?</p>
                   <p className="text-sm text-[#A8826B] mt-1">
                     You can find your order number and tracking number in the SMS or email we sent you after your order was confirmed.
                   </p>

@@ -123,7 +123,7 @@ export default function PWASettingsPage() {
                 {notificationPermission === 'default' && (
                   <button
                     onClick={requestNotificationPermission}
-                    className="px-4 py-2 bg-[#3D2B21] text-white rounded-lg hover:bg-[#3D2B21]/90 transition-colors whitespace-nowrap"
+                    className="px-4 py-2 bg-[#5A4234] text-white rounded-lg hover:bg-[#5A4234]/90 transition-colors whitespace-nowrap"
                   >
                     Enable
                   </button>

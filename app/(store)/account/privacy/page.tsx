@@ -84,7 +84,7 @@ export default function PrivacySettingsPage() {
           <div className="flex gap-3">
             <i className="ri-shield-check-line text-xl text-[#A8826B] flex-shrink-0 mt-0.5"></i>
             <div>
-              <h3 className="font-semibold text-[#3D2B21] mb-1">Your Privacy Matters</h3>
+              <h3 className="font-semibold text-[#5A4234] mb-1">Your Privacy Matters</h3>
               <p className="text-sm text-[#A8826B]">
                 We are committed to protecting your personal information in compliance with GDPR, CCPA, and other privacy regulations.
               </p>

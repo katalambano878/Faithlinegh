@@ -46,7 +46,7 @@ export default function MessengerChatButton() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-[#A8826B] to-[#3D2B21] text-white rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center"
+        className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-[#A8826B] to-[#5A4234] text-white rounded-full shadow-2xl hover:scale-110 transition-transform z-50 flex items-center justify-center"
       >
         {isOpen ? (
           <i className="ri-close-line text-2xl"></i>
@@ -57,7 +57,7 @@ export default function MessengerChatButton() {
 
       {isOpen && (
         <div className="fixed bottom-24 right-6 w-96 h-[600px] bg-white rounded-2xl shadow-2xl z-50 flex flex-col overflow-hidden border border-gray-200">
-          <div className="bg-gradient-to-r from-[#A8826B] to-[#3D2B21] text-white p-4">
+          <div className="bg-gradient-to-r from-[#A8826B] to-[#5A4234] text-white p-4">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-12 h-12 flex items-center justify-center bg-white text-[#A8826B] rounded-full font-bold text-xl">
@@ -87,7 +87,7 @@ export default function MessengerChatButton() {
                 <div className={`max-w-[75%] ${msg.sender === 'user' ? 'order-2' : 'order-1'}`}>
                   <div className={`px-4 py-2 rounded-2xl ${
                     msg.sender === 'user'
-                      ? 'bg-[#3D2B21] text-white rounded-br-sm'
+                      ? 'bg-[#5A4234] text-white rounded-br-sm'
                       : 'bg-white text-gray-900 rounded-bl-sm shadow-sm'
                   }`}>
                     <p className="text-sm">{msg.text}</p>
@@ -128,7 +128,7 @@ export default function MessengerChatButton() {
               />
               <button
                 onClick={handleSendMessage}
-                className="w-9 h-9 flex items-center justify-center bg-[#3D2B21] hover:bg-[#3D2B21] text-white rounded-full transition-colors"
+                className="w-9 h-9 flex items-center justify-center bg-[#5A4234] hover:bg-[#5A4234] text-white rounded-full transition-colors"
               >
                 <i className="ri-send-plane-fill"></i>
               </button>

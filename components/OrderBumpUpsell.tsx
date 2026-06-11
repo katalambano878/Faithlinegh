@@ -86,7 +86,7 @@ export default function OrderBumpUpsell({ products, onToggle }: OrderBumpUpsellP
       </div>
 
       <div className="mt-4 p-3 bg-[#FAF3EE] rounded-lg">
-        <p className="text-sm text-[#3D2B21] font-medium text-center">
+        <p className="text-sm text-[#5A4234] font-medium text-center">
           <i className="ri-flashlight-fill mr-1"></i>
           Limited time offer - Add to your order now!
         </p>

@@ -6,7 +6,7 @@ module.exports = {
       colors: {
         brand: {
           // Soft blush / nude palette
-          brown: '#3D2B21',   // deep espresso — primary text & buttons
+          brown: '#5A4234',   // deep espresso — primary text & buttons
           carton: '#A8826B',  // warm mocha taupe — secondary accent
           cream: '#FAF3EE',   // soft blush background
           blush: '#EDD7CA',   // signature blush (brand swatch)

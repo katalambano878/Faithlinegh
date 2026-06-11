@@ -458,7 +458,7 @@ export default function AdminLayout({
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <i
-                    className={`text-lg shrink-0 ${maintenanceEnabled ? 'ri-tools-fill text-[#3D2B21]' : 'ri-store-2-line text-gray-600'
+                    className={`text-lg shrink-0 ${maintenanceEnabled ? 'ri-tools-fill text-[#5A4234]' : 'ri-store-2-line text-gray-600'
                       }`}
                   ></i>
                   <div className="min-w-0">

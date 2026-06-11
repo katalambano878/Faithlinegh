@@ -114,7 +114,7 @@ export default function PushNotificationManager() {
           <div className="flex gap-3">
             <button
               onClick={requestPermission}
-              className="flex-1 bg-[#3D2B21] hover:bg-[#3D2B21] text-white py-2 px-4 rounded-lg font-medium transition-colors whitespace-nowrap"
+              className="flex-1 bg-[#5A4234] hover:bg-[#5A4234] text-white py-2 px-4 rounded-lg font-medium transition-colors whitespace-nowrap"
             >
               Enable Notifications
             </button>

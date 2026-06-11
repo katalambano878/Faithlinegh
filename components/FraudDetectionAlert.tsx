@@ -10,7 +10,7 @@ export default function FraudDetectionAlert({ riskLevel, reasons, orderId }: Fra
   const getRiskColor = () => {
     switch (riskLevel) {
       case 'low': return 'bg-gray-50 border-gray-200 text-gray-800';
-      case 'medium': return 'bg-[#FAF3EE]/50 border-[#C9A24B]/30 text-[#3D2B21]';
+      case 'medium': return 'bg-[#FAF3EE]/50 border-[#C9A24B]/30 text-[#5A4234]';
       case 'high': return 'bg-[#F3DBCF]/50 border-[#D98E73]/30 text-[#9A4A36]';
     }
   };

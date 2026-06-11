@@ -85,8 +85,8 @@ export default function SizeGuideModal({ isOpen, onClose, category = 'General' }
                   <i className="ri-information-line text-xl text-[#A8826B]"></i>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#3D2B21] mb-2">How to Measure</h3>
-                  <ul className="text-sm text-[#3D2B21] space-y-1">
+                  <h3 className="font-semibold text-[#5A4234] mb-2">How to Measure</h3>
+                  <ul className="text-sm text-[#5A4234] space-y-1">
                     <li>• Use a soft measuring tape for accurate measurements</li>
                     <li>• Measure over light clothing or undergarments</li>
                     <li>• Keep the tape parallel to the floor</li>

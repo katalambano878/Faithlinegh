@@ -349,9 +349,9 @@ export default function SupportTicketPage() {
             <div className="flex items-start space-x-3">
               <i className="ri-information-line text-2xl text-[#A8826B] mt-0.5"></i>
               <div>
-                <p className="font-semibold text-[#3D2B21] mb-2">Before submitting a ticket</p>
+                <p className="font-semibold text-[#5A4234] mb-2">Before submitting a ticket</p>
                 <ul className="text-sm text-[#A8826B] space-y-1">
-                  <li>• Check our <Link href="/help" className="underline hover:text-[#3D2B21]">Help Center</Link> for quick answers</li>
+                  <li>• Check our <Link href="/help" className="underline hover:text-[#5A4234]">Help Center</Link> for quick answers</li>
                   <li>• Average response time: 24 hours</li>
                   <li>• Include your order number for faster assistance</li>
                   <li>• Attach photos if reporting a product issue</li>

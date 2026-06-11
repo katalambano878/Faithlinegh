@@ -29,7 +29,7 @@ domain/email was provided yet. Complete these steps to finish making the project
 - [ ] Update `manifest.json` `name`, `short_name`, `theme_color`, `background_color`
 - [ ] Update `package.json` `name`, and add `description` / `author` / `repository` if desired
 - [ ] Set up your Supabase project and run the migrations in `supabase/`
-- [ ] Set up your Paystack account and add API keys
+- [ ] Set up your Moolre account and add API keys (MOOLRE_API_USER, MOOLRE_API_PUBKEY, MOOLRE_ACCOUNT_NUMBER)
 - [ ] Set up your Resend account and add API key + from address
 - [ ] Set up your Moolre (SMS) account if using SMS notifications
 - [ ] Connect analytics (set `NEXT_PUBLIC_GA_MEASUREMENT_ID`)

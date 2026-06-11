@@ -152,7 +152,7 @@ export default function TermsPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <i className="ri-bank-card-line text-gray-900"></i>
-                  <span>Credit/Debit Cards (Visa, Mastercard) via Paystack</span>
+                  <span>Mobile Money & Credit/Debit Cards via Moolre</span>
                 </li>
               </ul>
             </div>

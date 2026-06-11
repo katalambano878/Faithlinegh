@@ -1,3 +1,5 @@
+import { generateMoolreLink, moolreConfigured } from './moolre';
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export type ChatProduct = {
@@ -489,7 +491,7 @@ export async function createChatOrder(
   if (!['standard', 'express', 'pickup'].includes(deliveryMethod)) {
     return { success: false, message: 'Invalid delivery method.' };
   }
-  if (!['paystack', 'cod'].includes(paymentMethod)) {
+  if (!['moolre', 'cod'].includes(paymentMethod)) {
     return { success: false, message: 'Invalid payment method.' };
   }
 
@@ -642,12 +644,11 @@ export async function createChatOrder(
     }
 
     // Handle payment
-    if (paymentMethod === 'paystack') {
+    if (paymentMethod === 'moolre') {
       try {
-        const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY;
         const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/+$/, '');
 
-        if (!paystackSecretKey) {
+        if (!moolreConfigured()) {
           return {
             success: true,
             orderNumber,
@@ -656,53 +657,43 @@ export async function createChatOrder(
           };
         }
 
-        const uniqueRef = `${orderNumber}-R${Date.now()}`;
-        const payload = {
+        const externalref = `${orderNumber}-R${Date.now()}`;
+
+        // Save the attempt reference so verify/callback can find it later
+        try {
+          await supabaseAdmin
+            .from('orders')
+            .update({
+              payment_method: 'moolre',
+              metadata: {
+                ...(order.metadata || {}),
+                moolre_externalref: externalref,
+                moolre_init_at: new Date().toISOString(),
+              },
+            })
+            .eq('id', order.id);
+        } catch {}
+
+        const result = await generateMoolreLink({
+          amount: total,
           email: sanitizedShipping.email,
-          amount: Math.round(total * 100), // Paystack expects kobo
-          currency: 'GHS',
-          reference: uniqueRef,
-          callback_url: `${baseUrl}/order-success?order=${orderNumber}&payment_success=true`,
+          externalref,
+          callback: `${baseUrl}/api/payment/moolre/callback`,
+          redirect: `${baseUrl}/order-success?order=${orderNumber}&payment_success=true`,
           metadata: {
             order_number: orderNumber,
             order_id: order.id,
             customer_email: sanitizedShipping.email,
             source: 'chat',
           },
-          channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-        };
-
-        // Save Paystack reference on the order so verify can find it later
-        try {
-          await supabaseAdmin
-            .from('orders')
-            .update({
-              metadata: {
-                ...(order.metadata || {}),
-                paystack_reference: uniqueRef,
-                paystack_init_at: new Date().toISOString(),
-              },
-            })
-            .eq('id', order.id);
-        } catch {}
-
-        const response = await fetch('https://api.paystack.co/transaction/initialize', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${paystackSecretKey}`,
-          },
-          body: JSON.stringify(payload),
         });
 
-        const result = await response.json();
-
-        if (result.status === true && result.data?.authorization_url) {
+        if (result.success && result.url) {
           return {
             success: true,
             orderNumber,
             total,
-            paymentUrl: result.data.authorization_url,
+            paymentUrl: result.url,
             message: `Order ${orderNumber} created successfully! Total: ₵${total.toFixed(2)} (including ₵${shippingCost.toFixed(2)} delivery). Please complete your payment using the link below.`,
           };
         } else {
@@ -714,7 +705,7 @@ export async function createChatOrder(
           };
         }
       } catch (payErr: any) {
-        console.error('[ChatTools] Paystack payment error:', payErr);
+        console.error('[ChatTools] Moolre payment error:', payErr);
         return {
           success: true,
           orderNumber,

@@ -70,11 +70,11 @@ Refunds are processed after item inspection.`,
     title: "Payment Methods",
     path: "/checkout",
     category: "payment",
-    content: `Secure payments are processed by Paystack. Customers can pay with debit/credit cards (Visa, Mastercard, Verve), bank transfer, USSD, mobile money, or QR code at checkout.
+    content: `Secure payments are processed by Moolre. Customers can pay with mobile money (MTN, Telecel, AirtelTigo), debit/credit cards, or bank transfer at checkout.
 
 Cash on Delivery is available for eligible orders within the local delivery area.
 All prices are shown in ₵ (GHS, Ghana Cedis) unless otherwise stated.`,
-    keywords: ["payment", "paystack", "card", "bank transfer", "ussd", "momo", "checkout", "secure", "ngn", "naira"],
+    keywords: ["payment", "moolre", "mobile money", "momo", "card", "bank transfer", "checkout", "secure", "ghs", "cedis"],
   },
   {
     id: "order-tracking-guide",

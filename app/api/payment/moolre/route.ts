@@ -1,65 +1,151 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase-admin';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
+import { generateMoolreLink, moolreConfigured } from '@/lib/moolre';
 
 /**
- * DEPRECATED: Moolre payment gateway has been replaced by Paystack.
+ * Moolre payment initialization.
+ * Creates a hosted Moolre payment link for an existing order and returns the
+ * URL the customer should be redirected to.
  *
- * The Moolre payment integration has been disabled while we use Paystack
- * as the primary payment gateway. The original implementation is preserved
- * in git history (commit f60c790 and earlier) and can be restored if needed.
- *
- * For payments, use: /api/payment/paystack
- *
- * Note: Moolre SMS integration in lib/notifications.ts is still active
- * and unaffected by this change.
+ * SECURITY: the amount is always read from the order in the database — never
+ * trusted from the client.
  */
+export async function POST(req: Request) {
+    try {
+        const clientId = getClientIdentifier(req);
+        const rateLimitResult = checkRateLimit(`payment:${clientId}`, RATE_LIMITS.payment);
 
-export async function POST() {
-    return NextResponse.json(
-        {
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { success: false, message: 'Too many requests. Please try again later.' },
+                {
+                    status: 429,
+                    headers: {
+                        'X-RateLimit-Remaining': '0',
+                        'X-RateLimit-Reset': rateLimitResult.resetIn.toString(),
+                    },
+                }
+            );
+        }
+
+        const body = await req.json();
+        const { orderId, customerEmail } = body;
+
+        if (!orderId || typeof orderId !== 'string') {
+            return NextResponse.json({ success: false, message: 'Missing or invalid orderId' }, { status: 400 });
+        }
+
+        if (!moolreConfigured()) {
+            console.error('[Moolre] Missing MOOLRE_API_USER / MOOLRE_API_PUBKEY / MOOLRE_ACCOUNT_NUMBER');
+            return NextResponse.json({ success: false, message: 'Payment gateway configuration error' }, { status: 500 });
+        }
+
+        // SECURITY: Always fetch order from DB. Never trust client-supplied amount.
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
+        const query = supabaseAdmin
+            .from('orders')
+            .select('id, order_number, total, email, payment_status, metadata');
+
+        const { data: order, error: orderError } = isUUID
+            ? await query.eq('id', orderId).single()
+            : await query.eq('order_number', orderId).single();
+
+        if (orderError || !order) {
+            console.error('[Moolre] Order not found:', orderId);
+            return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
+        }
+
+        if (order.payment_status === 'paid') {
+            return NextResponse.json({ success: false, message: 'Order is already paid' }, { status: 400 });
+        }
+
+        const amount = Number(order.total);
+        if (!amount || amount <= 0) {
+            return NextResponse.json({ success: false, message: 'Invalid order amount' }, { status: 400 });
+        }
+
+        const orderRef = order.order_number || orderId;
+        const email = customerEmail || order.email;
+
+        if (!email) {
+            return NextResponse.json({ success: false, message: 'Customer email is required' }, { status: 400 });
+        }
+
+        const requestUrl = new URL(req.url);
+        const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin).replace(/\/+$/, '');
+
+        // Unique reference per attempt so retries don't collide
+        const externalref = `${orderRef}-R${Date.now()}`;
+
+        // Save the attempt reference on the order so verify/callback can find it
+        try {
+            await supabaseAdmin
+                .from('orders')
+                .update({
+                    payment_method: 'moolre',
+                    metadata: {
+                        ...(order.metadata || {}),
+                        moolre_externalref: externalref,
+                        moolre_init_at: new Date().toISOString(),
+                    },
+                })
+                .eq('order_number', orderRef);
+        } catch (metaErr) {
+            console.warn('[Moolre] Could not save reference to order:', metaErr);
+        }
+
+        console.log('[Moolre] Initializing for order:', orderRef, '| Amount:', amount, 'GHS', '| Ref:', externalref);
+
+        const result = await generateMoolreLink({
+            amount,
+            email,
+            externalref,
+            callback: `${baseUrl}/api/payment/moolre/callback`,
+            redirect: `${baseUrl}/order-success?order=${orderRef}&payment_success=true`,
+            metadata: {
+                order_number: orderRef,
+                order_id: order.id,
+                customer_email: email,
+            },
+        });
+
+        console.log('[Moolre] Init response:', result.success ? 'Success' : 'Failed', '| Has URL:', !!result.url);
+
+        if (result.success && result.url) {
+            // Persist Moolre's own reference too
+            try {
+                const { data: cur } = await supabaseAdmin
+                    .from('orders')
+                    .select('metadata')
+                    .eq('order_number', orderRef)
+                    .single();
+                await supabaseAdmin
+                    .from('orders')
+                    .update({
+                        metadata: {
+                            ...(cur?.metadata || {}),
+                            moolre_reference: result.reference,
+                        },
+                    })
+                    .eq('order_number', orderRef);
+            } catch { /* non-fatal */ }
+
+            return NextResponse.json({
+                success: true,
+                url: result.url,
+                reference: result.reference,
+            });
+        }
+
+        console.error('[Moolre] Init failed:', result.message);
+        return NextResponse.json({
             success: false,
-            message: 'The Moolre payment gateway is no longer in use. Please use Paystack via /api/payment/paystack.',
-        },
-        { status: 410 }
-    );
-}
+            message: result.message || 'Failed to generate payment link',
+        }, { status: 400 });
 
-export async function GET() {
-    return NextResponse.json(
-        {
-            message: 'Moolre payment endpoint is deprecated. Use /api/payment/paystack instead.',
-            timestamp: new Date().toISOString(),
-        },
-        { status: 410 }
-    );
+    } catch (error: any) {
+        console.error('[Moolre] API Error:', error);
+        return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
+    }
 }
-
-/* ============================================================
- * ORIGINAL MOOLRE IMPLEMENTATION — COMMENTED OUT
- * ============================================================
- *
- * import { supabaseAdmin } from '@/lib/supabase-admin';
- * import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
- *
- * export async function POST(req: Request) {
- *     try {
- *         const clientId = getClientIdentifier(req);
- *         const rateLimitResult = checkRateLimit(`payment:${clientId}`, RATE_LIMITS.payment);
- *         if (!rateLimitResult.success) {
- *             return NextResponse.json(
- *                 { success: false, message: 'Too many requests. Please try again later.' },
- *                 { status: 429 }
- *             );
- *         }
- *         const body = await req.json();
- *         const { orderId, customerEmail } = body;
- *         if (!orderId) return NextResponse.json({ success: false, message: 'Missing orderId' }, { status: 400 });
- *         if (!process.env.MOOLRE_API_USER || !process.env.MOOLRE_API_PUBKEY || !process.env.MOOLRE_ACCOUNT_NUMBER) {
- *             return NextResponse.json({ success: false, message: 'Payment gateway configuration error' }, { status: 500 });
- *         }
- *         // ... (init logic that called https://api.moolre.com/embed/link)
- *         // See git history for full implementation.
- *     } catch (error) {
- *         return NextResponse.json({ success: false, message: 'Internal Server Error' }, { status: 500 });
- *     }
- * }
- */

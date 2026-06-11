@@ -399,7 +399,7 @@ export default function POSPage() {
                     orderCount: paid.length,
                     cashSales: paid.filter(o => o.payment_method === 'cash').reduce((s, o) => s + Number(o.total), 0),
                     cardSales: paid.filter(o => o.payment_method === 'card').reduce((s, o) => s + Number(o.total), 0),
-                    momoSales: paid.filter(o => o.payment_method === 'paystack' || o.payment_method === 'moolre').reduce((s, o) => s + Number(o.total), 0),
+                    momoSales: paid.filter(o => o.payment_method === 'moolre').reduce((s, o) => s + Number(o.total), 0),
                 });
             }
         } catch {}
@@ -662,7 +662,7 @@ export default function POSPage() {
                     discount_total: totalDiscount,
                     total: grandTotal,
                     shipping_method: deliveryMethod,
-                    payment_method: paymentMethod === 'momo' ? 'paystack' : paymentMethod,
+                    payment_method: paymentMethod === 'momo' ? 'moolre' : paymentMethod,
                     shipping_address: addressData,
                     billing_address: addressData,
                     metadata: {
@@ -737,7 +737,7 @@ export default function POSPage() {
             }
 
             if (paymentMethod === 'momo') {
-                const paymentRes = await fetch('/api/payment/paystack', {
+                const paymentRes = await fetch('/api/payment/moolre', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ orderId: orderNumber, amount: grandTotal, customerEmail })

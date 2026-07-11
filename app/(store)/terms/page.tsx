@@ -301,7 +301,7 @@ export default function TermsPage() {
                   <i className="ri-mail-line text-gray-900 text-xl mt-1"></i>
                   <div>
                     <p className="font-medium text-gray-900">Email</p>
-                    <a href="mailto:support@example.com" className="text-gray-900 hover:underline">support@example.com</a>
+                    <a href="mailto:support@faithlinegh.com" className="text-gray-900 hover:underline">support@faithlinegh.com</a>
                   </div>
                 </div>
 

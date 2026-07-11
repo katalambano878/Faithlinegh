@@ -922,7 +922,7 @@ function ProductCard({ product, onAddToCart }: { product: ChatProduct; onAddToCa
             </button>
           )}
           <a
-            href={`/products/${product.slug}`}
+            href={`/product/${product.slug}`}
             className="px-2.5 sm:px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg transition-all text-center"
           >
             View

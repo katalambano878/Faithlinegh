@@ -45,9 +45,13 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
     e.preventDefault();
     if (!reply.trim()) return;
     setSending(true);
+    const { data: { session } } = await supabase.auth.getSession();
     await fetch(`/api/support/tickets/${id}/messages`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token && { Authorization: `Bearer ${session.access_token}` }),
+      },
       body: JSON.stringify({ content: reply, sender_type: 'agent', sender_name: 'Admin', is_internal: isInternal }),
     });
     setReply('');
@@ -57,9 +61,13 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   }
 
   async function updateTicket(updates: any) {
+    const { data: { session } } = await supabase.auth.getSession();
     await fetch('/api/support/tickets', {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(session?.access_token && { Authorization: `Bearer ${session.access_token}` }),
+      },
       body: JSON.stringify({ id, ...updates }),
     });
     setTicket((prev: any) => ({ ...prev, ...updates }));

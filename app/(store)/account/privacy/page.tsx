@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
 
 export default function PrivacySettingsPage() {
   const [exporting, setExporting] = useState(false);
@@ -11,27 +12,27 @@ export default function PrivacySettingsPage() {
 
   const handleExportData = async () => {
     setExporting(true);
-    
-    setTimeout(() => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        alert('Please sign in to export your data.');
+        return;
+      }
+      const user = session.user;
+
+      const [profileRes, ordersRes, addressesRes, wishlistRes] = await Promise.all([
+        supabase.from('profiles').select('email, full_name, phone, created_at, preferences').eq('id', user.id).maybeSingle(),
+        supabase.from('orders').select('order_number, status, payment_status, total, created_at').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('addresses').select('label, full_name, phone, address_line1, address_line2, city, state, is_default').eq('user_id', user.id),
+        supabase.from('wishlist_items').select('product_id, created_at').eq('user_id', user.id),
+      ]);
+
       const userData = {
-        personalInfo: {
-          name: 'John Doe',
-          email: 'john@example.com',
-          phone: '+1234567890',
-          createdAt: '2024-01-15'
-        },
-        orders: [
-          { id: 'ORD-2024-001', date: '2024-03-15', total: 129.99 },
-          { id: 'ORD-2024-002', date: '2024-03-20', total: 89.99 }
-        ],
-        addresses: [
-          { type: 'Home', street: '123 Main St', city: 'New York', zip: '10001' }
-        ],
-        preferences: {
-          newsletter: true,
-          smsNotifications: false,
-          marketing: true
-        }
+        exportedAt: new Date().toISOString(),
+        personalInfo: profileRes.data || { email: user.email },
+        orders: ordersRes.data || [],
+        addresses: addressesRes.data || [],
+        wishlist: wishlistRes.data || [],
       };
 
       const dataStr = JSON.stringify(userData, null, 2);
@@ -41,10 +42,13 @@ export default function PrivacySettingsPage() {
       link.href = url;
       link.download = `my-data-export-${Date.now()}.json`;
       link.click();
-      
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Data export failed:', err);
+      alert('Something went wrong exporting your data. Please try again.');
+    } finally {
       setExporting(false);
-      alert('Your data has been downloaded successfully!');
-    }, 2000);
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -54,13 +58,41 @@ export default function PrivacySettingsPage() {
     }
 
     setDeleting(true);
-    
-    setTimeout(() => {
-      alert('Account deletion request submitted. You will receive a confirmation email within 24 hours.');
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        alert('Please sign in to request account deletion.');
+        return;
+      }
+
+      const res = await fetch('/api/support/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: 'Account deletion request',
+          description: `Customer ${session.user.email} has requested permanent deletion of their account and personal data (GDPR/CCPA right to erasure).`,
+          customer_email: session.user.email,
+          customer_name: session.user.user_metadata?.full_name || '',
+          category: 'account',
+          priority: 'high',
+          channel: 'web',
+        }),
+      });
+
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Request failed');
+      }
+
+      alert('Account deletion request submitted. Our team will confirm by email within 24 hours.');
       setShowDeleteConfirm(false);
       setDeleteConfirmText('');
+    } catch (err) {
+      console.error('Deletion request failed:', err);
+      alert('Something went wrong submitting your request. Please contact support@faithlinegh.com.');
+    } finally {
       setDeleting(false);
-    }, 2000);
+    }
   };
 
   return (

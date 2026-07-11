@@ -16,11 +16,12 @@ export default function SupportTicketPage() {
     category: 'order',
     priority: 'normal',
     subject: '',
-    description: '',
-    attachments: [] as File[]
+    description: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [ticketNumber, setTicketNumber] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const { getToken } = useRecaptcha();
 
   const categories = [
@@ -36,6 +37,7 @@ export default function SupportTicketPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setSubmitError('');
 
     // reCAPTCHA verification
     const isHuman = await getToken('support_ticket');
@@ -44,22 +46,42 @@ export default function SupportTicketPage() {
       alert('Security verification failed. Please try again.');
       return;
     }
-    
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowSuccess(true);
-      setTimeout(() => {
-        router.push('/support/tickets');
-      }, 2000);
-    }, 1500);
-  };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFormData({
-        ...formData,
-        attachments: Array.from(e.target.files)
+    try {
+      // Map the form's priority naming to the API's
+      const priorityMap: Record<string, string> = { low: 'low', normal: 'medium', high: 'high' };
+      const description = formData.orderNumber
+        ? `Order: ${formData.orderNumber}\n\n${formData.description}`
+        : formData.description;
+
+      const res = await fetch('/api/support/tickets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject: formData.subject,
+          description,
+          customer_name: formData.name,
+          customer_email: formData.email,
+          category: formData.category,
+          priority: priorityMap[formData.priority] || 'medium',
+          channel: 'web',
+          initial_message: formData.description,
+          message_sender_type: 'customer',
+          message_sender_name: formData.name,
+        }),
       });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to submit ticket');
+      }
+
+      setTicketNumber(json.data?.ticket_number || '');
+      setShowSuccess(true);
+    } catch (err: any) {
+      setSubmitError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -77,9 +99,11 @@ export default function SupportTicketPage() {
               <p className="text-gray-600 mb-2">
                 Your support ticket has been submitted successfully.
               </p>
-              <p className="text-sm text-gray-500 mb-6">
-                Ticket #TKT-2024-{Math.floor(Math.random() * 10000)}
-              </p>
+              {ticketNumber && (
+                <p className="text-sm text-gray-500 mb-6">
+                  Ticket #{ticketNumber}
+                </p>
+              )}
               <div className="space-y-3">
                 <p className="text-sm text-gray-600">
                   We'll respond to your email within 24 hours.
@@ -281,43 +305,12 @@ export default function SupportTicketPage() {
                 </p>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Attachments (optional)
-                </label>
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <input
-                    type="file"
-                    onChange={handleFileChange}
-                    multiple
-                    accept="image/*,.pdf"
-                    className="hidden"
-                    id="file-upload"
-                  />
-                  <label
-                    htmlFor="file-upload"
-                    className="cursor-pointer"
-                  >
-                    <i className="ri-upload-cloud-line text-4xl text-gray-400 mb-2"></i>
-                    <p className="text-gray-900 font-semibold mb-1">
-                      Click to upload files
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      PNG, JPG, PDF up to 10MB
-                    </p>
-                  </label>
-                  {formData.attachments.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      {formData.attachments.map((file, index) => (
-                        <div key={index} className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-                          <i className="ri-file-line"></i>
-                          <span>{file.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              {submitError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                  <i className="ri-error-warning-line mr-2"></i>
+                  {submitError}
                 </div>
-              </div>
+              )}
 
               <div className="flex space-x-4 pt-6">
                 <button
@@ -354,7 +347,6 @@ export default function SupportTicketPage() {
                   <li>• Check our <Link href="/help" className="underline hover:text-[#5A4234]">Help Center</Link> for quick answers</li>
                   <li>• Average response time: 24 hours</li>
                   <li>• Include your order number for faster assistance</li>
-                  <li>• Attach photos if reporting a product issue</li>
                 </ul>
               </div>
             </div>

@@ -85,7 +85,7 @@ export default function ContactPage() {
     }
   };
 
-  const contactEmail = getSetting("contact_email") || "support@example.com";
+  const contactEmail = getSetting("contact_email") || "support@faithlinegh.com";
   const contactPhone = getSetting("contact_phone") || "0541770961";
   const contactAddress = getSetting("contact_address") || "Accra, Ghana";
 

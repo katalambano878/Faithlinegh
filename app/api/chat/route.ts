@@ -393,7 +393,7 @@ LIMITATIONS (what you CANNOT do directly):
 WHEN YOU CANNOT HELP OR ANSWER A QUESTION:
 If you genuinely cannot answer a question or resolve an issue (whether it's beyond your capabilities, the customer is frustrated, or anything else), you MUST do TWO things:
 1. AUTOMATICALLY create a support ticket using the create_support_ticket tool — don't just offer to, actually do it. Use whatever info the customer already provided (email, name, issue details).
-2. ALWAYS provide the customer with direct contact information for faster help. Share the store's support email (support@example.com) and any other contact details configured for the store. Say something like: "I've created a support ticket for you. For a faster response, you can also reach us at support@example.com."
+2. ALWAYS provide the customer with direct contact information for faster help. Share the store's support email (support@faithlinegh.com) and any other contact details configured for the store. Say something like: "I've created a support ticket for you. For a faster response, you can also reach us at support@faithlinegh.com."
 Never leave a customer stuck without a path forward.
 
 ${getSiteMapSummary()}`;
@@ -797,7 +797,7 @@ async function handleWithoutAI(supabase: any, userText: string, profile: ChatCus
   }
 
   return {
-    message: "I'm not quite sure what you're looking for. I can help with:\n- Finding and buying products\n- Tracking orders\n- Checking coupons\n- Store policies and info\n- Creating support tickets\n\nFor immediate assistance, email support@example.com.",
+    message: "I'm not quite sure what you're looking for. I can help with:\n- Finding and buying products\n- Tracking orders\n- Checking coupons\n- Store policies and info\n- Creating support tickets\n\nFor immediate assistance, email support@faithlinegh.com.",
     quickReplies: ['Find a product', 'Track my order', 'What do you recommend?', 'Call us'],
   };
 }
@@ -955,7 +955,7 @@ async function handleWithAI(
       } else if (couponCard) {
         assistantContent = `Here's the coupon information:`;
       } else {
-        assistantContent = `I'm sorry, I wasn't able to process that properly. You can try rephrasing your request, or for immediate help reach us at support@example.com. Our team is available Mon-Sat, 9am-6pm.`;
+        assistantContent = `I'm sorry, I wasn't able to process that properly. You can try rephrasing your request, or for immediate help reach us at support@faithlinegh.com. Our team is available Mon-Sat, 9am-6pm.`;
       }
     }
 

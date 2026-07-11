@@ -361,7 +361,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           {/* Footer */}
           <div className="border-t-2 border-gray-800 pt-4 text-center text-sm text-gray-600">
 <p>Thank you for shopping with us!</p>
-              <p>Questions? Contact us at support@example.com</p>
+              <p>Questions? Contact us at support@faithlinegh.com</p>
           </div>
         </div>
       </div>

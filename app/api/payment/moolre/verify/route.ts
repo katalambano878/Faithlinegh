@@ -115,8 +115,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Failed to update order' }, { status: 500 });
         }
 
+        // Annotate metadata AND atomically claim the right to send the
+        // confirmation — the callback route does the same, so whichever
+        // path wins the conditional update is the only one that notifies.
+        let shouldNotify = false;
         try {
-            await supabaseAdmin
+            const { data: claimed } = await supabaseAdmin
                 .from('orders')
                 .update({
                     metadata: {
@@ -125,9 +129,13 @@ export async function POST(req: Request) {
                         moolre_externalref: confirmedRef,
                         moolre_transaction_id: confirmedTxId,
                         moolre_paid_at: new Date().toISOString(),
+                        confirmation_sent_at: new Date().toISOString(),
                     },
                 })
-                .eq('order_number', orderNumber);
+                .eq('order_number', orderNumber)
+                .is('metadata->>confirmation_sent_at', null)
+                .select('id');
+            shouldNotify = !!claimed?.length;
         } catch (annotateErr: any) {
             console.warn('[Moolre Verify] Metadata annotate failed:', annotateErr.message);
         }
@@ -143,7 +151,7 @@ export async function POST(req: Request) {
             }
         }
 
-        if (orderJson) {
+        if (orderJson && shouldNotify) {
             try {
                 await sendOrderConfirmation(orderJson);
             } catch (notifyError: any) {

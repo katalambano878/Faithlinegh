@@ -3,14 +3,14 @@ import { supabase } from '@/lib/supabase';
 import { escapeHtml } from '@/lib/sanitize';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@example.com';
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Faithlinegh <noreply@example.com>';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@faithline.com';
+const EMAIL_FROM = process.env.EMAIL_FROM || 'Faithlinegh <noreply@faithlinegh.com>';
 const BRAND = {
     name: process.env.NEXT_PUBLIC_SITE_NAME || 'Faithlinegh',
     color: '#171717',
     colorLight: '#f9fafb',
     colorDark: '#262626',
-    url: (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://example.com').replace(/\/+$/, ''),
+    url: (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://faithlinegh.com').replace(/\/+$/, ''),
     phone: process.env.CONTACT_PHONE || '',
 };
 
@@ -144,7 +144,7 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: process.env.SMS_SENDER_ID || 'Faithlinegh',
+                senderid: process.env.MOOLRE_SMS_SENDER_ID || process.env.SMS_SENDER_ID || 'Faithlinegh',
                 messages: [
                     {
                         recipient: recipient,
@@ -176,7 +176,7 @@ export async function sendSMS({ to, message }: { to: string; message: string }) 
 export async function sendOrderConfirmation(order: any) {
     const { id, email, phone: orderPhone, shipping_address, total, created_at, order_number, metadata } = order;
 
-    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://example.com').replace(/\/+$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://faithlinegh.com').replace(/\/+$/, '');
 
     // Build customer name from available sources
     const getName = () => {
@@ -298,7 +298,7 @@ ${emailButton('View Order in Admin', `${baseUrl}/admin/orders/${id}`)}
 export async function sendOrderStatusUpdate(order: any, newStatus: string) {
     const { id, email, phone: orderPhone, shipping_address, order_number, metadata } = order;
 
-    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://example.com').replace(/\/+$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://faithlinegh.com').replace(/\/+$/, '');
 
     // Build customer name from available sources
     const getName = () => {
@@ -442,7 +442,7 @@ ${emailButton('Start Shopping', `${BRAND.url}/shop`)}
 export async function sendPaymentLink(order: any) {
     const { id, email, phone: orderPhone, shipping_address, total, order_number, metadata } = order;
 
-    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://example.com').replace(/\/+$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://faithlinegh.com').replace(/\/+$/, '');
     const paymentUrl = `${baseUrl}/pay/${id}`;
 
     // Build customer name from available sources

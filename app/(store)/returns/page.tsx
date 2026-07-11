@@ -2,39 +2,20 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-const mockOrders = [
-  {
-    id: 'ORD-2024-156',
-    date: '2024-01-20',
-    items: [
-      {
-        id: 1,
-        name: 'Premium Leather Crossbody Bag',
-        price: 289,
-        image: '/placeholder-product.svg',
-        returnable: true
-      },
-      {
-        id: 2,
-        name: 'Minimalist Ceramic Vase Set',
-        price: 159,
-        image: '/placeholder-product.svg',
-        returnable: true
-      }
-    ]
-  }
-];
+import { supabase } from '@/lib/supabase';
 
 export default function ReturnsPortalPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [orderNumber, setOrderNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [returnReasons, setReturnReasons] = useState<Record<number, string>>({});
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [returnReasons, setReturnReasons] = useState<Record<string, string>>({});
   const [returnType, setReturnType] = useState<'refund' | 'exchange'>('refund');
   const [isLoading, setIsLoading] = useState(false);
   const [foundOrder, setFoundOrder] = useState<any>(null);
+  const [lookupError, setLookupError] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
   const reasons = [
     'Wrong size/fit',
@@ -47,17 +28,55 @@ export default function ReturnsPortalPage() {
     'Other'
   ];
 
-  const handleFindOrder = (e: React.FormEvent) => {
+  const handleFindOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      setFoundOrder(mockOrders[0]);
-      setIsLoading(false);
+    setLookupError('');
+    try {
+      const { data, error } = await supabase.rpc('get_order_for_tracking', {
+        p_order_number: orderNumber.trim(),
+        p_email: email.trim(),
+      });
+
+      if (error || !data) {
+        setLookupError('We could not find that order. Check the order number and the email you used at checkout.');
+        return;
+      }
+
+      if (!['delivered', 'completed'].includes(data.status)) {
+        setLookupError(`This order is still "${String(data.status).replace(/_/g, ' ')}" — returns can only be started once your order has been delivered.`);
+        return;
+      }
+
+      const items = (data.order_items || []).map((item: any) => ({
+        id: item.id,
+        name: item.product_name + (item.variant_name ? ` (${item.variant_name})` : ''),
+        price: Number(item.unit_price) || 0,
+        quantity: item.quantity,
+        image: item.metadata?.image || '/placeholder-product.svg',
+      }));
+
+      if (items.length === 0) {
+        setLookupError('No returnable items were found on this order.');
+        return;
+      }
+
+      setFoundOrder({
+        id: data.order_number,
+        date: new Date(data.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        items,
+      });
+      setSelectedItems([]);
+      setReturnReasons({});
       setStep(2);
-    }, 1000);
+    } catch {
+      setLookupError('Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const toggleItemSelection = (itemId: number) => {
+  const toggleItemSelection = (itemId: string) => {
     setSelectedItems(prev =>
       prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
@@ -65,12 +84,34 @@ export default function ReturnsPortalPage() {
     );
   };
 
-  const handleSubmitReturn = () => {
+  const handleSubmitReturn = async () => {
     setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
+    setSubmitError('');
+    try {
+      const res = await fetch('/api/returns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderNumber: orderNumber.trim(),
+          email: email.trim(),
+          returnType,
+          items: selectedItems.map(id => ({
+            order_item_id: id,
+            reason: returnReasons[id],
+            quantity: foundOrder.items.find((i: any) => i.id === id)?.quantity || 1,
+          })),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'Failed to submit return request');
+      }
       router.push('/returns/confirmation');
-    }, 1500);
+    } catch (err: any) {
+      setSubmitError(err.message || 'Something went wrong. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -134,6 +175,13 @@ export default function ReturnsPortalPage() {
                     required
                   />
                 </div>
+
+                {lookupError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                    <i className="ri-error-warning-line mr-2"></i>
+                    {lookupError}
+                  </div>
+                )}
 
                 <button
                   type="submit"
@@ -294,22 +342,29 @@ export default function ReturnsPortalPage() {
                 <ol className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">1.</span>
-                    <span>Print your prepaid return label (sent to your email)</span>
+                    <span>Our team reviews your request and contacts you within 24 hours</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">2.</span>
-                    <span>Pack items securely in original packaging</span>
+                    <span>Pack items securely in their original packaging</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">3.</span>
-                    <span>Attach the label and drop off at any shipping location</span>
+                    <span>We arrange pickup or share the drop-off location with you</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">4.</span>
-                    <span>Track your return status in your account</span>
+                    <span>Your refund or exchange is processed once we receive the items</span>
                   </li>
                 </ol>
               </div>
+
+              {submitError && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                  <i className="ri-error-warning-line mr-2"></i>
+                  {submitError}
+                </div>
+              )}
 
               <div className="flex space-x-4">
                 <button

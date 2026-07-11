@@ -138,8 +138,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 });
         }
 
+        // Annotate metadata AND atomically claim the right to send the
+        // confirmation — the verify route does the same, so whichever
+        // path wins the conditional update is the only one that notifies.
+        let shouldNotify = false;
         try {
-            await supabaseAdmin
+            const { data: claimed } = await supabaseAdmin
                 .from('orders')
                 .update({
                     metadata: {
@@ -148,9 +152,13 @@ export async function POST(req: Request) {
                         moolre_externalref: externalref,
                         moolre_transaction_id: status.transactionId || transactionId,
                         moolre_paid_at: new Date().toISOString(),
+                        confirmation_sent_at: new Date().toISOString(),
                     },
                 })
-                .eq('id', orderJson.id);
+                .eq('id', orderJson.id)
+                .is('metadata->>confirmation_sent_at', null)
+                .select('id');
+            shouldNotify = !!claimed?.length;
         } catch (annotateErr: any) {
             console.warn('[Moolre Callback] Metadata annotate failed:', annotateErr.message);
         }
@@ -168,11 +176,13 @@ export async function POST(req: Request) {
             console.error('[Moolre Callback] Customer stats failed:', statsError.message);
         }
 
-        try {
-            await sendOrderConfirmation(orderJson);
-            console.log('[Moolre Callback] Notifications sent!');
-        } catch (notifyError: any) {
-            console.error('[Moolre Callback] Notification failed:', notifyError.message);
+        if (shouldNotify) {
+            try {
+                await sendOrderConfirmation(orderJson);
+                console.log('[Moolre Callback] Notifications sent!');
+            } catch (notifyError: any) {
+                console.error('[Moolre Callback] Notification failed:', notifyError.message);
+            }
         }
 
         return NextResponse.json({ success: true, message: 'Payment verified and order updated' });

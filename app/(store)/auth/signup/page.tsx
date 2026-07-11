@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import PasswordStrengthMeter from '@/components/PasswordStrengthMeter';
 import { supabase } from '@/lib/supabase';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
@@ -28,7 +28,19 @@ function getFriendlyError(message: string): string {
 }
 
 export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
+  );
+}
+
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Only allow same-site relative redirect targets
+  const rawRedirect = searchParams.get('redirect') || '';
+  const redirectTo = rawRedirect.startsWith('/') && !rawRedirect.startsWith('//') ? rawRedirect : '/account';
   const errorRef = useRef<HTMLDivElement>(null);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -132,7 +144,7 @@ export default function SignupPage() {
           setSuccess(true);
         } else {
           // Auto-login success (if email confirming is off)
-          router.push('/account');
+          router.push(redirectTo);
           router.refresh();
         }
       }

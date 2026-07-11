@@ -104,7 +104,7 @@ Customers can contact support via WhatsApp, email, or support ticket for unresol
     category: "legal",
     content: `Privacy Policy and Terms explain data handling, order conditions, returns, and user responsibilities.
 
-For legal questions, contact support@example.com.`,
+For legal questions, contact support@faithlinegh.com.`,
     keywords: ["privacy", "terms", "legal", "data", "policy"],
   },
   {

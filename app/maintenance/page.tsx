@@ -118,7 +118,7 @@ export default function MaintenancePage() {
           <p className="text-gray-600 mb-6 text-sm sm:text-base">Our customer service team is still available to help you.</p>
           <div className="flex flex-wrap gap-3 sm:gap-4 justify-center">
             <a
-              href="mailto:support@example.com"
+              href="mailto:support@faithlinegh.com"
               className="inline-flex items-center gap-2 bg-white text-[#5A4234] px-5 py-2.5 rounded-full font-medium hover:bg-[#F3F3F3] transition-colors border border-[#A8826B]/30 text-sm"
             >
               <i className="ri-mail-line"></i>

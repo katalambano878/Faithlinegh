@@ -21,7 +21,7 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://example.com";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://faithlinegh.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

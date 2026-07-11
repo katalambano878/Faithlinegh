@@ -8,7 +8,8 @@ import type { Metadata } from 'next';
  * live domain to make canonical URLs, Open Graph and structured data accurate.
  */
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://example.com').replace(/\/+$/, '');
+export const SITE_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://faithlinegh.com').replace(/\/+$/, '');
+export const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || 'support@faithlinegh.com';
 export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'Faithlinegh';
 export const SITE_LEGAL_NAME = SITE_NAME;
 export const LOCALE = 'en_GH';
@@ -150,7 +151,7 @@ export function organizationSchema() {
     logo: { '@type': 'ImageObject', url: absoluteUrl(LOGO_PATH) },
     image: absoluteUrl(OG_IMAGE_PATH),
     description: SITE_DESCRIPTION,
-    email: 'support@example.com',
+    email: SUPPORT_EMAIL,
     foundingLocation: { '@type': 'Place', name: 'Accra, Ghana' },
     areaServed: { '@type': 'Country', name: 'Ghana' },
     knowsAbout: ['Women fashion bags', 'Dresses', 'Basic tops', 'Ladies fashion', 'Affordable fashion'],

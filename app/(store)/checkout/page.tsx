@@ -19,7 +19,6 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [checkoutType, setCheckoutType] = useState<'guest' | 'account'>('guest');
   const [saveAddress, setSaveAddress] = useState(false);
-  const [savePayment, setSavePayment] = useState(false);
   const [user, setUser] = useState<any>(null);
   const { getToken, verifying } = useRecaptcha();
 
@@ -71,15 +70,7 @@ export default function CheckoutPage() {
       }
     }
     checkUser();
-
-    // Small delay to ensure cart load
-    const timer = setTimeout(() => {
-      if (cart.length === 0 && !isLoading) {
-        // router.push('/cart'); // Optional: redirect if empty
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [cart, router, isLoading]);
+  }, []);
 
   // Scroll to top when step changes
   useEffect(() => {
@@ -245,6 +236,25 @@ export default function CheckoutPage() {
         p_address: shippingData
       });
 
+      // 3b. Save the address to the logged-in user's address book if requested
+      if (user?.id && saveAddress) {
+        try {
+          await supabase.from('addresses').insert({
+            user_id: user.id,
+            type: 'shipping',
+            label: 'Home',
+            full_name: fullName,
+            phone: shippingData.phone,
+            address_line1: shippingData.address,
+            city: shippingData.city,
+            state: shippingData.region,
+            country: 'Ghana',
+          });
+        } catch (addrErr) {
+          console.warn('Could not save address:', addrErr);
+        }
+      }
+
       // 4. Handle Payment Redirects or Completion
       if (paymentMethod === 'moolre') {
         try {
@@ -357,7 +367,14 @@ export default function CheckoutPage() {
               </button>
 
               <button
-                onClick={() => setCheckoutType('account')}
+                onClick={() => {
+                  if (user) {
+                    setCheckoutType('account');
+                  } else {
+                    // Guests need an account first — come back to checkout after signup
+                    router.push('/auth/signup?redirect=/checkout');
+                  }
+                }}
                 className={`p-6 rounded-xl border-2 transition-all text-left cursor-pointer ${checkoutType === 'account'
                   ? 'border-[#5A4234] bg-[#F3F3F3]'
                   : 'border-gray-200 hover:border-gray-300'
@@ -500,7 +517,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
 
-                    {checkoutType === 'account' && (
+                    {user && (
                       <label className="flex items-center space-x-3 cursor-pointer">
                         <input
                           type="checkbox"

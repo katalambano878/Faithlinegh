@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyAuth } from '@/lib/auth';
+import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -7,6 +9,20 @@ const supabaseAdmin = createClient(
 );
 
 export async function GET(req: NextRequest) {
+  // Requires a logged-in user. Admin/staff can list every ticket;
+  // regular customers only ever see tickets tied to their own email.
+  const auth = await verifyAuth(req);
+  if (!auth.authenticated || !auth.user) {
+    return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: 401 });
+  }
+
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('role')
+    .eq('id', auth.user.id)
+    .maybeSingle();
+  const isStaff = profile?.role === 'admin' || profile?.role === 'staff';
+
   const { searchParams } = new URL(req.url);
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '20');
@@ -22,9 +38,12 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: false })
     .range(from, to);
 
+  if (!isStaff) {
+    query = query.eq('customer_email', auth.user.email || '');
+  }
   if (status) query = query.eq('status', status);
   if (priority) query = query.eq('priority', priority);
-  if (search) {
+  if (search && isStaff) {
     query = query.or(`ticket_number.ilike.%${search}%,subject.ilike.%${search}%,customer_email.ilike.%${search}%,customer_name.ilike.%${search}%`);
   }
 
@@ -34,7 +53,18 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // Public (guests can open tickets from the web form) but rate-limited.
+  const clientId = getClientIdentifier(req);
+  const rateLimitResult = checkRateLimit(`ticket:${clientId}`, RATE_LIMITS.notification);
+  if (!rateLimitResult.success) {
+    return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });
+  }
+
   const body = await req.json();
+
+  if (!body.subject || typeof body.subject !== 'string') {
+    return NextResponse.json({ error: 'Subject is required' }, { status: 400 });
+  }
 
   const { data: ticketNum } = await supabaseAdmin.rpc('generate_ticket_number');
   const ticket = {
@@ -79,6 +109,11 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PATCH(req: NextRequest) {
+  const auth = await verifyAuth(req, { requireAdmin: true });
+  if (!auth.authenticated) {
+    return NextResponse.json({ error: auth.error || 'Unauthorized' }, { status: 401 });
+  }
+
   const body = await req.json();
   const { id, ...updates } = body;
   if (!id) return NextResponse.json({ error: 'Ticket ID required' }, { status: 400 });

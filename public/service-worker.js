@@ -1,5 +1,5 @@
-// Faithlinegh - Service Worker v3.0
-const CACHE_VERSION = 'sl-v3.0';
+// Faithlinegh - Service Worker v3.1
+const CACHE_VERSION = 'sl-v3.1';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
@@ -34,7 +34,7 @@ async function trimCache(cacheName, maxItems) {
 
 // Install: pre-cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing v3.0...');
+  console.log('[SW] Installing v3.1...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
@@ -51,7 +51,7 @@ self.addEventListener('install', (event) => {
 
 // Activate: clean old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating v3.0...');
+  console.log('[SW] Activating v3.1...');
   event.waitUntil(
     caches.keys()
       .then((keys) => {
@@ -90,7 +90,7 @@ self.addEventListener('fetch', (event) => {
   if (
     request.destination === 'image' ||
     url.pathname.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/) ||
-    url.hostname.includes('supabase.co') && url.pathname.includes('/storage/')
+    url.pathname.includes('/storage/v1/object/')
   ) {
     event.respondWith(
       caches.open(IMAGE_CACHE).then((cache) => {

@@ -2,12 +2,18 @@
 
 import { useState, useEffect } from 'react';
 
+// Web-push requires a VAPID key pair + a backend that stores subscriptions and
+// sends pushes. Until that's configured, don't prompt users for a permission
+// we can't use.
+const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '';
+
 export default function PushNotificationManager() {
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [showPrompt, setShowPrompt] = useState(false);
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
 
   useEffect(() => {
+    if (!VAPID_PUBLIC_KEY) return;
     if ('Notification' in window) {
       setPermission(Notification.permission);
 
@@ -39,8 +45,8 @@ export default function PushNotificationManager() {
 
         new Notification('Notifications Enabled! 🎉', {
           body: 'You will now receive updates about orders, deals, and more.',
-          icon: '/icon-192x192.png',
-          badge: '/icon-192x192.png',
+          icon: '/icons/icon-192x192.png',
+          badge: '/icons/icon-72x72.png',
           tag: 'welcome-notification'
         });
       }
@@ -63,11 +69,9 @@ export default function PushNotificationManager() {
         return;
       }
 
-      const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY_HERE';
-
       const newSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublicKey) as any
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as any
       });
 
       setSubscription(newSubscription);
@@ -114,7 +118,7 @@ export default function PushNotificationManager() {
           <div className="flex gap-3">
             <button
               onClick={requestPermission}
-              className="flex-1 bg-[#5A4234] hover:bg-[#5A4234] text-white py-2 px-4 rounded-lg font-medium transition-colors whitespace-nowrap"
+              className="flex-1 bg-[#5A4234] hover:bg-[#473327] text-white py-2 px-4 rounded-lg font-medium transition-colors whitespace-nowrap"
             >
               Enable Notifications
             </button>

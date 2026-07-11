@@ -37,7 +37,7 @@ export async function POST(request: Request) {
         // 'order_created' requires a valid order to exist (verified below)
         // 'contact' is public but rate-limited
         // ============================================================
-        const adminOnlyTypes = ['campaign', 'order_updated', 'order_status', 'payment_link', 'welcome'];
+        const adminOnlyTypes = ['campaign', 'order_updated', 'order_status', 'payment_link'];
         const requiresAdminAuth = adminOnlyTypes.includes(type);
 
         if (requiresAdminAuth) {
@@ -120,6 +120,20 @@ export async function POST(request: Request) {
         if (type === 'welcome') {
             if (!payload.email) {
                 return NextResponse.json({ error: 'Missing email' }, { status: 400 });
+            }
+            // Public endpoint (called right after signup) — only send if this
+            // email belongs to an auth user created in the last 10 minutes.
+            const { data: profile } = await supabaseAdmin
+                .from('profiles')
+                .select('id, created_at')
+                .eq('email', payload.email)
+                .maybeSingle();
+            if (!profile) {
+                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            }
+            const accountAge = Date.now() - new Date(profile.created_at).getTime();
+            if (accountAge > 10 * 60 * 1000) {
+                return NextResponse.json({ error: 'Welcome message can only be sent for new accounts' }, { status: 400 });
             }
             await sendWelcomeMessage(payload);
             return NextResponse.json({ success: true, message: 'Welcome message sent' });

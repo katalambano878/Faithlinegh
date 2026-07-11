@@ -27,7 +27,7 @@ export default function FAQsPage() {
     {
       category: 'orders',
       question: 'Can I modify or cancel my order?',
-      answer: "You can request changes within 1 hour of placing your order. Contact support immediately at support@example.com. Once processing starts, changes may be limited."
+      answer: "You can request changes within 1 hour of placing your order. Contact support immediately at support@faithlinegh.com. Once processing starts, changes may be limited."
     },
     {
       category: 'orders',

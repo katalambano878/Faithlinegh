@@ -54,7 +54,7 @@ export async function testSmsAction(phone: string, message: string, authToken: s
             },
             body: JSON.stringify({
                 type: 1,
-                senderid: process.env.SMS_SENDER_ID || 'Faithlinegh',
+                senderid: process.env.MOOLRE_SMS_SENDER_ID || process.env.SMS_SENDER_ID || 'Faithlinegh',
                 messages: [
                     {
                         recipient: recipient,

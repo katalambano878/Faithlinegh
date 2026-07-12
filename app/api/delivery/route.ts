@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAdminOrStaffUser } from '@/lib/server-auth';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,13 +9,7 @@ const supabaseAdmin = createClient(
 );
 
 async function getAuthUser(req: NextRequest) {
-    const token = req.cookies.get('sb-access-token')?.value;
-    if (!token) return null;
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) return null;
-    const { data: profile } = await supabaseAdmin.from('profiles').select('role, full_name').eq('id', user.id).single();
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'staff')) return null;
-    return { ...user, role: profile.role, fullName: profile.full_name };
+    return getAdminOrStaffUser(req);
 }
 
 // GET /api/delivery — Stats & dashboard data
@@ -31,16 +26,30 @@ export async function GET(req: NextRequest) {
             today.setHours(0, 0, 0, 0);
             const todayISO = today.toISOString();
 
-            const [assignmentsRes, ridersRes, todayAssignments, pendingOrders, zonesRes] = await Promise.all([
+            const [assignmentsRes, ridersRes, todayAssignments, zonesRes] = await Promise.all([
                 supabaseAdmin.from('delivery_assignments').select('id, status', { count: 'exact' }),
                 supabaseAdmin.from('riders').select('id, status', { count: 'exact' }),
                 supabaseAdmin.from('delivery_assignments').select('id, status, delivery_fee').gte('assigned_at', todayISO),
-                supabaseAdmin.from('orders')
-                    .select('id', { count: 'exact' })
-                    .in('status', ['processing', 'shipped'])
-                    .not('id', 'in', `(${(await supabaseAdmin.from('delivery_assignments').select('order_id').not('status', 'in', '("failed","returned")')).data?.map(a => a.order_id).join(',') || '00000000-0000-0000-0000-000000000000'})`),
                 supabaseAdmin.from('delivery_zones').select('id', { count: 'exact' }).eq('is_active', true),
             ]);
+
+            const { data: assignedOrderIds } = await supabaseAdmin
+                .from('delivery_assignments')
+                .select('order_id')
+                .not('status', 'in', '("failed","returned")');
+
+            const excludeIds = (assignedOrderIds || []).map(a => a.order_id);
+
+            let pendingQuery = supabaseAdmin
+                .from('orders')
+                .select('id', { count: 'exact', head: true })
+                .in('status', ['processing', 'shipped']);
+
+            if (excludeIds.length > 0) {
+                pendingQuery = pendingQuery.not('id', 'in', `(${excludeIds.join(',')})`);
+            }
+
+            const pendingOrders = await pendingQuery;
 
             const allAssignments = assignmentsRes.data || [];
             const allRiders = ridersRes.data || [];

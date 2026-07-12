@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DeliveryNav from '../DeliveryNav';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface Zone { id: string; name: string; }
 
@@ -46,8 +47,8 @@ export default function RidersPage() {
     async function fetchData() {
         try {
             const [ridersRes, zonesRes] = await Promise.all([
-                fetch('/api/delivery/riders'),
-                fetch('/api/delivery/zones'),
+                adminFetch('/api/delivery/riders'),
+                adminFetch('/api/delivery/zones'),
             ]);
             const ridersData = await ridersRes.json();
             const zonesData = await zonesRes.json();
@@ -82,14 +83,14 @@ export default function RidersPage() {
         setSaving(true);
         try {
             if (editingRider) {
-                const res = await fetch('/api/delivery/riders', {
+                const res = await adminFetch('/api/delivery/riders', {
                     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: editingRider.id, ...form }),
                 });
                 if (!res.ok) throw new Error((await res.json()).error);
                 showToast('Rider updated');
             } else {
-                const res = await fetch('/api/delivery/riders', {
+                const res = await adminFetch('/api/delivery/riders', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(form),
                 });
@@ -108,7 +109,7 @@ export default function RidersPage() {
     async function handleToggleStatus(rider: Rider) {
         const newStatus = rider.status === 'active' ? 'inactive' : 'active';
         try {
-            const res = await fetch('/api/delivery/riders', {
+            const res = await adminFetch('/api/delivery/riders', {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: rider.id, status: newStatus }),
             });
@@ -123,7 +124,7 @@ export default function RidersPage() {
     async function handleDelete(rider: Rider) {
         if (!confirm(`Delete rider "${rider.full_name}"? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`/api/delivery/riders?id=${rider.id}`, { method: 'DELETE' });
+            const res = await adminFetch(`/api/delivery/riders?id=${rider.id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error((await res.json()).error);
             showToast('Rider removed');
             fetchData();

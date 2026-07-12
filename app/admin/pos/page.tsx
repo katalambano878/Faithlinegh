@@ -648,15 +648,23 @@ export default function POSPage() {
                 metadata: { image: item.image, pos_sale: true, discount_pct: item.discount || 0 }
             }));
 
+            const posOrderStatus = isCashOrCard
+                ? (deliveryMethod === 'pickup' ? 'delivered' : 'processing')
+                : 'awaiting_payment';
+
+            const { data: { session } } = await supabase.auth.getSession();
             const res = await fetch('/api/admin/pos/orders', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(session?.access_token && { Authorization: `Bearer ${session.access_token}` }),
+                },
                 credentials: 'include',
                 body: JSON.stringify({
                     order_number: orderNumber,
                     email: customerEmail,
                     phone: customerPhone,
-                    status: isCashOrCard ? 'completed' : 'pending',
+                    status: posOrderStatus,
                     payment_status: isCashOrCard ? 'paid' : 'pending',
                     subtotal: cartSubtotal,
                     discount_total: totalDiscount,

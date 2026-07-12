@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DeliveryNav from '../DeliveryNav';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface Rider {
     id: string; full_name: string; phone: string; vehicle_type: string; status: string;
@@ -74,9 +75,9 @@ export default function AssignmentsPage() {
             if (filterRider) params.set('rider_id', filterRider);
 
             const [assignRes, unassignedRes, ridersRes] = await Promise.all([
-                fetch(`/api/delivery/assignments?${params}`),
-                fetch('/api/delivery?action=unassigned'),
-                fetch('/api/delivery/riders?status=active'),
+                adminFetch(`/api/delivery/assignments?${params}`),
+                adminFetch('/api/delivery?action=unassigned'),
+                adminFetch('/api/delivery/riders?status=active'),
             ]);
 
             const assignData = await assignRes.json();
@@ -117,7 +118,7 @@ export default function AssignmentsPage() {
         if (!selectedOrder || !assignForm.rider_id) return;
         setSaving(true);
         try {
-            const res = await fetch('/api/delivery/assignments', {
+            const res = await adminFetch('/api/delivery/assignments', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -145,7 +146,7 @@ export default function AssignmentsPage() {
         if (!selectedAssignment || !updateForm.status) return;
         setSaving(true);
         try {
-            const res = await fetch('/api/delivery/assignments', {
+            const res = await adminFetch('/api/delivery/assignments', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -170,7 +171,7 @@ export default function AssignmentsPage() {
     async function handleDelete(id: string) {
         if (!confirm('Remove this assignment? The order will revert to processing.')) return;
         try {
-            const res = await fetch(`/api/delivery/assignments?id=${id}`, { method: 'DELETE' });
+            const res = await adminFetch(`/api/delivery/assignments?id=${id}`, { method: 'DELETE' });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
             showToast('Assignment removed');

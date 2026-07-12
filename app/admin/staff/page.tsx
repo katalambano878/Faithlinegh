@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface StaffMember {
   id: string;
@@ -43,7 +44,7 @@ export default function StaffPage() {
 
   const fetchStaff = useCallback(async () => {
     try {
-      const res = await fetch('/api/admin/staff', { credentials: 'include' });
+      const res = await adminFetch('/api/admin/staff');
       const data = await res.json();
       if (data.staff) setStaff(data.staff);
     } catch (err) {
@@ -77,10 +78,9 @@ export default function StaffPage() {
     setInviteSuccess('');
 
     try {
-      const res = await fetch('/api/admin/staff', {
+      const res = await adminFetch('/api/admin/staff', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           email: inviteForm.email,
           fullName: inviteForm.fullName,
@@ -117,10 +117,9 @@ export default function StaffPage() {
     setEditLoading(true);
 
     try {
-      const res = await fetch('/api/admin/staff', {
+      const res = await adminFetch('/api/admin/staff', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           userId: editingStaff.id,
           fullName: editForm.fullName,
@@ -147,9 +146,8 @@ export default function StaffPage() {
   async function handleRemove(userId: string) {
     setRemoveLoading(true);
     try {
-      const res = await fetch(`/api/admin/staff?userId=${userId}`, {
+      const res = await adminFetch(`/api/admin/staff?userId=${userId}`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) {
@@ -252,7 +250,10 @@ export default function StaffPage() {
           staff.map(member => {
             const roleMeta = ROLE_LABELS[member.role] || ROLE_LABELS.staff;
             const isCurrentUser = member.id === currentUserId;
-            const initials = (member.full_name || member.email)
+            const displayName = member.full_name?.trim()
+              || member.email.split('@')[0]
+              || 'Unnamed';
+            const initials = displayName
               .split(' ')
               .map(w => w[0])
               .join('')
@@ -282,7 +283,7 @@ export default function StaffPage() {
 
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="font-bold text-gray-900">{member.full_name || 'Unnamed'}</h3>
+                        <h3 className="font-bold text-gray-900">{displayName}</h3>
                         {isCurrentUser && (
                           <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase">You</span>
                         )}

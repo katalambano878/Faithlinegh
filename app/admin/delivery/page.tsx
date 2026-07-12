@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import DeliveryNav from './DeliveryNav';
+import { adminFetch } from '@/lib/admin-fetch';
 
 interface Stats {
     totalAssignments: number;
@@ -62,9 +63,13 @@ export default function DeliveryDashboard() {
     async function fetchData() {
         try {
             const [statsRes, recentRes] = await Promise.all([
-                fetch('/api/delivery?action=stats'),
-                fetch('/api/delivery?action=recent'),
+                adminFetch('/api/delivery?action=stats'),
+                adminFetch('/api/delivery?action=recent'),
             ]);
+            if (!statsRes.ok || !recentRes.ok) {
+                console.error('Delivery API auth failed');
+                return;
+            }
             const statsData = await statsRes.json();
             const recentData = await recentRes.json();
             setStats(statsData.stats);

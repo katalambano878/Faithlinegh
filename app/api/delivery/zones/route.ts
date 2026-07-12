@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getAdminOrStaffUser } from '@/lib/server-auth';
 
 const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,13 +9,7 @@ const supabaseAdmin = createClient(
 );
 
 async function getAuthUser(req: NextRequest) {
-    const token = req.cookies.get('sb-access-token')?.value;
-    if (!token) return null;
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    if (error || !user) return null;
-    const { data: profile } = await supabaseAdmin.from('profiles').select('role').eq('id', user.id).single();
-    if (!profile || (profile.role !== 'admin' && profile.role !== 'staff')) return null;
-    return { ...user, role: profile.role };
+    return getAdminOrStaffUser(req);
 }
 
 // GET — List zones

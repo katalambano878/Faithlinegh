@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 
+const VALID_ORDER_STATUSES = new Set([
+    'pending', 'awaiting_payment', 'processing', 'shipped',
+    'dispatched_to_rider', 'delivered', 'cancelled', 'refunded',
+]);
+
+function normalizePosOrderStatus(
+    status: string | undefined,
+    shippingMethod: string | undefined,
+    markPaid: boolean
+): string {
+    if (status === 'completed') {
+        return shippingMethod === 'pickup' ? 'delivered' : 'processing';
+    }
+    if (status && VALID_ORDER_STATUSES.has(status)) return status;
+    if (markPaid) return shippingMethod === 'pickup' ? 'delivered' : 'processing';
+    return 'pending';
+}
+
 function getAccessToken(request: Request): string | null {
   const authHeader = request.headers.get('authorization');
   if (authHeader?.startsWith('Bearer ')) return authHeader.slice(7).trim();
@@ -77,6 +95,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing order_number, total, or items' }, { status: 400 });
     }
 
+    const orderStatus = normalizePosOrderStatus(status, shipping_method, !!mark_paid);
+
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
       .insert({
@@ -84,7 +104,7 @@ export async function POST(request: Request) {
         user_id: null,
         email: email || null,
         phone: phone || null,
-        status: status || 'pending',
+        status: orderStatus,
         payment_status: payment_status || 'pending',
         currency: 'GHS',
         subtotal: Number(subtotal) || 0,
@@ -129,10 +149,10 @@ export async function POST(request: Request) {
           order_ref: order_number,
           moolre_ref: `POS-${(payment_method || 'cash').toUpperCase()}-${Date.now()}`,
         });
-        // POS sales are fulfilled immediately — mark as completed
+        const fulfilledStatus = shipping_method === 'pickup' ? 'delivered' : 'processing';
         await supabaseAdmin
           .from('orders')
-          .update({ status: 'completed' })
+          .update({ status: fulfilledStatus })
           .eq('order_number', order_number);
       } catch (e) {
         console.error('mark_order_paid error:', e);

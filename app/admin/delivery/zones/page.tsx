@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import DeliveryNav from '../DeliveryNav';
+import { adminFetch } from '@/lib/admin-fetch';
 
 const GHANA_REGIONS = [
     'Greater Accra', 'Ashanti', 'Western', 'Western North', 'Central', 'Eastern',
@@ -31,7 +32,7 @@ export default function ZonesPage() {
 
     async function fetchZones() {
         try {
-            const res = await fetch('/api/delivery/zones');
+            const res = await adminFetch('/api/delivery/zones');
             const data = await res.json();
             setZones(data.zones || []);
         } catch (err) {
@@ -77,14 +78,14 @@ export default function ZonesPage() {
             };
 
             if (editingZone) {
-                const res = await fetch('/api/delivery/zones', {
+                const res = await adminFetch('/api/delivery/zones', {
                     method: 'PATCH', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id: editingZone.id, ...payload }),
                 });
                 if (!res.ok) throw new Error((await res.json()).error);
                 showToast('Zone updated');
             } else {
-                const res = await fetch('/api/delivery/zones', {
+                const res = await adminFetch('/api/delivery/zones', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload),
                 });
@@ -102,7 +103,7 @@ export default function ZonesPage() {
 
     async function handleToggle(zone: Zone) {
         try {
-            const res = await fetch('/api/delivery/zones', {
+            const res = await adminFetch('/api/delivery/zones', {
                 method: 'PATCH', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: zone.id, is_active: !zone.is_active }),
             });
@@ -117,7 +118,7 @@ export default function ZonesPage() {
     async function handleDelete(zone: Zone) {
         if (!confirm(`Delete zone "${zone.name}"? This cannot be undone.`)) return;
         try {
-            const res = await fetch(`/api/delivery/zones?id=${zone.id}`, { method: 'DELETE' });
+            const res = await adminFetch(`/api/delivery/zones?id=${zone.id}`, { method: 'DELETE' });
             if (!res.ok) throw new Error((await res.json()).error);
             showToast('Zone deleted');
             fetchZones();

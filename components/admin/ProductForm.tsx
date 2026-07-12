@@ -64,8 +64,96 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         { name: 'Gold', hex: '#D4AF37' },
         { name: 'Silver', hex: '#C0C0C0' },
     ];
-    // Common beauty / cosmetics sizes & options (you can still add any custom ones)
-    const sizePresets = ['10ml', '20ml', '30ml', '50ml', '100ml', '150ml', '200ml'];
+    // ── Comprehensive size systems ──
+    // Grouped presets covering clothing, shoes, waist, kids, one-size and beauty volumes.
+    const sizePresetGroups: { id: string; label: string; icon: string; hint: string; sizes: string[] }[] = [
+        {
+            id: 'clothing',
+            label: 'Clothing',
+            icon: 'ri-t-shirt-line',
+            hint: 'Standard letter sizes for tops, dresses, and outfits',
+            sizes: ['XXS', 'XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL'],
+        },
+        {
+            id: 'dress-uk',
+            label: 'UK Dress',
+            icon: 'ri-shirt-line',
+            hint: 'UK numeric dress sizes',
+            sizes: ['UK 4', 'UK 6', 'UK 8', 'UK 10', 'UK 12', 'UK 14', 'UK 16', 'UK 18', 'UK 20', 'UK 22', 'UK 24'],
+        },
+        {
+            id: 'shoes-eu',
+            label: 'Shoes (EU)',
+            icon: 'ri-footprint-line',
+            hint: 'European shoe sizes',
+            sizes: ['35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46'],
+        },
+        {
+            id: 'shoes-uk',
+            label: 'Shoes (UK)',
+            icon: 'ri-footprint-fill',
+            hint: 'UK shoe sizes including half sizes',
+            sizes: ['UK 3', 'UK 3.5', 'UK 4', 'UK 4.5', 'UK 5', 'UK 5.5', 'UK 6', 'UK 6.5', 'UK 7', 'UK 7.5', 'UK 8', 'UK 8.5', 'UK 9', 'UK 9.5', 'UK 10', 'UK 10.5', 'UK 11', 'UK 12'],
+        },
+        {
+            id: 'waist',
+            label: 'Waist (in)',
+            icon: 'ri-ruler-2-line',
+            hint: 'Waist sizes in inches for trousers and jeans',
+            sizes: ['26', '28', '30', '32', '34', '36', '38', '40', '42', '44'],
+        },
+        {
+            id: 'kids',
+            label: 'Kids',
+            icon: 'ri-bear-smile-line',
+            hint: 'Kids sizes by age range',
+            sizes: ['0-3M', '3-6M', '6-12M', '1-2Y', '2-3Y', '3-4Y', '5-6Y', '7-8Y', '9-10Y', '11-12Y', '13-14Y'],
+        },
+        {
+            id: 'onesize',
+            label: 'One Size',
+            icon: 'ri-checkbox-circle-line',
+            hint: 'For bags, accessories and free-size items',
+            sizes: ['One Size'],
+        },
+        {
+            id: 'volume',
+            label: 'Volume',
+            icon: 'ri-drop-line',
+            hint: 'For beauty and cosmetics products',
+            sizes: ['10ml', '20ml', '30ml', '50ml', '100ml', '150ml', '200ml'],
+        },
+    ];
+    // Open on the size system that matches the product's existing sizes (falls back to clothing)
+    const [activeSizeGroup, setActiveSizeGroup] = useState(() => {
+        const existingSizes: string[] = (initialData?.product_variants || [])
+            .map((v: any) => v.name || '')
+            .filter(Boolean);
+        if (existingSizes.length > 0) {
+            const match = sizePresetGroups.find(g =>
+                g.sizes.some(s => existingSizes.some(es => es.toLowerCase() === s.toLowerCase()))
+            );
+            if (match) return match.id;
+        }
+        return 'clothing';
+    });
+
+    // Canonical order across all preset groups (for smart sorting)
+    const canonicalSizeOrder: string[] = sizePresetGroups.flatMap(g => g.sizes);
+    const sortSizesSmart = (sizes: string[]) => {
+        return [...sizes].sort((a, b) => {
+            const ia = canonicalSizeOrder.findIndex(s => s.toLowerCase() === a.toLowerCase());
+            const ib = canonicalSizeOrder.findIndex(s => s.toLowerCase() === b.toLowerCase());
+            if (ia !== -1 && ib !== -1) return ia - ib;
+            if (ia !== -1) return -1;
+            if (ib !== -1) return 1;
+            // Both custom: numeric-aware compare (e.g. 14" < 20", 12mm < 16mm)
+            const na = parseFloat(a.replace(/[^\d.]/g, ''));
+            const nb = parseFloat(b.replace(/[^\d.]/g, ''));
+            if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+            return a.localeCompare(b);
+        });
+    };
 
     // Parse existing variants to extract unique colors, sizes, and variant image
     const existingVariants = (initialData?.product_variants || []).map((v: any) => ({
@@ -186,6 +274,19 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
             return [...prev, size];
         });
     };
+
+    // Select or clear every size in a preset group at once
+    const toggleGroupAll = (groupSizes: string[]) => {
+        setSelectedSizes(prev => {
+            const allSelected = groupSizes.every(s => prev.includes(s));
+            if (allSelected) return prev.filter(s => !groupSizes.includes(s));
+            const additions = groupSizes.filter(s => !prev.includes(s));
+            return [...prev, ...additions];
+        });
+    };
+
+    // Re-order selected sizes into canonical order (XS → 5XL, small → large shoe sizes, etc.)
+    const autoSortSizes = () => setSelectedSizes(prev => sortSizesSmart(prev));
 
     const addCustomColor = () => {
         if (!customColorName.trim()) return;
@@ -1014,29 +1115,81 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     )}
                                 </h4>
                                 <p className="text-xs text-gray-500 mb-4">
-                                    Click options to add/remove. Use custom for things like volumes (10ml, 50ml),
-                                    lash lengths (12mm, 16mm), wig lengths (14&quot;, 20&quot;), bundle counts, etc.
+                                    Pick a size system, then click sizes to add/remove. You can mix systems
+                                    (e.g. clothing letters + One Size) and add anything custom below.
                                 </p>
 
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {sizePresets.map(size => {
-                                        const isSelected = selectedSizes.includes(size);
+                                {/* Size system tabs */}
+                                <div className="flex flex-wrap gap-1.5 mb-4">
+                                    {sizePresetGroups.map(group => {
+                                        const selectedInGroup = group.sizes.filter(s => selectedSizes.includes(s)).length;
+                                        const isActive = activeSizeGroup === group.id;
                                         return (
                                             <button
-                                                key={size}
-                                                onClick={() => toggleSize(size)}
-                                                className={`px-5 py-2.5 rounded-lg border-2 font-semibold text-sm transition-all ${
-                                                    isSelected
-                                                        ? 'border-brand-brown bg-brand-cream text-brand-brown ring-1 ring-brand-brown'
-                                                        : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
+                                                key={group.id}
+                                                type="button"
+                                                onClick={() => setActiveSizeGroup(group.id)}
+                                                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all border ${
+                                                    isActive
+                                                        ? 'bg-brand-brown text-white border-brand-brown shadow-sm'
+                                                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-900'
                                                 }`}
                                             >
-                                                {size}
-                                                {isSelected && <i className="ri-check-line ml-1.5 text-brand-brown"></i>}
+                                                <i className={`${group.icon} text-sm`}></i>
+                                                {group.label}
+                                                {selectedInGroup > 0 && (
+                                                    <span className={`min-w-[16px] h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center ${
+                                                        isActive ? 'bg-white text-brand-brown' : 'bg-brand-cream text-brand-brown'
+                                                    }`}>
+                                                        {selectedInGroup}
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })}
                                 </div>
+
+                                {/* Active group sizes */}
+                                {(() => {
+                                    const group = sizePresetGroups.find(g => g.id === activeSizeGroup) || sizePresetGroups[0];
+                                    const allInGroupSelected = group.sizes.every(s => selectedSizes.includes(s));
+                                    return (
+                                        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <p className="text-xs text-gray-500">{group.hint}</p>
+                                                {group.sizes.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleGroupAll(group.sizes)}
+                                                        className="text-xs font-semibold text-brand-brown hover:underline whitespace-nowrap ml-3"
+                                                    >
+                                                        {allInGroupSelected ? 'Clear all' : 'Select all'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {group.sizes.map(size => {
+                                                    const isSelected = selectedSizes.includes(size);
+                                                    return (
+                                                        <button
+                                                            key={size}
+                                                            type="button"
+                                                            onClick={() => toggleSize(size)}
+                                                            className={`px-4 py-2.5 rounded-lg border-2 font-semibold text-sm transition-all ${
+                                                                isSelected
+                                                                    ? 'border-brand-brown bg-brand-cream text-brand-brown ring-1 ring-brand-brown'
+                                                                    : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
+                                                            }`}
+                                                        >
+                                                            {size}
+                                                            {isSelected && <i className="ri-check-line ml-1.5 text-brand-brown"></i>}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Custom size */}
                                 <div className="flex items-center gap-2 pt-3 border-t border-gray-200">
@@ -1044,7 +1197,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                         type="text"
                                         value={customSize}
                                         onChange={(e) => setCustomSize(e.target.value)}
-                                        placeholder="Custom option (e.g. 10ml serum, 16mm lash, 20&quot; wig, One Size)"
+                                        placeholder="Custom option (e.g. EU 37.5, 20&quot; wig, 16mm lash, XXL Tall)"
                                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
                                         onKeyDown={(e) => e.key === 'Enter' && addCustomSize()}
                                     />
@@ -1058,6 +1211,18 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 </div>
 
                                 {/* Selected sizes — draggable to reorder */}
+                                {selectedSizes.length > 1 && (
+                                    <div className="mt-4 flex items-center justify-between">
+                                        <p className="text-xs text-gray-500">Drag to reorder — this is the order shoppers will see</p>
+                                        <button
+                                            type="button"
+                                            onClick={autoSortSizes}
+                                            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-brown hover:underline whitespace-nowrap ml-3"
+                                        >
+                                            <i className="ri-sort-asc"></i> Auto-sort small → large
+                                        </button>
+                                    </div>
+                                )}
                                 {selectedSizes.length > 0 && (
                                     <DragDropContext onDragEnd={(result: DropResult) => {
                                         if (!result.destination) return;

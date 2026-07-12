@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
 import ProductCard from '@/components/ProductCard';
 import ProductReviews from '@/components/ProductReviews';
+import SizeGuideModal from '@/components/SizeGuideModal';
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -38,6 +39,19 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [activeTab, setActiveTab] = useState('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+
+  // Detect which size guide fits this product from its variant size names
+  const detectSizeGuideCategory = (sizes: string[]): string | null => {
+    if (!sizes.length) return null;
+    const lower = sizes.map(s => (s || '').toLowerCase().trim());
+    const letterSizes = ['xxs', 'xs', 's', 'm', 'l', 'xl', '2xl', 'xxl', '3xl', '4xl', '5xl'];
+    if (lower.some(s => /^uk\s?\d{1,2}(\.5)?$/.test(s))) return 'Shoes';
+    if (lower.some(s => /^(3[5-9]|4[0-6])$/.test(s))) return 'Shoes';
+    if (lower.some(s => /^(2[6-9]|3[0-9]|4[0-4])$/.test(s)) && !lower.some(s => letterSizes.includes(s))) return 'Bottoms';
+    if (lower.some(s => letterSizes.includes(s))) return 'Tops & Shirts';
+    return null;
+  };
 
   const { addToCart } = useCart();
 
@@ -474,11 +488,23 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
                       const hasImages = visibleVariants.some((v: any) => v.image_url);
                       const stepLabel = hasColors ? 'Step 2 · ' : '';
+                      const guideCategory = detectSizeGuideCategory(visibleVariants.map((v: any) => v.name || ''));
 
                       return (
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{stepLabel}Size / Type</span>
+                            <span className="flex items-center gap-3">
+                              <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{stepLabel}Size / Type</span>
+                              {guideCategory && (
+                                <button
+                                  type="button"
+                                  onClick={() => setSizeGuideOpen(true)}
+                                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-brown hover:underline"
+                                >
+                                  <i className="ri-ruler-line"></i> Size Guide
+                                </button>
+                              )}
+                            </span>
                             {selectedVariant
                               ? <span className="text-sm font-semibold text-brand-brown">₵{(selectedVariant.price || product.price).toFixed(2)}</span>
                               : <span className="text-xs text-[#5B4436] font-medium animate-pulse">← Pick a size</span>
@@ -721,6 +747,12 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           </section>
         )}
       </main>
+
+      <SizeGuideModal
+        isOpen={sizeGuideOpen}
+        onClose={() => setSizeGuideOpen(false)}
+        category={detectSizeGuideCategory(product.variants?.map((v: any) => v.name || '') || []) || 'General'}
+      />
     </>
   );
 }

@@ -11,6 +11,7 @@ import SizeGuideModal from '@/components/SizeGuideModal';
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { parseBundleTiers, computeBundlePrice, tierUnitPrice, tierSavings, BundleTier } from '@/lib/bundle-pricing';
 
 // Map common color names to hex values for the swatch preview
 function colorNameToHex(name: string): string {
@@ -132,7 +133,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           features: ['Premium Quality', 'Authentic Design'],
           featured: ['Premium Quality', 'Authentic Design'],
           care: 'Handle with care.',
-          preorderShipping: dataToTransform.metadata?.preorder_shipping || null
+          preorderShipping: dataToTransform.metadata?.preorder_shipping || null,
+          bundlePricing: parseBundleTiers(dataToTransform.metadata?.bundle_pricing)
         };
 
         // Ensure at least one image/placeholder
@@ -173,7 +175,9 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
               const minVariantPrice = hasVariants ? Math.min(...variants.map((v: any) => v.price || p.price)) : undefined;
               const totalVariantStock = hasVariants ? variants.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) : 0;
               const effectiveStock = hasVariants ? totalVariantStock : p.quantity;
+              const relatedTiers = parseBundleTiers(p.metadata?.bundle_pricing);
               return {
+                bundlePricing: relatedTiers.length > 0 ? relatedTiers : null,
                 id: p.id,
                 slug: p.slug,
                 name: p.name,
@@ -212,6 +216,12 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const activePrice = selectedVariant?.price ?? product?.price ?? 0;
   const activeStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
 
+  // Bundle pricing (e.g. 1 for ₵90, 3 for ₵255, 5 for ₵410)
+  const bundleTiers: BundleTier[] = product?.bundlePricing || [];
+  const hasBundles = bundleTiers.length > 1 || (bundleTiers.length === 1 && bundleTiers[0].qty > 1);
+  const bundleTotal = hasBundles ? computeBundlePrice(quantity, activePrice, bundleTiers) : activePrice * quantity;
+  const bundleSaved = hasBundles ? Math.max(0, activePrice * quantity - bundleTotal) : 0;
+
   const handleAddToCart = () => {
     if (!product) return;
     if (needsVariantSelection) return; // Safety check
@@ -237,7 +247,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       variant: variantLabel,
       slug: product.slug,
       maxStock: activeStock,
-      moq: product.moq || 1
+      moq: product.moq || 1,
+      bundlePricing: hasBundles ? bundleTiers : null
     });
   };
 
@@ -406,6 +417,49 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     <span className="text-xl text-gray-400 line-through">₵{product.compare_at_price.toFixed(2)}</span>
                   )}
                 </div>
+
+                {/* ── Bundle deals ── */}
+                {hasBundles && (
+                  <div className="mb-6 rounded-2xl border-2 border-brand-brown/15 bg-brand-cream/60 p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <i className="ri-stack-line text-brand-brown text-lg"></i>
+                      <span className="text-sm font-bold text-brand-brown uppercase tracking-wide">Bundle & Save</span>
+                      <span className="text-[11px] text-brand-brown/70 font-medium">mix colors & sizes</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {bundleTiers.map((tier) => {
+                        const isActive = quantity === tier.qty;
+                        const saved = tierSavings(tier, activePrice);
+                        return (
+                          <button
+                            key={tier.qty}
+                            type="button"
+                            onClick={() => setQuantity(tier.qty)}
+                            className={`relative flex flex-col items-center px-4 py-2.5 rounded-xl border-2 transition-all duration-150 cursor-pointer select-none active:scale-95 ${
+                              isActive
+                                ? 'border-brand-brown bg-brand-brown text-white shadow-md'
+                                : 'border-brand-brown/20 bg-white text-brand-brown hover:border-brand-brown/50 hover:shadow-sm'
+                            }`}
+                          >
+                            <span className="text-sm font-bold whitespace-nowrap">
+                              {tier.qty} for ₵{Number.isInteger(tier.total_price) ? tier.total_price : tier.total_price.toFixed(2)}
+                            </span>
+                            <span className={`text-[10px] font-medium ${isActive ? 'text-white/80' : 'text-brand-brown/60'}`}>
+                              ₵{tierUnitPrice(tier).toFixed(2)} each
+                            </span>
+                            {saved > 0 && (
+                              <span className={`absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                isActive ? 'bg-white text-brand-brown' : 'bg-green-600 text-white'
+                              }`}>
+                                −₵{Number.isInteger(saved) ? saved : saved.toFixed(2)}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <p className="text-gray-700 leading-relaxed mb-8 text-lg">{product.description}</p>
 
@@ -630,6 +684,22 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                       )}
                     </div>
                   </div>
+
+                  {/* Live total with bundle savings */}
+                  {quantity > 1 && (
+                    <div className="mt-4 flex items-baseline gap-3">
+                      <span className="text-sm text-gray-500">Total for {quantity}:</span>
+                      <span className="text-2xl font-bold text-brand-brown">₵{bundleTotal.toFixed(2)}</span>
+                      {bundleSaved > 0 && (
+                        <>
+                          <span className="text-sm text-gray-400 line-through">₵{(activePrice * quantity).toFixed(2)}</span>
+                          <span className="text-xs font-bold text-white bg-green-600 px-2 py-0.5 rounded-full">
+                            You save ₵{Number.isInteger(bundleSaved) ? bundleSaved : bundleSaved.toFixed(2)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-8">

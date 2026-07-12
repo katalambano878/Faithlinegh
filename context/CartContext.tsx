@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { BundleTier, computeCartBundles } from '@/lib/bundle-pricing';
 
 export type CartItem = {
     id: string;
@@ -12,6 +13,8 @@ export type CartItem = {
     slug: string;
     maxStock: number;
     moq?: number; // Minimum Order Quantity
+    /** Quantity bundle tiers (e.g. 3 for ₵255) — mix-and-match across variants of this product */
+    bundlePricing?: BundleTier[] | null;
 };
 
 type CartContextType = {
@@ -21,7 +24,12 @@ type CartContextType = {
     updateQuantity: (itemId: string, quantity: number, variant?: string) => void;
     clearCart: () => void;
     cartCount: number;
+    /** Bundle-aware subtotal (what the customer actually pays) */
     subtotal: number;
+    /** Subtotal at plain unit prices, before bundle deals */
+    baseSubtotal: number;
+    /** Amount saved via bundle deals (baseSubtotal − subtotal) */
+    bundleSavings: number;
     isCartOpen: boolean;
     setIsCartOpen: (isOpen: boolean) => void;
 };
@@ -96,7 +104,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
                     existingItem.quantity + newItem.quantity,
                     existingItem.maxStock
                 );
-                newCart[existingItemIndex] = { ...existingItem, quantity: newQuantity };
+                newCart[existingItemIndex] = {
+                    ...existingItem,
+                    quantity: newQuantity,
+                    // Refresh bundle tiers in case the admin updated them
+                    bundlePricing: newItem.bundlePricing ?? existingItem.bundlePricing,
+                };
                 return newCart;
             } else {
                 return [...prevCart, newItem];
@@ -140,7 +153,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const bundleTotals = computeCartBundles(cart.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        tiers: item.bundlePricing,
+    })));
+    const subtotal = bundleTotals.bundledSubtotal;
+    const baseSubtotal = bundleTotals.baseSubtotal;
+    const bundleSavings = bundleTotals.savings;
 
     return (
         <CartContext.Provider value={{
@@ -151,6 +172,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             clearCart,
             cartCount,
             subtotal,
+            baseSubtotal,
+            bundleSavings,
             isCartOpen,
             setIsCartOpen: handleSetCartOpen
         }}>

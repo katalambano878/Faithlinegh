@@ -52,6 +52,10 @@ interface ProductCardProps {
   hasVariants?: boolean;
   minVariantPrice?: number;
   colorVariants?: ColorVariant[];
+  /** Best bundle deal label, e.g. "3 for ₵255" */
+  bundleLabel?: string;
+  /** Full bundle tiers so quick-add carries deals into the cart */
+  bundlePricing?: { qty: number; total_price: number }[] | null;
 }
 
 export default function ProductCard({
@@ -69,7 +73,9 @@ export default function ProductCard({
   moq = 1,
   hasVariants = false,
   minVariantPrice,
-  colorVariants = []
+  colorVariants = [],
+  bundleLabel,
+  bundlePricing
 }: ProductCardProps) {
   const { addToCart } = useCart();
   const [activeColor, setActiveColor] = useState<string | null>(null);
@@ -94,7 +100,12 @@ export default function ProductCard({
 
       {/* Top badges */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between p-3">
-        {badge ? (
+        {bundleLabel ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-700/90 backdrop-blur-sm px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.1em] text-white shadow-sm">
+            <i className="ri-stack-line text-[9px]" />
+            {bundleLabel}
+          </span>
+        ) : badge ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-white/90 backdrop-blur-sm px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-brand-brown shadow-sm">
             <i className="ri-sparkling-2-fill text-brand-gold text-[9px]" />
             {badge}
@@ -181,7 +192,7 @@ export default function ProductCard({
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                if (inStock) addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq });
+                if (inStock) addToCart({ id, name, price, image, quantity: moq, slug, maxStock, moq, bundlePricing: bundlePricing || null });
               }}
               disabled={!inStock}
               className="relative z-30 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-brand-brown shadow-lg transition-all duration-300 hover:scale-110 hover:bg-gradient-to-br hover:from-brand-gold hover:to-brand-carton hover:text-white shrink-0 disabled:bg-white/40 disabled:text-brand-brown/40 disabled:shadow-none disabled:cursor-not-allowed disabled:hover:scale-100"

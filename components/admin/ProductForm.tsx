@@ -23,6 +23,38 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [onSale, setOnSale] = useState(!!(initialData?.compare_at_price && parseFloat(initialData.compare_at_price) > parseFloat(initialData?.price || 0)));
     const [wholesalePrice, setWholesalePrice] = useState(initialData?.metadata?.wholesale_price ?? '');
     const [wholesaleMinQty, setWholesaleMinQty] = useState(initialData?.metadata?.wholesale_min_qty ?? '');
+
+    // ── Bundle pricing (e.g. 1 for ₵90, 3 for ₵255, 5 for ₵410) ──
+    const [bundleTiers, setBundleTiers] = useState<{ qty: string; total_price: string }[]>(() => {
+        const raw = initialData?.metadata?.bundle_pricing;
+        if (Array.isArray(raw) && raw.length > 0) {
+            return raw.map((t: any) => ({ qty: String(t.qty ?? ''), total_price: String(t.total_price ?? '') }));
+        }
+        return [];
+    });
+
+    const addBundleTier = () => {
+        setBundleTiers(prev => [...prev, { qty: '', total_price: '' }]);
+    };
+    const updateBundleTier = (idx: number, field: 'qty' | 'total_price', value: string) => {
+        setBundleTiers(prev => prev.map((t, i) => i === idx ? { ...t, [field]: value } : t));
+    };
+    const removeBundleTier = (idx: number) => {
+        setBundleTiers(prev => prev.filter((_, i) => i !== idx));
+    };
+
+    // Valid, deduped, sorted tiers derived from the editor rows
+    const validBundleTiers = (() => {
+        const byQty = new Map<number, number>();
+        bundleTiers.forEach(t => {
+            const qty = parseInt(t.qty);
+            const total = parseFloat(t.total_price);
+            if (qty >= 1 && total > 0 && !byQty.has(qty)) byQty.set(qty, total);
+        });
+        return Array.from(byQty.entries())
+            .map(([qty, total_price]) => ({ qty, total_price }))
+            .sort((a, b) => a.qty - b.qty);
+    })();
     const [sku, setSku] = useState(initialData?.sku || '');
     const [stock, setStock] = useState(initialData?.quantity || '');
     const [moq, setMoq] = useState(initialData?.moq || '1');
@@ -570,7 +602,8 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                     low_stock_threshold: parseInt(lowStockThreshold) || 5,
                     preorder_shipping: preorderShipping.trim() || null,
                     wholesale_price: wholesalePrice ? parseFloat(wholesalePrice) : null,
-                    wholesale_min_qty: wholesaleMinQty ? parseInt(wholesaleMinQty) : null
+                    wholesale_min_qty: wholesaleMinQty ? parseInt(wholesaleMinQty) : null,
+                    bundle_pricing: validBundleTiers.length > 0 ? validBundleTiers : null
                 },
                 variants: variantsPayload,
             };
@@ -886,6 +919,101 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 >
                                     <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${onSale ? 'left-7' : 'left-1'}`} />
                                 </button>
+                            </div>
+
+                            {/* Bundle Pricing */}
+                            <div className="pt-6 border-t border-gray-200">
+                                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                                    <i className="ri-stack-line mr-2 text-brand-brown"></i>
+                                    Bundle Pricing (optional)
+                                </h3>
+                                <p className="text-sm text-gray-600 mb-4">
+                                    Sell in bundles like <strong>1 for ₵90 · 3 for ₵255 · 5 for ₵410</strong>.
+                                    Customers automatically get the best bundle price at checkout — they can mix
+                                    colors and sizes of this product to reach a bundle.
+                                </p>
+
+                                {bundleTiers.length > 0 && (
+                                    <div className="space-y-2 mb-3">
+                                        <div className="grid grid-cols-[90px_1fr_1fr_36px] gap-3 px-1 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                            <span>Quantity</span>
+                                            <span>Bundle Total (₵)</span>
+                                            <span>Per Piece</span>
+                                            <span></span>
+                                        </div>
+                                        {bundleTiers.map((tier, idx) => {
+                                            const qty = parseInt(tier.qty);
+                                            const total = parseFloat(tier.total_price);
+                                            const perUnit = qty >= 1 && total > 0 ? total / qty : null;
+                                            const basePrice = parseFloat(price) || 0;
+                                            const savings = perUnit != null && basePrice > 0 ? (basePrice - perUnit) * qty : 0;
+                                            const isDuplicate = qty >= 1 && bundleTiers.findIndex(t => parseInt(t.qty) === qty) !== idx;
+                                            return (
+                                                <div key={idx} className="grid grid-cols-[90px_1fr_1fr_36px] gap-3 items-center">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={tier.qty}
+                                                        onChange={(e) => updateBundleTier(idx, 'qty', e.target.value)}
+                                                        placeholder="e.g. 3"
+                                                        className={`px-3 py-2.5 border-2 rounded-lg text-sm text-center font-semibold focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${isDuplicate ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                                                    />
+                                                    <div className="relative">
+                                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm font-semibold">₵</span>
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            value={tier.total_price}
+                                                            onChange={(e) => updateBundleTier(idx, 'total_price', e.target.value)}
+                                                            placeholder="e.g. 255"
+                                                            className="w-full pl-8 pr-3 py-2.5 border-2 border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
+                                                        />
+                                                    </div>
+                                                    <div className="text-sm">
+                                                        {perUnit != null ? (
+                                                            <span className="font-semibold text-gray-900">
+                                                                ₵{perUnit.toFixed(2)}
+                                                                {savings > 0 && (
+                                                                    <span className="ml-1.5 text-xs font-medium text-green-600">save ₵{savings.toFixed(0)}</span>
+                                                                )}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-gray-400">—</span>
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeBundleTier(idx)}
+                                                        className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                                        title="Remove tier"
+                                                    >
+                                                        <i className="ri-delete-bin-line"></i>
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    onClick={addBundleTier}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-brand-cream text-brand-brown border border-brand-brown/20 rounded-lg text-sm font-semibold hover:bg-brand-blush transition-colors"
+                                >
+                                    <i className="ri-add-line"></i> Add Bundle Tier
+                                </button>
+
+                                {validBundleTiers.length > 0 && (
+                                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                                        <span className="text-xs text-gray-500">Shoppers will see:</span>
+                                        {validBundleTiers.map(t => (
+                                            <span key={t.qty} className="text-xs font-semibold bg-brand-brown text-white px-2.5 py-1 rounded-full">
+                                                {t.qty} for ₵{Number.isInteger(t.total_price) ? t.total_price : t.total_price.toFixed(2)}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Wholesale */}

@@ -11,7 +11,7 @@ import { usePageTitle } from '@/hooks/usePageTitle';
 
 export default function CartPage() {
   usePageTitle('Shopping Cart');
-  const { cart: cartItems, removeFromCart, updateQuantity, subtotal, addToCart } = useCart();
+  const { cart: cartItems, removeFromCart, updateQuantity, subtotal, bundleSavings, addToCart } = useCart();
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
   const [savedItems, setSavedItems] = useState<any[]>([]);
 
@@ -201,6 +201,14 @@ export default function CartPage() {
                     <h3 className="text-xl font-bold text-gray-900 mb-6">Order Summary</h3>
 
                     <div className="space-y-4 mb-6">
+                      {bundleSavings > 0 && (
+                        <div className="flex justify-between text-green-700">
+                          <span className="flex items-center gap-1">
+                            <i className="ri-stack-line"></i> Bundle savings
+                          </span>
+                          <span className="font-semibold">−₵{bundleSavings.toFixed(2)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-gray-700">
                         <span>Subtotal</span>
                         <span className="font-semibold">₵{subtotal.toFixed(2)}</span>

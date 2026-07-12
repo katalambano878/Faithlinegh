@@ -11,7 +11,7 @@ interface MiniCartProps {
 }
 
 export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
-  const { cart, removeFromCart, updateQuantity, subtotal } = useCart();
+  const { cart, removeFromCart, updateQuantity, subtotal, bundleSavings } = useCart();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -156,6 +156,14 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
             </div>
 
             <div className="border-t border-brand-carton/20 p-6 bg-white">
+              {bundleSavings > 0 && (
+                <div className="flex items-center justify-between mb-2 text-sm">
+                  <span className="text-green-700 font-medium flex items-center gap-1">
+                    <i className="ri-stack-line"></i> Bundle savings
+                  </span>
+                  <span className="font-bold text-green-700">−₵{bundleSavings.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between mb-4">
                 <span className="text-brand-brown/70 font-medium">Subtotal</span>
                 <span className="text-2xl font-bold text-brand-brown">₵{subtotal.toFixed(2)}</span>

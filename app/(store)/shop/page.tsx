@@ -10,6 +10,7 @@ import { cachedQuery } from '@/lib/query-cache';
 import PageHero from '@/components/PageHero';
 import JsonLd from '@/components/JsonLd';
 import { collectionPageSchema, breadcrumbSchema, SITE_NAME } from '@/lib/seo';
+import { parseBundleTiers, formatBundleLabel } from '@/lib/bundle-pricing';
 
 function formatProduct(p: any) {
   const variants = p.product_variants || [];
@@ -29,6 +30,8 @@ function formatProduct(p: any) {
       }
     }
   }
+  const bundleTiers = parseBundleTiers(p.metadata?.bundle_pricing);
+  const bestBundle = bundleTiers.filter(t => t.qty > 1)[0];
   return {
     id: p.id,
     slug: p.slug,
@@ -46,6 +49,8 @@ function formatProduct(p: any) {
     hasVariants,
     minVariantPrice,
     colorVariants,
+    bundleLabel: bestBundle ? formatBundleLabel(bestBundle) : undefined,
+    bundlePricing: bundleTiers.length > 0 ? bundleTiers : null,
   };
 }
 

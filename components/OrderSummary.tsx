@@ -13,9 +13,11 @@ interface OrderSummaryProps {
   shipping: number;
   tax: number;
   total: number;
+  /** Bundle deal savings deducted from the subtotal */
+  bundleSavings?: number;
 }
 
-export default function OrderSummary({ items, subtotal, shipping, tax, total }: OrderSummaryProps) {
+export default function OrderSummary({ items, subtotal, shipping, tax, total, bundleSavings = 0 }: OrderSummaryProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
       <h2 className="text-xl font-bold text-brand-brown mb-6">Order Summary</h2>
@@ -47,6 +49,14 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total }: 
           <span>Subtotal</span>
           <span className="font-semibold">₵ {subtotal.toFixed(2)}</span>
         </div>
+        {bundleSavings > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span className="flex items-center gap-1">
+              <i className="ri-stack-line"></i> Bundle savings
+            </span>
+            <span className="font-semibold">−₵ {bundleSavings.toFixed(2)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-gray-700">
           <span>Shipping</span>
           <span className="font-semibold">

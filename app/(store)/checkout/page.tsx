@@ -13,7 +13,7 @@ import { useRecaptcha } from '@/hooks/useRecaptcha';
 export default function CheckoutPage() {
   usePageTitle('Checkout');
   const router = useRouter();
-  const { cart, subtotal: cartSubtotal, clearCart } = useCart();
+  const { cart, subtotal: cartSubtotal, baseSubtotal, bundleSavings, clearCart } = useCart();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -78,10 +78,12 @@ export default function CheckoutPage() {
   }, [currentStep]);
 
   // Calculate Totals
-  const subtotal = cartSubtotal;
+  // `cartSubtotal` is bundle-aware (what the customer pays);
+  // `baseSubtotal` is plain unit pricing and matches the sum of order line items.
+  const subtotal = baseSubtotal;
   const shippingCost = 0; // Delivery options temporarily disabled
   const tax = 0; // No Tax
-  const total = subtotal + shippingCost + tax;
+  const total = cartSubtotal + shippingCost + tax;
 
   const validateShipping = () => {
     const newErrors: any = {};
@@ -147,7 +149,7 @@ export default function CheckoutPage() {
           subtotal: subtotal,
           tax_total: tax,
           shipping_total: shippingCost,
-          discount_total: 0,
+          discount_total: bundleSavings,
           total: total,
           shipping_method: deliveryMethod,
           payment_method: paymentMethod,
@@ -653,6 +655,7 @@ export default function CheckoutPage() {
               shipping={shippingCost}
               tax={tax}
               total={total}
+              bundleSavings={bundleSavings}
             />
           </div>
         </div>

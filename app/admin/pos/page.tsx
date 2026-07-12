@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { BundleTier, parseBundleTiers, computeCartBundles } from '@/lib/bundle-pricing';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -27,6 +28,7 @@ interface Product {
     sku: string;
     barcode?: string;
     variants?: PosVariant[];
+    bundleTiers?: BundleTier[] | null;
 }
 
 interface CartItem extends Product {
@@ -390,6 +392,7 @@ export default function POSPage() {
                             };
                         });
                     const variantStock = variants.reduce((sum, v) => sum + v.quantity, 0);
+                    const bundleTiers = parseBundleTiers(p.metadata?.bundle_pricing);
                     return {
                         id: p.id,
                         name: p.name,
@@ -400,6 +403,7 @@ export default function POSPage() {
                         sku: p.sku || '',
                         barcode: p.metadata?.barcode || p.sku || '',
                         variants: variants.length > 0 ? variants : undefined,
+                        bundleTiers: bundleTiers.length > 0 ? bundleTiers : null,
                     };
                 });
                 setProducts(formatted);
@@ -644,12 +648,19 @@ export default function POSPage() {
     }, [customers, customerSearch]);
 
     const cartSubtotal = cart.reduce((sum, item) => sum + (item.price * item.cartQuantity), 0);
+    // Bundle deals: mix-and-match across variants of the same product (e.g. 3 for ₵255)
+    const bundleSavings = computeCartBundles(cart.map(item => ({
+        productId: item.id,
+        quantity: item.cartQuantity,
+        unitPrice: item.price,
+        tiers: item.bundleTiers,
+    }))).savings;
     const itemDiscounts = cart.reduce((sum, item) => {
         if (item.discount > 0) return sum + (item.price * item.cartQuantity * item.discount / 100);
         return sum;
     }, 0);
-    const orderDiscountAmount = (cartSubtotal - itemDiscounts) * orderDiscount / 100;
-    const totalDiscount = itemDiscounts + orderDiscountAmount;
+    const orderDiscountAmount = (cartSubtotal - bundleSavings - itemDiscounts) * orderDiscount / 100;
+    const totalDiscount = bundleSavings + itemDiscounts + orderDiscountAmount;
     const grandTotal = cartSubtotal - totalDiscount;
     const changeDue = amountTendered ? (parseFloat(amountTendered) - grandTotal) : 0;
 
@@ -1055,7 +1066,14 @@ export default function POSPage() {
                                             )}
                                         </div>
                                         <div className="p-2.5 flex flex-col flex-1">
-                                            <h3 className="text-xs font-semibold text-gray-900 line-clamp-2 mb-auto">{product.name}</h3>
+                                            <h3 className="text-xs font-semibold text-gray-900 line-clamp-2">{product.name}</h3>
+                                            {product.bundleTiers && product.bundleTiers.length > 0 && (
+                                                <span className="text-[9px] font-bold text-green-700 bg-green-50 border border-green-200 rounded px-1 py-0.5 mt-1 self-start whitespace-nowrap">
+                                                    <i className="ri-stack-line mr-0.5" />
+                                                    {product.bundleTiers.filter(t => t.qty > 1).slice(0, 1).map(t => `${t.qty} for ₵${t.total_price}`)[0] || 'Bundle deal'}
+                                                </span>
+                                            )}
+                                            <div className="mb-auto" />
                                             <div className="flex items-center justify-between mt-1.5">
                                                 <span className="text-gray-900 font-bold text-sm">₵{product.price.toFixed(2)}</span>
                                                 {!outOfStock && (
@@ -1180,10 +1198,16 @@ export default function POSPage() {
                             <span>Subtotal</span>
                             <span>₵{cartSubtotal.toFixed(2)}</span>
                         </div>
-                        {totalDiscount > 0 && (
+                        {bundleSavings > 0 && (
+                            <div className="flex justify-between text-green-700">
+                                <span><i className="ri-stack-line mr-1" />Bundle savings</span>
+                                <span>-₵{bundleSavings.toFixed(2)}</span>
+                            </div>
+                        )}
+                        {(totalDiscount - bundleSavings) > 0 && (
                             <div className="flex justify-between text-brand-brown">
                                 <span>Discount</span>
-                                <span>-₵{totalDiscount.toFixed(2)}</span>
+                                <span>-₵{(totalDiscount - bundleSavings).toFixed(2)}</span>
                             </div>
                         )}
                         <div className="flex justify-between text-lg font-bold text-gray-900 pt-2 border-t border-gray-200 mt-1">

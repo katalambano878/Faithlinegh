@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { isPlaceholderImportEmail } from '@/lib/whatsapp-contacts';
 
 export default function CustomerDetailsPage() {
-    const router = useRouter();
     const params = useParams();
     const customerId = params.id as string;
     
@@ -23,28 +23,33 @@ export default function CustomerDetailsPage() {
 
     const fetchCustomerData = async () => {
         try {
-            // 1. Fetch Profile
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
+            const { data: customerRow, error: customerError } = await supabase
+                .from('customers')
                 .select('*')
                 .eq('id', customerId)
                 .single();
 
-            if (profileError) throw profileError;
+            if (customerError) throw customerError;
 
-            // 2. Fetch Orders
-            const { data: ordersData, error: ordersError } = await supabase
-                .from('orders')
-                .select('*')
-                .eq('user_id', customerId)
-                .order('created_at', { ascending: false });
-
-            if (ordersError && ordersError.code !== 'PGRST116') { // Ignore not found if simply no orders? No, select returns empty array usually
-                // Actually select returns empty array if no match, not error.
+            let ordersData: any[] = [];
+            if (customerRow.user_id) {
+                const { data } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('user_id', customerRow.user_id)
+                    .order('created_at', { ascending: false });
+                ordersData = data || [];
+            } else if (customerRow.email) {
+                const { data } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('email', customerRow.email)
+                    .order('created_at', { ascending: false });
+                ordersData = data || [];
             }
 
-            setCustomer(profile);
-            setOrders(ordersData || []);
+            setCustomer(customerRow);
+            setOrders(ordersData);
         } catch (err) {
             console.error('Error fetching customer:', err);
         } finally {
@@ -56,6 +61,15 @@ export default function CustomerDetailsPage() {
     if (!customer) return <div className="p-8 text-center text-red-500">Customer not found</div>;
 
     const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const displayName = customer.full_name ||
+        (customer.first_name && customer.last_name ? `${customer.first_name} ${customer.last_name}` : null) ||
+        customer.first_name ||
+        'No Name';
+    const displayEmail = isPlaceholderImportEmail(customer.email) ? 'Not provided' : customer.email;
+    const isWhatsAppImport = Array.isArray(customer.tags) && customer.tags.includes('whatsapp-import');
+    const whatsappUrl = customer.phone
+        ? `https://wa.me/${customer.phone.replace(/\D/g, '')}`
+        : null;
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -66,14 +80,32 @@ export default function CustomerDetailsPage() {
                         <i className="ri-arrow-left-line text-xl"></i>
                     </Link>
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-900 text-2xl font-bold">
-                        {customer.full_name?.charAt(0) || customer.email.charAt(0).toUpperCase()}
+                        {(displayName !== 'No Name' ? displayName : customer.email).charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">{customer.full_name || 'No Name'}</h1>
-                        <p className="text-gray-500">{customer.email}</p>
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-3xl font-bold text-gray-900">{displayName}</h1>
+                            {isWhatsAppImport && (
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                    WhatsApp
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-gray-500">{displayEmail}</p>
                     </div>
                 </div>
                 <div className="flex space-x-3">
+                    {whatsappUrl && (
+                        <a
+                            href={whatsappUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 border border-green-300 bg-green-50 rounded-lg text-green-700 font-medium hover:bg-green-100"
+                        >
+                            <i className="ri-whatsapp-line mr-2"></i>
+                            Message on WhatsApp
+                        </a>
+                    )}
                     <button className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 cursor-pointer">
                         <i className="ri-mail-send-line mr-2"></i>
                         Send Email
@@ -88,11 +120,11 @@ export default function CustomerDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <p className="text-sm font-medium text-gray-500 mb-1">Total Spent</p>
-                    <p className="text-2xl font-bold text-gray-900">₵{totalSpent.toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-gray-900">₵{(Number(customer.total_spent) || totalSpent).toFixed(2)}</p>
                 </div>
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <p className="text-sm font-medium text-gray-500 mb-1">Total Orders</p>
-                    <p className="text-2xl font-bold text-gray-900">{orders.length}</p>
+                    <p className="text-2xl font-bold text-gray-900">{customer.total_orders ?? orders.length}</p>
                 </div>
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
                     <p className="text-sm font-medium text-gray-500 mb-1">Last Order</p>

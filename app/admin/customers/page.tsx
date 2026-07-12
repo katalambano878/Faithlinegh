@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import WhatsAppImportModal from '@/components/admin/WhatsAppImportModal';
+import { isPlaceholderImportEmail } from '@/lib/whatsapp-contacts';
 
 export default function AdminCustomersPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -11,6 +13,7 @@ export default function AdminCustomersPage() {
   const [loading, setLoading] = useState(true);
   const [sortOption, setSortOption] = useState('Sort by Join Date');
   const [filterStatus, setFilterStatus] = useState('All Customers');
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   useEffect(() => {
     fetchCustomers();
@@ -50,10 +53,13 @@ export default function AdminCustomersPage() {
             customer.first_name ||
             'No Name';
 
+          const isWhatsAppImport = Array.isArray(customer.tags) && customer.tags.includes('whatsapp-import');
+
           return {
             id: customer.id,
             name: displayName,
             email: customer.email,
+            displayEmail: isPlaceholderImportEmail(customer.email) ? '—' : customer.email,
             phone: customer.phone || 'N/A',
             avatar: getInitials(displayName !== 'No Name' ? displayName : customer.email),
             orders: totalOrders,
@@ -63,7 +69,8 @@ export default function AdminCustomersPage() {
             status: status,
             rawJoined: new Date(customer.created_at),
             rawLastOrder: customer.last_order_at ? new Date(customer.last_order_at) : null,
-            isGuest: !customer.user_id
+            isGuest: !customer.user_id,
+            isWhatsAppImport,
           };
         });
         setCustomers(processed);
@@ -280,11 +287,26 @@ export default function AdminCustomersPage() {
           <h1 className="text-3xl font-bold text-gray-900">Customers</h1>
           <p className="text-gray-600 mt-1">Manage your customer base and relationships</p>
         </div>
-        <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
-          <i className="ri-download-line mr-2"></i>
-          Export Customers
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setImportModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+          >
+            <i className="ri-whatsapp-line mr-2"></i>
+            Import from WhatsApp
+          </button>
+          <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
+            <i className="ri-download-line mr-2"></i>
+            Export Customers
+          </button>
+        </div>
       </div>
+
+      <WhatsAppImportModal
+        open={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onImported={fetchCustomers}
+      />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
@@ -420,7 +442,7 @@ export default function AdminCustomersPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4">
-                      <p className="text-gray-700 text-sm">{customer.email}</p>
+                      <p className="text-gray-700 text-sm">{customer.displayEmail ?? customer.email}</p>
                       <p className="text-gray-600 text-sm">{customer.phone}</p>
                     </td>
                     <td className="py-4 px-4 font-semibold text-gray-900">{customer.orders}</td>
@@ -434,6 +456,11 @@ export default function AdminCustomersPage() {
                         {customer.isGuest && (
                           <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                             Guest
+                          </span>
+                        )}
+                        {customer.isWhatsAppImport && (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            WhatsApp
                           </span>
                         )}
                       </div>

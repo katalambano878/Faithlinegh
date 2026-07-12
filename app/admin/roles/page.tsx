@@ -14,29 +14,7 @@ interface Role {
     updated_at: string;
 }
 
-const PERMISSION_LABELS: Record<string, { label: string; icon: string; description: string }> = {
-    dashboard: { label: 'Dashboard', icon: 'ri-dashboard-line', description: 'View the admin dashboard and KPIs' },
-    orders: { label: 'Orders', icon: 'ri-shopping-bag-line', description: 'View and manage customer orders' },
-    pos: { label: 'POS System', icon: 'ri-store-3-line', description: 'Access the point of sale system' },
-    products: { label: 'Products', icon: 'ri-box-3-line', description: 'Manage products, pricing, and images' },
-    categories: { label: 'Categories', icon: 'ri-folder-line', description: 'Manage product categories' },
-    customers: { label: 'Customers', icon: 'ri-group-line', description: 'View and manage customers' },
-    reviews: { label: 'Reviews', icon: 'ri-chat-smile-2-line', description: 'Moderate product reviews' },
-    inventory: { label: 'Inventory', icon: 'ri-stack-line', description: 'Track and manage stock levels' },
-    analytics: { label: 'Analytics', icon: 'ri-bar-chart-line', description: 'View sales and performance analytics' },
-    coupons: { label: 'Coupons', icon: 'ri-coupon-2-line', description: 'Create and manage discount coupons' },
-    support: { label: 'Support Hub', icon: 'ri-customer-service-2-line', description: 'Manage support tickets' },
-    customer_insights: { label: 'Customer Insights', icon: 'ri-user-search-line', description: 'View customer analytics and segments' },
-    notifications: { label: 'Notifications', icon: 'ri-notification-3-line', description: 'Manage marketing notifications' },
-    sms_debugger: { label: 'SMS Debugger', icon: 'ri-message-2-line', description: 'Test and debug SMS messages' },
-    blog: { label: 'Blog', icon: 'ri-article-line', description: 'Manage blog posts and content' },
-    modules: { label: 'Modules', icon: 'ri-puzzle-line', description: 'Enable or disable store modules' },
-    staff: { label: 'Staff Management', icon: 'ri-team-line', description: 'Add and manage staff members' },
-    delivery: { label: 'Delivery Hub', icon: 'ri-truck-line', description: 'Access delivery logistics dashboard' },
-    roles: { label: 'Roles & Permissions', icon: 'ri-shield-user-line', description: 'Manage user roles and permissions' },
-};
-
-const PERMISSION_KEYS = Object.keys(PERMISSION_LABELS);
+import { PERMISSION_KEYS, PERMISSION_LABELS } from '@/lib/admin-permissions';
 
 export default function RolesPage() {
     const [roles, setRoles] = useState<Role[]>([]);

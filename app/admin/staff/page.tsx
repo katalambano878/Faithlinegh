@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { adminFetch } from '@/lib/admin-fetch';
+import PermissionPicker from '@/components/admin/PermissionPicker';
+import { DEFAULT_STAFF_PERMISSIONS, PERMISSION_KEYS } from '@/lib/admin-permissions';
 
 interface StaffMember {
   id: string;
@@ -11,6 +13,7 @@ interface StaffMember {
   phone: string | null;
   role: 'admin' | 'staff';
   avatar_url: string | null;
+  permissions: Record<string, boolean> | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,14 +31,20 @@ export default function StaffPage() {
 
   // Invite modal state
   const [showInviteModal, setShowInviteModal] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ email: '', fullName: '', phone: '', role: 'staff', password: '' });
+  const [inviteForm, setInviteForm] = useState({
+    email: '', fullName: '', phone: '', role: 'staff', password: '',
+    permissions: { ...DEFAULT_STAFF_PERMISSIONS },
+  });
   const [inviteLoading, setInviteLoading] = useState(false);
   const [inviteError, setInviteError] = useState('');
   const [inviteSuccess, setInviteSuccess] = useState('');
 
   // Edit modal state
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
-  const [editForm, setEditForm] = useState({ fullName: '', phone: '', role: 'staff' });
+  const [editForm, setEditForm] = useState({
+    fullName: '', phone: '', role: 'staff' as 'admin' | 'staff',
+    permissions: { ...DEFAULT_STAFF_PERMISSIONS },
+  });
   const [editLoading, setEditLoading] = useState(false);
 
   // Remove confirmation
@@ -87,6 +96,7 @@ export default function StaffPage() {
           phone: inviteForm.phone,
           role: inviteForm.role,
           password: inviteForm.password,
+          permissions: inviteForm.role === 'staff' ? inviteForm.permissions : undefined,
         }),
       });
 
@@ -98,7 +108,10 @@ export default function StaffPage() {
       }
 
       setInviteSuccess(data.message || 'Staff member added successfully!');
-      setInviteForm({ email: '', fullName: '', phone: '', role: 'staff', password: '' });
+      setInviteForm({
+        email: '', fullName: '', phone: '', role: 'staff', password: '',
+        permissions: { ...DEFAULT_STAFF_PERMISSIONS },
+      });
       fetchStaff();
       setTimeout(() => {
         setShowInviteModal(false);
@@ -125,6 +138,7 @@ export default function StaffPage() {
           fullName: editForm.fullName,
           phone: editForm.phone,
           role: editForm.role,
+          permissions: editForm.role === 'staff' ? editForm.permissions : undefined,
         }),
       });
 
@@ -165,11 +179,20 @@ export default function StaffPage() {
 
   function openEdit(member: StaffMember) {
     setEditingStaff(member);
+    const perms = member.permissions && Object.keys(member.permissions).length > 0
+      ? member.permissions
+      : { ...DEFAULT_STAFF_PERMISSIONS };
     setEditForm({
       fullName: member.full_name || '',
       phone: member.phone || '',
       role: member.role,
+      permissions: perms,
     });
+  }
+
+  function countEnabledPermissions(perms: Record<string, boolean> | null): number {
+    if (!perms) return 0;
+    return PERMISSION_KEYS.filter((k) => perms[k]).length;
   }
 
   if (userRole !== 'admin') {
@@ -294,6 +317,12 @@ export default function StaffPage() {
                           <i className={`${roleMeta.icon} text-sm`} />
                           {roleMeta.label}
                         </span>
+                        {member.role === 'staff' && (
+                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                            <i className="ri-key-line" />
+                            {countEnabledPermissions(member.permissions)} permissions
+                          </span>
+                        )}
                         {member.phone && (
                           <span className="text-xs text-gray-400 flex items-center gap-1">
                             <i className="ri-phone-line" />
@@ -365,8 +394,8 @@ export default function StaffPage() {
       {showInviteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setShowInviteModal(false)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95">
-            <div className="p-6 border-b border-gray-100">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95">
+            <div className="p-6 border-b border-gray-100 shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
@@ -386,7 +415,7 @@ export default function StaffPage() {
               </div>
             </div>
 
-            <form onSubmit={handleInvite} className="p-6 space-y-4">
+            <form onSubmit={handleInvite} className="p-6 space-y-4 overflow-y-auto flex-1">
               {inviteError && (
                 <div className="p-3 bg-brand-cream border border-brand-brown/20 rounded-xl text-sm text-brand-brown flex items-center gap-2">
                   <i className="ri-error-warning-line text-lg" />
@@ -465,7 +494,7 @@ export default function StaffPage() {
                       <i className="ri-shield-user-line text-gray-700" />
                       <span className="font-semibold text-sm text-gray-900">Staff</span>
                     </div>
-                    <p className="text-xs text-gray-500">Limited access based on role permissions</p>
+                    <p className="text-xs text-gray-500">Limited access — pick permissions below</p>
                   </button>
                   <button
                     type="button"
@@ -484,6 +513,20 @@ export default function StaffPage() {
                   </button>
                 </div>
               </div>
+
+              {inviteForm.role === 'staff' ? (
+                <PermissionPicker
+                  permissions={inviteForm.permissions}
+                  onChange={(permissions) => setInviteForm((f) => ({ ...f, permissions }))}
+                />
+              ) : (
+                <div className="p-3 bg-brand-cream/50 border border-brand-brown/10 rounded-xl">
+                  <p className="text-xs text-brand-brown flex items-center gap-2">
+                    <i className="ri-shield-star-line" />
+                    Admins automatically get access to all features — no permission selection needed.
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button
@@ -517,8 +560,8 @@ export default function StaffPage() {
       {editingStaff && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setEditingStaff(null)} />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md animate-in fade-in zoom-in-95">
-            <div className="p-6 border-b border-gray-100">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95">
+            <div className="p-6 border-b border-gray-100 shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-brand-cream rounded-xl flex items-center justify-center">
@@ -538,7 +581,7 @@ export default function StaffPage() {
               </div>
             </div>
 
-            <form onSubmit={handleEdit} className="p-6 space-y-4">
+            <form onSubmit={handleEdit} className="p-6 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
                 <input
@@ -573,7 +616,11 @@ export default function StaffPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setEditForm(f => ({ ...f, role: 'staff' }))}
+                      onClick={() => setEditForm(f => ({
+                        ...f,
+                        role: 'staff',
+                        permissions: Object.keys(f.permissions).length > 0 ? f.permissions : { ...DEFAULT_STAFF_PERMISSIONS },
+                      }))}
                       className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
                         editForm.role === 'staff'
                           ? 'border-gray-300 bg-gray-50'
@@ -602,6 +649,20 @@ export default function StaffPage() {
                   </div>
                 )}
               </div>
+
+              {editForm.role === 'staff' ? (
+                <PermissionPicker
+                  permissions={editForm.permissions}
+                  onChange={(permissions) => setEditForm((f) => ({ ...f, permissions }))}
+                />
+              ) : (
+                <div className="p-3 bg-brand-cream/50 border border-brand-brown/10 rounded-xl">
+                  <p className="text-xs text-brand-brown flex items-center gap-2">
+                    <i className="ri-shield-star-line" />
+                    Admins automatically get access to all features.
+                  </p>
+                </div>
+              )}
 
               <div className="flex gap-3 pt-2">
                 <button

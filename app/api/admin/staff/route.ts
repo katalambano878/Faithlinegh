@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { getAccessTokenFromRequest } from '@/lib/server-auth';
+import { sanitizePermissions } from '@/lib/admin-permissions';
 
 async function getAuthenticatedAdmin(request: Request) {
   const token = getAccessTokenFromRequest(request);
@@ -29,7 +30,7 @@ export async function GET(request: Request) {
 
   const { data: staff, error } = await supabaseAdmin
     .from('profiles')
-    .select('id, email, full_name, phone, role, avatar_url, created_at, updated_at')
+    .select('id, email, full_name, phone, role, avatar_url, permissions, created_at, updated_at')
     .in('role', ['admin', 'staff'])
     .order('created_at', { ascending: true });
 
@@ -48,7 +49,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { email, fullName, phone, role, password } = body;
+  const { email, fullName, phone, role, password, permissions: rawPermissions } = body;
 
   if (!email || !fullName || !role) {
     return NextResponse.json({ error: 'Email, full name, and role are required.' }, { status: 400 });
@@ -61,6 +62,8 @@ export async function POST(request: Request) {
   if (!password || password.length < 6) {
     return NextResponse.json({ error: 'Password must be at least 6 characters.' }, { status: 400 });
   }
+
+  const permissions = role === 'staff' ? sanitizePermissions(rawPermissions) : null;
 
   // Check if email already exists
   const { data: existingProfile } = await supabaseAdmin
@@ -80,6 +83,7 @@ export async function POST(request: Request) {
         role,
         full_name: fullName,
         phone: phone || null,
+        permissions: role === 'staff' ? permissions : null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', existingProfile.id);
@@ -124,6 +128,7 @@ export async function POST(request: Request) {
       role,
       full_name: fullName,
       phone: phone || null,
+      permissions: role === 'staff' ? permissions : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', newUser.user.id);
@@ -148,7 +153,7 @@ export async function PATCH(request: Request) {
   }
 
   const body = await request.json();
-  const { userId, role, fullName, phone } = body;
+  const { userId, role, fullName, phone, permissions: rawPermissions } = body;
 
   if (!userId) {
     return NextResponse.json({ error: 'User ID is required.' }, { status: 400 });
@@ -162,6 +167,13 @@ export async function PATCH(request: Request) {
   const updates: Record<string, any> = { updated_at: new Date().toISOString() };
   if (role && ['admin', 'staff', 'customer'].includes(role)) {
     updates.role = role;
+    // Clear custom permissions when promoting to admin; set when staff
+    if (role === 'admin') updates.permissions = null;
+    else if (role === 'staff' && rawPermissions !== undefined) {
+      updates.permissions = sanitizePermissions(rawPermissions);
+    }
+  } else if (rawPermissions !== undefined) {
+    updates.permissions = sanitizePermissions(rawPermissions);
   }
   if (fullName !== undefined) updates.full_name = fullName;
   if (phone !== undefined) updates.phone = phone || null;

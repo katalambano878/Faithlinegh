@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sanitizePermissions } from '@/lib/admin-permissions';
 
 function getAccessToken(request: Request): string | null {
   const authHeader = request.headers.get('authorization');
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, permissions')
     .eq('id', user.id)
     .single();
 
@@ -85,9 +86,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Role disabled' }, { status: 403 });
   }
 
+  const rolePermissions = roleConfig?.permissions ?? {};
+  const customPermissions = sanitizePermissions(profile.permissions);
+  const permissions =
+    role === 'staff' && Object.keys(customPermissions).length > 0
+      ? customPermissions
+      : rolePermissions;
+
   return NextResponse.json({
     user: { id: user.id, email: user.email },
     profile: { role },
-    permissions: roleConfig?.permissions ?? {},
+    permissions,
   });
 }

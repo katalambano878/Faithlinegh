@@ -69,6 +69,7 @@ export default function Header() {
   const navLinks = [
     { label: 'Home', href: '/' },
     { label: 'Shop', href: '/shop' },
+    { label: 'Sale', href: '/sale' },
     { label: 'Categories', href: '/categories' },
     { label: 'About', href: '/about' },
     { label: 'Contact', href: '/contact' },
@@ -286,7 +287,7 @@ export default function Header() {
               <div className="space-y-1 mb-6">
                 {[{ label: 'Home', href: '/', icon: 'ri-home-5-line' }, ...navLinks.slice(1).map(l => ({
                   ...l,
-                  icon: l.href === '/shop' ? 'ri-shopping-bag-3-line' : l.href === '/categories' ? 'ri-layout-grid-line' : l.href === '/about' ? 'ri-information-line' : 'ri-mail-send-line',
+                  icon: l.href === '/shop' ? 'ri-shopping-bag-3-line' : l.href === '/sale' ? 'ri-price-tag-3-line' : l.href === '/categories' ? 'ri-layout-grid-line' : l.href === '/about' ? 'ri-information-line' : 'ri-mail-send-line',
                 }))].map((link, i) => {
                   const isActive = active(link.href);
                   return (

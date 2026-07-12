@@ -277,6 +277,12 @@ export default function AdminLayout({
       permissionKey: 'products'
     },
     {
+      title: 'Sales',
+      icon: 'ri-price-tag-3-line',
+      path: '/admin/sales',
+      permissionKey: 'products'
+    },
+    {
       title: 'Categories',
       icon: 'ri-folder-line',
       path: '/admin/categories',

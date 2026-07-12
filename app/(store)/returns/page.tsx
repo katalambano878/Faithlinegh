@@ -131,7 +131,7 @@ export default function ReturnsPortalPage() {
                   </div>
                   {i < 3 && (
                     <div className={`flex-1 h-1 mx-4 ${
-                      i < step ? 'bg-gray-700' : 'bg-gray-200'
+                      i < step ? 'bg-brand-brown' : 'bg-gray-200'
                     }`}></div>
                   )}
                 </div>
@@ -156,7 +156,7 @@ export default function ReturnsPortalPage() {
                     type="text"
                     value={orderNumber}
                     onChange={(e) => setOrderNumber(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                     placeholder="ORD-2024-156"
                     required
                   />
@@ -170,14 +170,14 @@ export default function ReturnsPortalPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                     placeholder="you@example.com"
                     required
                   />
                 </div>
 
                 {lookupError && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                  <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
                     <i className="ri-error-warning-line mr-2"></i>
                     {lookupError}
                   </div>
@@ -186,16 +186,16 @@ export default function ReturnsPortalPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gray-700 hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="w-full bg-brand-brown hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {isLoading ? 'Finding Order...' : 'Find Order'}
                 </button>
               </form>
 
-              <div className="mt-8 p-4 bg-[#A8826B]/5 border border-[#A8826B]/20 rounded-lg">
+              <div className="mt-8 p-4 bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-lg">
                 <div className="flex items-start space-x-3">
-                  <i className="ri-information-line text-xl text-[#A8826B] mt-0.5"></i>
-                  <div className="text-sm text-[#A8826B]">
+                  <i className="ri-information-line text-xl text-[#5B4436] mt-0.5"></i>
+                  <div className="text-sm text-[#5B4436]">
                     <p className="font-semibold mb-1">Delivery &amp; Returns</p>
                     <ul className="space-y-1">
                       <li>• Delivers within 24 - 48 hours nationwide</li>
@@ -227,7 +227,7 @@ export default function ReturnsPortalPage() {
                         type="checkbox"
                         checked={selectedItems.includes(item.id)}
                         onChange={() => toggleItemSelection(item.id)}
-                        className="mt-1 w-5 h-5 text-gray-900 rounded border-gray-300 focus:ring-gray-900"
+                        className="mt-1 w-5 h-5 text-gray-900 rounded border-gray-300 focus:ring-brand-brown"
                       />
                       <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                         <img src={item.image} alt={item.name} className="w-full h-full object-cover object-top" />
@@ -247,7 +247,7 @@ export default function ReturnsPortalPage() {
                                 ...returnReasons,
                                 [item.id]: e.target.value
                               })}
-                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 pr-8"
+                              className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown pr-8"
                               required
                             >
                               <option value="">Select a reason</option>
@@ -308,7 +308,7 @@ export default function ReturnsPortalPage() {
                 <button
                   onClick={() => setStep(3)}
                   disabled={selectedItems.length === 0 || !selectedItems.every(id => returnReasons[id])}
-                  className="flex-1 py-4 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="flex-1 py-4 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   Continue
                 </button>
@@ -360,7 +360,7 @@ export default function ReturnsPortalPage() {
               </div>
 
               {submitError && (
-                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                <div className="mb-6 bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
                   <i className="ri-error-warning-line mr-2"></i>
                   {submitError}
                 </div>
@@ -376,7 +376,7 @@ export default function ReturnsPortalPage() {
                 <button
                   onClick={handleSubmitReturn}
                   disabled={isLoading}
-                  className="flex-1 py-4 bg-gray-700 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="flex-1 py-4 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {isLoading ? 'Submitting...' : 'Submit Return Request'}
                 </button>

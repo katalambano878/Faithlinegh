@@ -566,7 +566,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className={`px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        className={`px-6 py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
                     >
                         {loading ? (
                             <>
@@ -749,17 +749,17 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <p className="text-blue-900 font-semibold mb-1">Discount Calculation</p>
+                            <div className="p-4 bg-brand-cream border border-brand-brown/20 rounded-lg">
+                                <p className="text-brand-brown font-semibold mb-1">Discount Calculation</p>
                                 {price && comparePrice && parseFloat(comparePrice) > parseFloat(price) ? (
-                                    <p className="text-blue-800">
+                                    <p className="text-brand-brown">
                                         Savings: ₵ {(parseFloat(comparePrice) - parseFloat(price)).toFixed(2)}
                                         <span className="ml-2">
                                             ({(((parseFloat(comparePrice) - parseFloat(price)) / parseFloat(comparePrice)) * 100).toFixed(0)}% off)
                                         </span>
                                     </p>
                                 ) : (
-                                    <p className="text-blue-800 text-sm">Enter a compare price higher than the selling price to see discount.</p>
+                                    <p className="text-brand-brown text-sm">Enter a compare price higher than the selling price to see discount.</p>
                                 )}
                             </div>
 
@@ -862,7 +862,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                     readOnly
                                                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                                                 />
-                                                <p className="text-sm text-amber-600 mt-1 flex items-center">
+                                                <p className="text-sm text-brand-brown mt-1 flex items-center">
                                                     <i className="ri-information-line mr-1"></i>
                                                     Stock is managed per variant. Edit stock in the Variants tab.
                                                 </p>
@@ -977,7 +977,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     <button
                                         onClick={addCustomColor}
                                         disabled={!customColorName.trim()}
-                                        className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 bg-brand-bag-dark text-white rounded-lg text-sm font-medium hover:bg-brand-bag-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Add Color
                                     </button>
@@ -993,7 +993,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                 <button type="button" onClick={() => { const v = prompt('Edit color name:', color.name); if (v != null && v.trim()) editColor(color.name, v.trim()); }} className="text-gray-400 hover:text-gray-700 ml-0.5" title="Edit name">
                                                     <i className="ri-pencil-line text-sm"></i>
                                                 </button>
-                                                <button type="button" onClick={() => toggleColor(color)} className="text-gray-400 hover:text-red-500 ml-0.5">
+                                                <button type="button" onClick={() => toggleColor(color)} className="text-gray-400 hover:text-brand-brown ml-0.5">
                                                     <i className="ri-close-line text-sm"></i>
                                                 </button>
                                             </span>
@@ -1005,10 +1005,10 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             {/* STEP 2: Sizes */}
                             <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                                 <h4 className="text-sm font-bold text-gray-900 mb-1 flex items-center">
-                                    <i className="ri-ruler-line mr-2 text-lg text-blue-600"></i>
+                                    <i className="ri-ruler-line mr-2 text-lg text-brand-brown"></i>
                                     Step 2: Select Sizes / Options
                                     {selectedSizes.length > 0 && (
-                                        <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-0.5 rounded-full">
+                                        <span className="ml-2 bg-brand-cream text-brand-brown text-xs font-semibold px-2 py-0.5 rounded-full">
                                             {selectedSizes.length} selected
                                         </span>
                                     )}
@@ -1027,12 +1027,12 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                 onClick={() => toggleSize(size)}
                                                 className={`px-5 py-2.5 rounded-lg border-2 font-semibold text-sm transition-all ${
                                                     isSelected
-                                                        ? 'border-blue-600 bg-blue-50 text-blue-800 ring-1 ring-blue-600'
+                                                        ? 'border-brand-brown bg-brand-cream text-brand-brown ring-1 ring-brand-brown'
                                                         : 'border-gray-200 hover:border-gray-300 bg-white text-gray-700'
                                                 }`}
                                             >
                                                 {size}
-                                                {isSelected && <i className="ri-check-line ml-1.5 text-blue-600"></i>}
+                                                {isSelected && <i className="ri-check-line ml-1.5 text-brand-brown"></i>}
                                             </button>
                                         );
                                     })}
@@ -1051,7 +1051,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     <button
                                         onClick={addCustomSize}
                                         disabled={!customSize.trim()}
-                                        className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-medium hover:bg-gray-900 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        className="px-4 py-2 bg-brand-bag-dark text-white rounded-lg text-sm font-medium hover:bg-brand-bag-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                     >
                                         Add Size
                                     </button>
@@ -1083,7 +1083,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                                     <button type="button" onClick={() => { const v = prompt('Edit option name:', size); if (v != null && v.trim()) editSize(size, v.trim()); }} className="text-gray-400 hover:text-gray-700 ml-0.5" title="Edit name">
                                                                         <i className="ri-pencil-line text-sm"></i>
                                                                     </button>
-                                                                    <button type="button" onClick={() => toggleSize(size)} className="text-gray-400 hover:text-red-500 ml-0.5">
+                                                                    <button type="button" onClick={() => toggleSize(size)} className="text-gray-400 hover:text-brand-brown ml-0.5">
                                                                         <i className="ri-close-line text-sm"></i>
                                                                     </button>
                                                                 </span>
@@ -1104,7 +1104,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
                                         <div>
                                             <h4 className="text-sm font-bold text-gray-900 flex items-center">
-                                                <i className="ri-grid-line mr-2 text-lg text-purple-600"></i>
+                                                <i className="ri-grid-line mr-2 text-lg text-brand-brown"></i>
                                                 Step 3: Set Price & Stock ({variantCombinations.length} variant{variantCombinations.length > 1 ? 's' : ''})
                                             </h4>
                                         </div>
@@ -1173,7 +1173,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                                     {d.image_url ? (
                                                                         <>
                                                                             <img src={d.image_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
-                                                                            <button type="button" onClick={() => setVariantImage(combo.key, '')} className="text-xs text-red-600 hover:underline font-medium">Remove</button>
+                                                                            <button type="button" onClick={() => setVariantImage(combo.key, '')} className="text-xs text-brand-brown hover:underline font-medium">Remove</button>
                                                                         </>
                                                                     ) : (
                                                                         <span className="text-gray-400 text-xs">No image</span>
@@ -1308,7 +1308,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                                     <button
                                                                         type="button"
                                                                         onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
-                                                                        className="w-9 h-9 flex items-center justify-center bg-white text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
+                                                                        className="w-9 h-9 flex items-center justify-center bg-white text-brand-brown rounded-lg hover:bg-brand-cream transition-colors cursor-pointer"
                                                                     >
                                                                         <i className="ri-delete-bin-line"></i>
                                                                     </button>
@@ -1357,7 +1357,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 </label>
 
                                 {/* Choose from gallery — file extensions trigger Files app on iOS for reliable multi-select */}
-                                <label className={`flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                <label className={`flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-brand-bag-dark transition-colors cursor-pointer ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                                     <i className="ri-image-add-line text-lg"></i>
                                     Choose from Gallery
                                     <input
@@ -1383,7 +1383,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     {uploadProgress.map((p, i) => (
                                         <div key={i} className="flex items-center gap-2 text-sm">
                                             {p.done
-                                                ? <i className="ri-check-circle-fill text-green-600"></i>
+                                                ? <i className="ri-check-circle-fill text-brand-brown"></i>
                                                 : <i className="ri-loader-4-line animate-spin text-gray-400"></i>
                                             }
                                             <span className={`truncate max-w-xs ${p.done ? 'text-gray-500' : 'text-gray-800 font-medium'}`}>{p.name}</span>
@@ -1392,14 +1392,14 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 </div>
                             )}
 
-                            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-1">
-                                <p className="text-sm font-semibold text-blue-900 flex items-center gap-1">
+                            <div className="p-4 bg-brand-cream border border-brand-brown/20 rounded-lg space-y-1">
+                                <p className="text-sm font-semibold text-brand-brown flex items-center gap-1">
                                     <i className="ri-smartphone-line"></i> On iPhone / Android
                                 </p>
-                                <p className="text-sm text-blue-800">
+                                <p className="text-sm text-brand-brown">
                                     Tap <strong>Choose from Gallery</strong> → your Files app opens → tap <strong>Select</strong> (top-right) → tap all the photos you want → tap <strong>Open</strong>. All selected photos upload at once.
                                 </p>
-                                <p className="text-xs text-blue-700 mt-1">Images: JPG, PNG, WebP, HEIC (max 5MB each) · Videos: MP4, MOV, WebM (max 100MB each)</p>
+                                <p className="text-xs text-brand-brown mt-1">Images: JPG, PNG, WebP, HEIC (max 5MB each) · Videos: MP4, MOV, WebM (max 100MB each)</p>
                             </div>
                         </div>
                     )}
@@ -1434,8 +1434,8 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             {(seoTitle || metaDescription) && (
                                 <div className="p-4 bg-white border-2 border-gray-100 rounded-xl">
                                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Google Preview</p>
-                                    <p className="text-blue-700 text-base font-medium leading-snug truncate">{seoTitle || productName}</p>
-                                    <p className="text-green-700 text-xs mt-0.5">example.com/product/{urlSlug}</p>
+                                    <p className="text-brand-brown text-base font-medium leading-snug truncate">{seoTitle || productName}</p>
+                                    <p className="text-brand-brown text-xs mt-0.5">example.com/product/{urlSlug}</p>
                                     <p className="text-gray-600 text-sm mt-1 line-clamp-2">{metaDescription}</p>
                                 </div>
                             )}
@@ -1443,7 +1443,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="text-sm font-semibold text-gray-900">Page Title</label>
-                                    <span className={`text-xs font-medium ${seoTitle.length > 60 ? 'text-red-500' : seoTitle.length > 50 ? 'text-amber-500' : 'text-gray-400'}`}>
+                                    <span className={`text-xs font-medium ${seoTitle.length > 60 ? 'text-brand-brown' : seoTitle.length > 50 ? 'text-brand-brown' : 'text-gray-400'}`}>
                                         {seoTitle.length}/60
                                     </span>
                                 </div>
@@ -1459,7 +1459,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="text-sm font-semibold text-gray-900">Meta Description</label>
-                                    <span className={`text-xs font-medium ${metaDescription.length > 160 ? 'text-red-500' : metaDescription.length > 140 ? 'text-amber-500' : 'text-gray-400'}`}>
+                                    <span className={`text-xs font-medium ${metaDescription.length > 160 ? 'text-brand-brown' : metaDescription.length > 140 ? 'text-brand-brown' : 'text-gray-400'}`}>
                                         {metaDescription.length}/160
                                     </span>
                                 </div>

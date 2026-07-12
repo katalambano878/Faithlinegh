@@ -203,12 +203,12 @@ export default function AdminDashboard() {
   }, []);
 
   const statusColors: any = {
-    'pending': 'bg-amber-100 text-amber-700',
-    'processing': 'bg-blue-100 text-blue-700',
-    'shipped': 'bg-purple-100 text-purple-700',
-    'dispatched_to_rider': 'bg-indigo-100 text-indigo-700',
+    'pending': 'bg-brand-cream text-brand-brown',
+    'processing': 'bg-brand-cream text-brand-brown',
+    'shipped': 'bg-brand-cream text-brand-brown',
+    'dispatched_to_rider': 'bg-brand-cream text-brand-brown',
     'delivered': 'bg-gray-100 text-gray-900',
-    'cancelled': 'bg-red-100 text-red-700'
+    'cancelled': 'bg-red-100 text-brand-brown'
   };
 
   const quickActions = [
@@ -394,7 +394,7 @@ export default function AdminDashboard() {
                         <p className="font-medium text-gray-900 text-sm truncate pr-2">{product.name}</p>
                         <p className="text-xs text-gray-600 mt-1">Stock: {product.stock} units</p>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${product.status === 'critical' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${product.status === 'critical' ? 'bg-red-100 text-brand-brown' : 'bg-brand-cream text-brand-brown'
                         }`}>
                         {product.status === 'critical' ? 'Critical' : 'Low'}
                       </span>

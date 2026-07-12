@@ -109,8 +109,8 @@ export default function ConversationDetailPage({ params }: { params: Promise<{ i
     try { meta = JSON.parse(meta); } catch { meta = {}; }
   }
 
-  const sentimentColor = conversation.sentiment === 'positive' ? 'text-gray-700 bg-gray-50' : conversation.sentiment === 'negative' ? 'text-red-600 bg-red-50' : 'text-gray-600 bg-gray-50';
-  const memoryTypeColors: Record<string, string> = { preference: 'bg-purple-100 text-purple-700', issue: 'bg-red-100 text-red-700', context: 'bg-blue-100 text-blue-700', instruction: 'bg-amber-100 text-amber-700', fact: 'bg-gray-100 text-gray-900' };
+  const sentimentColor = conversation.sentiment === 'positive' ? 'text-gray-700 bg-gray-50' : conversation.sentiment === 'negative' ? 'text-brand-brown bg-brand-cream' : 'text-gray-600 bg-gray-50';
+  const memoryTypeColors: Record<string, string> = { preference: 'bg-brand-cream text-brand-brown', issue: 'bg-red-100 text-brand-brown', context: 'bg-brand-cream text-brand-brown', instruction: 'bg-brand-cream text-brand-brown', fact: 'bg-gray-100 text-gray-900' };
 
   return (
     <div className="space-y-6">
@@ -150,7 +150,7 @@ export default function ConversationDetailPage({ params }: { params: Promise<{ i
 
           {/* Messages */}
           <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-            <div className="bg-gradient-to-r from-gray-700 to-gray-900 px-4 py-3 text-white flex items-center gap-2">
+            <div className="bg-gradient-to-r from-brand-brown to-gray-900 px-4 py-3 text-white flex items-center gap-2">
               <i className="ri-chat-3-line" />
               <span className="text-sm font-semibold">Conversation Transcript</span>
               <span className="ml-auto text-xs text-gray-100">{messages.length || conversation.message_count || 0} messages</span>
@@ -158,7 +158,7 @@ export default function ConversationDetailPage({ params }: { params: Promise<{ i
             <div className="max-h-[600px] overflow-y-auto p-4 space-y-3 bg-gray-50/50">
               {messages.map((msg: any, i: number) => (
                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-gray-700 text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100 shadow-sm'}`}>
+                  <div className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${msg.role === 'user' ? 'bg-brand-brown text-white rounded-br-sm' : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100 shadow-sm'}`}>
                     <MarkdownMessage content={msg.content || ''} isUserMessage={msg.role === 'user'} />
                   </div>
                 </div>
@@ -228,7 +228,7 @@ export default function ConversationDetailPage({ params }: { params: Promise<{ i
           {/* AI Memory */}
           <div className="bg-white rounded-xl border border-gray-100 p-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <i className="ri-brain-line text-purple-500" /> AI Memory
+              <i className="ri-brain-line text-brand-brown" /> AI Memory
               <span className="text-[10px] font-normal text-gray-400">({memories.length})</span>
             </h3>
             <div className="space-y-2 mb-3">
@@ -240,7 +240,7 @@ export default function ConversationDetailPage({ params }: { params: Promise<{ i
                     {mem.memory_type}
                   </span>
                   <p className="text-xs text-gray-700 flex-1">{mem.content}</p>
-                  <button onClick={() => deleteMemory(mem.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-opacity">
+                  <button onClick={() => deleteMemory(mem.id)} className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-brand-brown transition-opacity">
                     <i className="ri-close-line text-sm" />
                   </button>
                 </div>
@@ -257,9 +257,9 @@ export default function ConversationDetailPage({ params }: { params: Promise<{ i
               </select>
               <div className="flex gap-2">
                 <input value={newMemory} onChange={(e) => setNewMemory(e.target.value)} placeholder="Add a memory note..."
-                  className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500" />
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-brown" />
                 <button onClick={addMemoryNote} disabled={addingMemory || !newMemory.trim()}
-                  className="px-3 py-1.5 text-xs bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-40 transition-colors">
+                  className="px-3 py-1.5 text-xs bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark disabled:opacity-40 transition-colors">
                   {addingMemory ? '...' : 'Add'}
                 </button>
               </div>

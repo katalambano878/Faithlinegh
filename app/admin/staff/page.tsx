@@ -16,7 +16,7 @@ interface StaffMember {
 }
 
 const ROLE_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  admin: { label: 'Super Admin', color: 'bg-amber-100 text-amber-800 border-amber-200', icon: 'ri-shield-star-line' },
+  admin: { label: 'Super Admin', color: 'bg-brand-cream text-brand-brown border-brand-brown/20', icon: 'ri-shield-star-line' },
   staff: { label: 'Staff', color: 'bg-gray-100 text-gray-800 border-gray-200', icon: 'ri-shield-user-line' },
 };
 
@@ -225,7 +225,7 @@ export default function StaffPage() {
             setInviteError('');
             setInviteSuccess('');
           }}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-900 transition-colors shadow-sm cursor-pointer"
+          className="flex items-center gap-2 px-5 py-2.5 bg-brand-brown text-white font-semibold rounded-xl hover:bg-brand-bag-dark transition-colors shadow-sm cursor-pointer"
         >
           <i className="ri-user-add-line text-lg" />
           Add Staff
@@ -241,7 +241,7 @@ export default function StaffPage() {
             <p className="text-gray-500 mb-4">Add your first team member to get started.</p>
             <button
               onClick={() => setShowInviteModal(true)}
-              className="px-4 py-2 bg-gray-700 text-white rounded-lg font-medium hover:bg-gray-900 transition-colors cursor-pointer"
+              className="px-4 py-2 bg-brand-brown text-white rounded-lg font-medium hover:bg-brand-bag-dark transition-colors cursor-pointer"
             >
               Add Staff Member
             </button>
@@ -275,7 +275,7 @@ export default function StaffPage() {
                       />
                     ) : (
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${
-                        member.role === 'admin' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-900'
+                        member.role === 'admin' ? 'bg-brand-cream text-brand-brown' : 'bg-gray-100 text-gray-900'
                       }`}>
                         {initials}
                       </div>
@@ -285,7 +285,7 @@ export default function StaffPage() {
                       <div className="flex items-center gap-2">
                         <h3 className="font-bold text-gray-900">{displayName}</h3>
                         {isCurrentUser && (
-                          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase">You</span>
+                          <span className="px-2 py-0.5 bg-brand-cream text-brand-brown text-[10px] font-bold rounded-full uppercase">You</span>
                         )}
                       </div>
                       <p className="text-sm text-gray-500">{member.email}</p>
@@ -318,7 +318,7 @@ export default function StaffPage() {
                     {!isCurrentUser && (
                       <button
                         onClick={() => setRemovingId(member.id)}
-                        className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        className="w-9 h-9 flex items-center justify-center text-gray-400 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer"
                         title="Remove staff access"
                       >
                         <i className="ri-user-unfollow-line text-lg" />
@@ -329,10 +329,10 @@ export default function StaffPage() {
 
                 {/* Remove Confirmation */}
                 {removingId === member.id && (
-                  <div className="border-t border-gray-100 px-5 py-4 bg-red-50">
+                  <div className="border-t border-gray-100 px-5 py-4 bg-brand-cream">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <i className="ri-error-warning-line text-red-500 text-lg" />
+                        <i className="ri-error-warning-line text-brand-brown text-lg" />
                         <p className="text-sm text-red-800">
                           Remove <strong>{member.full_name}</strong> from staff? They will be demoted to a regular customer.
                         </p>
@@ -347,7 +347,7 @@ export default function StaffPage() {
                         <button
                           onClick={() => handleRemove(member.id)}
                           disabled={removeLoading}
-                          className="px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 cursor-pointer"
+                          className="px-3 py-1.5 text-sm font-medium text-white bg-brand-brown rounded-lg hover:bg-brand-bag-dark disabled:opacity-50 cursor-pointer"
                         >
                           {removeLoading ? 'Removing...' : 'Remove'}
                         </button>
@@ -388,7 +388,7 @@ export default function StaffPage() {
 
             <form onSubmit={handleInvite} className="p-6 space-y-4">
               {inviteError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-center gap-2">
+                <div className="p-3 bg-brand-cream border border-brand-brown/20 rounded-xl text-sm text-brand-brown flex items-center gap-2">
                   <i className="ri-error-warning-line text-lg" />
                   {inviteError}
                 </div>
@@ -472,12 +472,12 @@ export default function StaffPage() {
                     onClick={() => setInviteForm(f => ({ ...f, role: 'admin' }))}
                     className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
                       inviteForm.role === 'admin'
-                        ? 'border-amber-300 bg-amber-50'
+                        ? 'border-brand-brown/30 bg-brand-cream'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <i className="ri-shield-star-line text-amber-600" />
+                      <i className="ri-shield-star-line text-brand-brown" />
                       <span className="font-semibold text-sm text-gray-900">Admin</span>
                     </div>
                     <p className="text-xs text-gray-500">Full access to everything</p>
@@ -496,7 +496,7 @@ export default function StaffPage() {
                 <button
                   type="submit"
                   disabled={inviteLoading}
-                  className="flex-1 px-4 py-2.5 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-900 disabled:opacity-50 transition-colors cursor-pointer"
+                  className="flex-1 px-4 py-2.5 bg-brand-brown text-white font-semibold rounded-xl hover:bg-brand-bag-dark disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   {inviteLoading ? (
                     <span className="flex items-center justify-center gap-2">
@@ -521,8 +521,8 @@ export default function StaffPage() {
             <div className="p-6 border-b border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                    <i className="ri-pencil-line text-xl text-blue-600" />
+                  <div className="w-10 h-10 bg-brand-cream rounded-xl flex items-center justify-center">
+                    <i className="ri-pencil-line text-xl text-brand-brown" />
                   </div>
                   <div>
                     <h2 className="text-lg font-bold text-gray-900">Edit Staff Member</h2>
@@ -590,12 +590,12 @@ export default function StaffPage() {
                       onClick={() => setEditForm(f => ({ ...f, role: 'admin' }))}
                       className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
                         editForm.role === 'admin'
-                          ? 'border-amber-300 bg-amber-50'
+                          ? 'border-brand-brown/30 bg-brand-cream'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <i className="ri-shield-star-line text-amber-600" />
+                        <i className="ri-shield-star-line text-brand-brown" />
                         <span className="font-semibold text-sm text-gray-900">Admin</span>
                       </div>
                     </button>
@@ -614,7 +614,7 @@ export default function StaffPage() {
                 <button
                   type="submit"
                   disabled={editLoading}
-                  className="flex-1 px-4 py-2.5 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-900 disabled:opacity-50 transition-colors cursor-pointer"
+                  className="flex-1 px-4 py-2.5 bg-brand-brown text-white font-semibold rounded-xl hover:bg-brand-bag-dark disabled:opacity-50 transition-colors cursor-pointer"
                 >
                   {editLoading ? 'Saving...' : 'Save Changes'}
                 </button>

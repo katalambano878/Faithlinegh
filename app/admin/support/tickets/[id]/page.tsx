@@ -83,9 +83,9 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   if (loading) return <div className="flex items-center justify-center h-64"><i className="ri-loader-4-line animate-spin text-3xl text-gray-400" /></div>;
   if (!ticket) return <div className="text-center p-12"><p className="text-gray-500">Ticket not found</p></div>;
 
-  const priorityColors: Record<string, string> = { urgent: 'bg-red-100 text-red-700', high: 'bg-orange-100 text-orange-700', medium: 'bg-blue-100 text-blue-700', low: 'bg-gray-100 text-gray-600' };
-  const statusColors: Record<string, string> = { open: 'bg-blue-100 text-blue-700', in_progress: 'bg-yellow-100 text-yellow-700', waiting_customer: 'bg-purple-100 text-purple-700', resolved: 'bg-gray-100 text-gray-900', closed: 'bg-gray-200 text-gray-600' };
-  const senderColors: Record<string, string> = { customer: 'bg-blue-600', agent: 'bg-gray-700', system: 'bg-gray-500', ai: 'bg-purple-600' };
+  const priorityColors: Record<string, string> = { urgent: 'bg-red-100 text-brand-brown', high: 'bg-brand-cream text-brand-brown', medium: 'bg-brand-cream text-brand-brown', low: 'bg-gray-100 text-gray-600' };
+  const statusColors: Record<string, string> = { open: 'bg-brand-cream text-brand-brown', in_progress: 'bg-brand-cream text-brand-brown', waiting_customer: 'bg-brand-cream text-brand-brown', resolved: 'bg-gray-100 text-gray-900', closed: 'bg-gray-200 text-gray-600' };
+  const senderColors: Record<string, string> = { customer: 'bg-brand-brown', agent: 'bg-brand-brown', system: 'bg-gray-500', ai: 'bg-brand-brown' };
 
   return (
     <div className="space-y-6">
@@ -115,7 +115,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
               </div>
               <div className="flex gap-2">
                 <button onClick={addResolution}
-                  className="px-3 py-1.5 text-xs font-medium bg-gray-700 text-white rounded-lg hover:bg-gray-900 transition-colors">
+                  className="px-3 py-1.5 text-xs font-medium bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark transition-colors">
                   <i className="ri-check-double-line mr-1" /> Resolve
                 </button>
               </div>
@@ -133,7 +133,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
             <div className="bg-white rounded-xl border border-gray-100 p-4">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <i className="ri-chat-3-line text-blue-500" /> Linked AI Conversation
+                  <i className="ri-chat-3-line text-brand-brown" /> Linked AI Conversation
                 </h3>
                 <Link href={`/admin/support/conversations/${conversation.id}`} className="text-xs text-gray-700 hover:text-gray-900 font-medium">View full →</Link>
               </div>
@@ -162,7 +162,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
                 </div>
               )}
               {messages.map((msg: any) => (
-                <div key={msg.id} className={`flex gap-3 ${msg.is_internal ? 'bg-amber-50/50 -mx-4 px-4 py-2 border-l-2 border-amber-300' : ''}`}>
+                <div key={msg.id} className={`flex gap-3 ${msg.is_internal ? 'bg-brand-cream/50 -mx-4 px-4 py-2 border-l-2 border-brand-brown/30' : ''}`}>
                   <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold ${senderColors[msg.sender_type] || 'bg-gray-400'}`}>
                     {msg.sender_type === 'customer' ? 'C' : msg.sender_type === 'agent' ? 'A' : msg.sender_type === 'ai' ? 'AI' : 'S'}
                   </div>
@@ -170,7 +170,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold text-gray-900">{msg.sender_name || msg.sender_type}</span>
                       <span className="text-[10px] text-gray-400">{new Date(msg.created_at).toLocaleString()}</span>
-                      {msg.is_internal && <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded">INTERNAL NOTE</span>}
+                      {msg.is_internal && <span className="text-[9px] font-bold text-brand-brown bg-brand-cream px-1.5 py-0.5 rounded">INTERNAL NOTE</span>}
                     </div>
                     <div className="mt-1"><MarkdownMessage content={msg.content || ''} /></div>
                   </div>
@@ -182,15 +182,15 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
             {/* Reply Form */}
             <form onSubmit={sendMessage} className="border-t border-gray-100 p-4 space-y-3">
               <textarea value={reply} onChange={(e) => setReply(e.target.value)} rows={3} placeholder={isInternal ? 'Add an internal note (not visible to customer)...' : 'Type your reply...'}
-                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 resize-none ${isInternal ? 'border-amber-200 bg-amber-50 focus:ring-amber-400' : 'border-gray-200 focus:ring-gray-600'}`} />
+                className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 resize-none ${isInternal ? 'border-brand-brown/20 bg-brand-cream focus:ring-brand-brown' : 'border-gray-200 focus:ring-gray-600'}`} />
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
                   <input type="checkbox" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)}
-                    className="rounded border-gray-300 text-amber-600 focus:ring-amber-500" />
+                    className="rounded border-gray-300 text-brand-brown focus:ring-brand-brown" />
                   Internal note
                 </label>
                 <button type="submit" disabled={sending || !reply.trim()}
-                  className="px-4 py-2 text-xs font-medium bg-gray-700 text-white rounded-lg hover:bg-gray-900 disabled:opacity-40 transition-colors">
+                  className="px-4 py-2 text-xs font-medium bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark disabled:opacity-40 transition-colors">
                   {sending ? 'Sending...' : isInternal ? 'Add Note' : 'Send Reply'}
                 </button>
               </div>
@@ -243,7 +243,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
             </h3>
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <div className="w-2 h-2 mt-1.5 rounded-full bg-blue-500 shrink-0" />
+                <div className="w-2 h-2 mt-1.5 rounded-full bg-brand-cream0 shrink-0" />
                 <div><p className="text-xs font-medium text-gray-700">Created</p><p className="text-[10px] text-gray-400">{new Date(ticket.created_at).toLocaleString()}</p></div>
               </div>
               {ticket.first_response_at && (
@@ -266,10 +266,10 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
               )}
               {ticket.sla_deadline && ticket.status !== 'resolved' && ticket.status !== 'closed' && (
                 <div className="flex items-start gap-2">
-                  <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${new Date(ticket.sla_deadline) < new Date() ? 'bg-red-500' : 'bg-orange-400'}`} />
+                  <div className={`w-2 h-2 mt-1.5 rounded-full shrink-0 ${new Date(ticket.sla_deadline) < new Date() ? 'bg-brand-cream0' : 'bg-brand-brown'}`} />
                   <div>
                     <p className="text-xs font-medium text-gray-700">SLA Deadline</p>
-                    <p className={`text-[10px] ${new Date(ticket.sla_deadline) < new Date() ? 'text-red-500 font-bold' : 'text-gray-400'}`}>{new Date(ticket.sla_deadline).toLocaleString()}</p>
+                    <p className={`text-[10px] ${new Date(ticket.sla_deadline) < new Date() ? 'text-brand-brown font-bold' : 'text-gray-400'}`}>{new Date(ticket.sla_deadline).toLocaleString()}</p>
                   </div>
                 </div>
               )}

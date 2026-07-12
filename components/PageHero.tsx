@@ -8,7 +8,7 @@ interface PageHeroProps {
 
 export default function PageHero({ title, subtitle, image }: PageHeroProps) {
   return (
-    <div className="relative overflow-hidden bg-[#5A4234]">
+    <div className="relative overflow-hidden bg-[#5B4436]">
       {image ? (
         <>
           <img
@@ -20,7 +20,7 @@ export default function PageHero({ title, subtitle, image }: PageHeroProps) {
         </>
       ) : (
         <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-[#5A4234]" />
+          <div className="absolute inset-0 bg-[#5B4436]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(237,215,202,0.16),transparent_45%),radial-gradient(circle_at_80%_15%,rgba(201,162,75,0.12),transparent_40%)]" />
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
         </div>

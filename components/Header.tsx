@@ -10,12 +10,14 @@ import { useCMS } from '@/context/CMSContext';
 
 export default function Header() {
   const pathname = usePathname();
+  const isHome = pathname === '/';
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [wishlistCount, setWishlistCount] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const overlayHeader = isHome && !isScrolled;
 
   const { cartCount, isCartOpen, setIsCartOpen } = useCart();
   const { getSetting, getActiveBanners } = useCMS();
@@ -84,15 +86,26 @@ export default function Header() {
     { label: 'Contact', href: '/contact' },
   ];
 
+  const desktopNavLinks = [
+    { label: 'New In', href: '/shop?sort=new' },
+    { label: 'Shop', href: '/shop' },
+    { label: 'Collections', href: '/categories' },
+    { label: 'About Us', href: '/about' },
+  ];
+
   const active = (href: string) =>
     href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   return (
     <>
       {/* Banner + header stick together on scroll */}
-      <div className="sticky top-0 z-50 pwa-header">
-        {/* ── Moving banner on top ── */}
-        {marqueeMessages.length > 0 && (
+      <div
+        className={`z-50 pwa-header ${
+          isHome ? 'fixed top-0 left-0 right-0' : 'sticky top-0'
+        }`}
+      >
+        {/* ── Moving banner on top (hidden on homepage hero) ── */}
+        {marqueeMessages.length > 0 && !isHome && (
           <div className="overflow-hidden bg-brand-brown text-white">
             <div className="flex w-max animate-marquee whitespace-nowrap py-1.5 hover:[animation-play-state:paused]">
               {[...marqueeMessages, ...marqueeMessages, ...marqueeMessages, ...marqueeMessages].map(
@@ -111,58 +124,68 @@ export default function Header() {
         )}
 
         <header
-          className={`bg-white transition-shadow duration-300 ${
-            isScrolled ? 'shadow-[0_6px_24px_-14px_rgba(61,43,33,0.4)]' : 'shadow-sm'
+          className={`transition-all duration-300 ${
+            overlayHeader
+              ? 'bg-transparent shadow-none'
+              : `bg-white ${isScrolled ? 'shadow-[0_6px_24px_-14px_rgba(61,43,33,0.4)]' : 'shadow-sm'}`
           }`}
         >
-          <div className="safe-area-top bg-white" />
-          <div className="border-b border-gray-100">
-            <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className={`safe-area-top ${overlayHeader ? 'bg-transparent' : 'bg-white'}`} />
+          <div className={overlayHeader ? '' : 'border-b border-gray-100'}>
+            <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div
                 className={`relative flex items-center justify-between gap-3 transition-all duration-300 ${
-                  isScrolled ? 'h-[48px]' : 'h-[52px] sm:h-[56px]'
+                  overlayHeader ? 'h-[56px] sm:h-[64px]' : isScrolled ? 'h-[48px]' : 'h-[52px] sm:h-[56px]'
                 }`}
               >
               {/* ── Left: hamburger + logo ── */}
               <div className="flex items-center gap-1.5 min-w-0">
                 <button
-                  className="lg:hidden -ml-1 w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:text-brand-brown hover:bg-brand-brown/5 transition-colors"
+                  className={`lg:hidden -ml-1 w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                    overlayHeader
+                      ? 'text-white hover:bg-white/10'
+                      : 'text-gray-600 hover:text-brand-brown hover:bg-brand-brown/5'
+                  }`}
                   onClick={() => setIsMobileMenuOpen(true)}
                   aria-label="Open menu"
                 >
                   <i className="ri-menu-3-line text-[22px]"></i>
                 </button>
 
-                <Link href="/" className="group hidden lg:flex items-center shrink-0" aria-label="Go to homepage">
+                <Link href="/" className="group flex items-center shrink-0" aria-label="Go to homepage">
                   <img
-                    src="/logo.png"
+                    src={overlayHeader ? '/logo-white.png' : '/logo.png'}
                     alt={siteName}
                     className={`w-auto object-contain select-none transition-all duration-300 ${
-                      isScrolled ? 'h-7' : 'h-8 sm:h-9'
+                      overlayHeader ? 'h-7 sm:h-8' : isScrolled ? 'h-7' : 'h-8 sm:h-9'
                     } group-hover:scale-[1.04]`}
                   />
                 </Link>
               </div>
 
               {/* ── Center: nav (absolutely centered) ── */}
-              <div className="hidden lg:flex items-center gap-9 absolute left-1/2 -translate-x-1/2">
-                {navLinks
-                  .filter((link) => link.href !== '/')
-                  .map((link) => {
+              <div className="hidden lg:flex items-center gap-8 xl:gap-10 absolute left-1/2 -translate-x-1/2">
+                {desktopNavLinks.map((link) => {
                     const isActive = active(link.href);
                     return (
                       <Link
                         key={link.href}
                         href={link.href}
-                        className={`group relative py-1 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-300 ${
-                          isActive ? 'text-brand-brown' : 'text-gray-700 hover:text-brand-brown'
+                        className={`group relative py-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-300 ${
+                          overlayHeader
+                            ? isActive
+                              ? 'text-white'
+                              : 'text-white/85 hover:text-white'
+                            : isActive
+                              ? 'text-brand-brown'
+                              : 'text-gray-700 hover:text-brand-brown'
                         }`}
                       >
                         {link.label}
                         <span
-                          className={`pointer-events-none absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-brand-brown transition-all duration-300 ${
-                            isActive ? 'w-5 opacity-100' : 'w-0 opacity-0 group-hover:w-5 group-hover:opacity-100'
-                          }`}
+                          className={`pointer-events-none absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-[2px] rounded-full transition-all duration-300 ${
+                            overlayHeader ? 'bg-white' : 'bg-brand-brown'
+                          } ${isActive ? 'w-5 opacity-100' : 'w-0 opacity-0 group-hover:w-5 group-hover:opacity-100'}`}
                         />
                       </Link>
                     );
@@ -174,7 +197,11 @@ export default function Header() {
                 {/* Search */}
                 <button
                   onClick={() => setIsSearchOpen(true)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full text-gray-700 hover:text-brand-brown hover:bg-brand-brown/5 transition-colors"
+                  className={`w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                    overlayHeader
+                      ? 'text-white hover:bg-white/10'
+                      : 'text-gray-700 hover:text-brand-brown hover:bg-brand-brown/5'
+                  }`}
                   aria-label="Search"
                 >
                   <i className="ri-search-line text-[21px]"></i>
@@ -183,12 +210,20 @@ export default function Header() {
                 {/* Wishlist */}
                 <Link
                   href="/wishlist"
-                  className="relative w-10 h-10 hidden sm:flex items-center justify-center rounded-full text-gray-700 hover:text-brand-brown hover:bg-brand-brown/5 transition-colors"
+                  className={`relative w-10 h-10 hidden sm:flex items-center justify-center rounded-full transition-colors ${
+                    overlayHeader
+                      ? 'text-white hover:bg-white/10'
+                      : 'text-gray-700 hover:text-brand-brown hover:bg-brand-brown/5'
+                  }`}
                   aria-label={`Wishlist, ${wishlistCount} items`}
                 >
                   <i className="ri-heart-line text-[21px]"></i>
                   {wishlistCount > 0 && (
-                    <span className="absolute top-1 right-1 min-w-[15px] h-[15px] px-[3px] bg-brand-brown text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                    <span className={`absolute top-1 right-1 min-w-[15px] h-[15px] px-[3px] text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ${
+                      overlayHeader
+                        ? 'bg-white text-brand-brown ring-white/30'
+                        : 'bg-brand-brown text-white ring-white'
+                    }`}>
                       {wishlistCount}
                     </span>
                   )}
@@ -197,16 +232,24 @@ export default function Header() {
                 {/* Account */}
                 <Link
                   href={user ? '/account' : '/auth/login'}
-                  className="w-10 h-10 hidden sm:flex items-center justify-center rounded-full text-gray-700 hover:text-brand-brown hover:bg-brand-brown/5 transition-colors"
+                  className={`w-10 h-10 hidden sm:flex items-center justify-center rounded-full transition-colors ${
+                    overlayHeader
+                      ? 'text-white hover:bg-white/10'
+                      : 'text-gray-700 hover:text-brand-brown hover:bg-brand-brown/5'
+                  }`}
                   aria-label={user ? 'My account' : 'Login'}
                 >
-                  <i className={`${user ? 'ri-user-smile-line' : 'ri-user-smile-line'} text-[21px]`}></i>
+                  <i className="ri-user-smile-line text-[21px]"></i>
                 </Link>
 
-                {/* Cart — solid dark circle */}
+                {/* Cart */}
                 <div className="relative ml-0.5 sm:ml-1">
                   <button
-                    className="relative w-10 h-10 flex items-center justify-center rounded-full bg-brand-brown text-white shadow-md shadow-brand-brown/25 hover:bg-[#2C1D14] transition-colors"
+                    className={`relative w-10 h-10 flex items-center justify-center rounded-full transition-colors ${
+                      overlayHeader
+                        ? 'text-white hover:bg-white/10'
+                        : 'bg-brand-brown text-white shadow-md shadow-brand-brown/25 hover:bg-[#47362C]'
+                    }`}
                     onClick={() => setIsCartOpen(!isCartOpen)}
                     aria-label={`Shopping cart, ${cartCount} items`}
                     aria-expanded={isCartOpen}
@@ -214,7 +257,11 @@ export default function Header() {
                   >
                     <i className="ri-shopping-bag-3-line text-[19px]"></i>
                     {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-[3px] bg-gradient-to-br from-brand-gold to-brand-carton text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white">
+                      <span className={`absolute -top-1 -right-1 min-w-[17px] h-[17px] px-[3px] text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ${
+                        overlayHeader
+                          ? 'bg-white text-brand-brown ring-white/30'
+                          : 'bg-white text-brand-brown ring-white'
+                      }`}>
                         {cartCount}
                       </span>
                     )}

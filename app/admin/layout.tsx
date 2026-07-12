@@ -440,7 +440,7 @@ export default function AdminLayout({
                     <span>{item.title}</span>
                   </div>
                   {item.badge && (
-                    <span className="bg-red-100 text-red-700 text-xs font-bold px-2 py-1 rounded-full">
+                    <span className="bg-red-100 text-brand-brown text-xs font-bold px-2 py-1 rounded-full">
                       {item.badge}
                     </span>
                   )}
@@ -453,12 +453,12 @@ export default function AdminLayout({
             {/* Maintenance Mode Toggle — super admin only */}
             {userRole === 'admin' && (
               <div
-                className={`flex items-center justify-between px-4 py-3 rounded-lg ${maintenanceEnabled ? 'bg-[#A8826B]/15' : 'bg-gray-50'
+                className={`flex items-center justify-between px-4 py-3 rounded-lg ${maintenanceEnabled ? 'bg-[#5B4436]/15' : 'bg-gray-50'
                   }`}
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <i
-                    className={`text-lg shrink-0 ${maintenanceEnabled ? 'ri-tools-fill text-[#5A4234]' : 'ri-store-2-line text-gray-600'
+                    className={`text-lg shrink-0 ${maintenanceEnabled ? 'ri-tools-fill text-[#5B4436]' : 'ri-store-2-line text-gray-600'
                       }`}
                   ></i>
                   <div className="min-w-0">
@@ -472,7 +472,7 @@ export default function AdminLayout({
                   onClick={handleToggleMaintenance}
                   disabled={maintenanceToggling}
                   className={`relative flex-shrink-0 w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${maintenanceEnabled
-                    ? 'bg-[#A8826B] focus:ring-[#A8826B]/40'
+                    ? 'bg-[#5B4436] focus:ring-[#5B4436]/40'
                     : 'bg-gray-300 focus:ring-gray-400'
                     } ${maintenanceToggling ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
                   title={maintenanceEnabled ? 'Bring store back online' : 'Enable maintenance mode'}
@@ -497,10 +497,10 @@ export default function AdminLayout({
             <button
               onClick={handleClearCache}
               disabled={cacheCleared}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors cursor-pointer disabled:opacity-70"
+              className="w-full flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-brand-cream hover:text-brand-brown rounded-lg transition-colors cursor-pointer disabled:opacity-70"
             >
-              <i className={`${cacheCleared ? 'ri-check-line text-green-500' : 'ri-delete-bin-2-line'} text-xl w-5 h-5 flex items-center justify-center`}></i>
-              <span className={cacheCleared ? 'text-green-600 font-medium' : ''}>{cacheCleared ? 'Cache Cleared!' : 'Clear Cache'}</span>
+              <i className={`${cacheCleared ? 'ri-check-line text-brand-brown' : 'ri-delete-bin-2-line'} text-xl w-5 h-5 flex items-center justify-center`}></i>
+              <span className={cacheCleared ? 'text-brand-brown font-medium' : ''}>{cacheCleared ? 'Cache Cleared!' : 'Clear Cache'}</span>
             </button>
           </div>
         </div>
@@ -520,7 +520,7 @@ export default function AdminLayout({
             <div className="flex items-center space-x-2 lg:space-x-4">
               <button className="relative w-10 h-10 flex items-center justify-center text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
                 <i className="ri-notification-3-line text-xl"></i>
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-brand-cream0 rounded-full"></span>
               </button>
 
               <div className="relative user-menu-container">
@@ -544,8 +544,8 @@ export default function AdminLayout({
                       onClick={handleLogout}
                       className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-t border-gray-200 text-left cursor-pointer"
                     >
-                      <i className="ri-logout-box-line text-red-600 w-5 h-5 flex items-center justify-center"></i>
-                      <span className="text-red-600">Logout</span>
+                      <i className="ri-logout-box-line text-brand-brown w-5 h-5 flex items-center justify-center"></i>
+                      <span className="text-brand-brown">Logout</span>
                     </button>
                   </div>
                 )}

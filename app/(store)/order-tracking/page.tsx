@@ -157,12 +157,12 @@ function OrderTrackingContent() {
     if (!order) return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
     
     const statusMap: Record<string, { label: string; color: string }> = {
-      'pending': { label: 'Pending', color: 'bg-[#FAF3EE] text-[#8C6A52]' },
-      'processing': { label: 'Processing', color: 'bg-[#A8826B]/10 text-[#A8826B]' },
-      'shipped': { label: 'Packaged', color: 'bg-[#A8826B]/10 text-[#A8826B]' },
-      'dispatched_to_rider': { label: 'Dispatched To Rider', color: 'bg-[#A8826B]/10 text-[#A8826B]' },
+      'pending': { label: 'Pending', color: 'bg-[#F4F2F1] text-[#5B4436]' },
+      'processing': { label: 'Processing', color: 'bg-[#5B4436]/10 text-[#5B4436]' },
+      'shipped': { label: 'Packaged', color: 'bg-[#5B4436]/10 text-[#5B4436]' },
+      'dispatched_to_rider': { label: 'Dispatched To Rider', color: 'bg-[#5B4436]/10 text-[#5B4436]' },
       'delivered': { label: 'Delivered', color: 'bg-gray-100 text-gray-800' },
-      'cancelled': { label: 'Cancelled', color: 'bg-[#F3DBCF] text-[#9A4A36]' }
+      'cancelled': { label: 'Cancelled', color: 'bg-[#E8DFD4] text-[#5B4436]' }
     };
 
     return statusMap[order.status] || { label: order.status, color: 'bg-gray-100 text-gray-800' };
@@ -195,7 +195,7 @@ function OrderTrackingContent() {
 
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Email Address <span className="text-[#D98E73] font-normal">*</span>
+                  Email Address <span className="text-[#5B4436] font-normal">*</span>
                 </label>
                 <input
                   type="email"
@@ -207,15 +207,15 @@ function OrderTrackingContent() {
               </div>
 
               {error && (
-                <div className="p-4 bg-[#F3DBCF]/50 border border-[#D98E73]/30 rounded-lg">
-                  <p className="text-sm text-[#9A4A36]">{error}</p>
+                <div className="p-4 bg-[#E8DFD4]/50 border border-[#5B4436]/30 rounded-lg">
+                  <p className="text-sm text-[#5B4436]">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
+                className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 {loading ? (
                   <span className="flex items-center justify-center">
@@ -226,12 +226,12 @@ function OrderTrackingContent() {
               </button>
             </form>
 
-            <div className="mt-8 p-4 bg-[#A8826B]/5 border border-[#A8826B]/20 rounded-lg">
+            <div className="mt-8 p-4 bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-lg">
               <div className="flex items-start space-x-3">
-                <i className="ri-information-line text-xl text-[#A8826B] mt-0.5"></i>
+                <i className="ri-information-line text-xl text-[#5B4436] mt-0.5"></i>
                 <div>
-                  <p className="text-sm font-semibold text-[#5A4234]">Need Help?</p>
-                  <p className="text-sm text-[#A8826B] mt-1">
+                  <p className="text-sm font-semibold text-[#5B4436]">Need Help?</p>
+                  <p className="text-sm text-[#5B4436] mt-1">
                     You can find your order number and tracking number in the SMS or email we sent you after your order was confirmed.
                   </p>
                 </div>

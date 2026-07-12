@@ -138,7 +138,7 @@ export default function ProductSalesStats({ isOpen, onClose }: { isOpen: boolean
                             key={p}
                             onClick={() => setPeriod(p)}
                             className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${period === p
-                                    ? 'bg-gray-700 text-white shadow-md shadow-gray-200'
+                                    ? 'bg-brand-brown text-white shadow-md shadow-gray-200'
                                     : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border border-transparent'
                                 }`}
                         >
@@ -193,14 +193,14 @@ export default function ProductSalesStats({ isOpen, onClose }: { isOpen: boolean
                                                 )}
                                                 <span>{s.productName}</span>
                                                 {hasVariants && (
-                                                    <span className="text-[10px] bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-semibold">
+                                                    <span className="text-[10px] bg-brand-cream text-brand-brown px-1.5 py-0.5 rounded-full font-semibold">
                                                         {s.variants.length} variants
                                                     </span>
                                                 )}
                                             </div>
                                         </td>
                                         <td className="p-4 text-center">
-                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-brand-cream text-brand-brown">
                                                 {s.ordersCount}
                                             </span>
                                         </td>
@@ -213,10 +213,10 @@ export default function ProductSalesStats({ isOpen, onClose }: { isOpen: boolean
                                     </tr>
                                     {expandedProduct === s.productId && hasVariants && (
                                         s.variants.map((v) => (
-                                            <tr key={`${s.productId}-${v.name}`} className="bg-gray-50/80 border-l-2 border-purple-200">
+                                            <tr key={`${s.productId}-${v.name}`} className="bg-gray-50/80 border-l-2 border-brand-brown/20">
                                                 <td className="p-3 pl-14 text-gray-600 text-xs">
                                                     <span className="inline-flex items-center space-x-1.5">
-                                                        <i className="ri-price-tag-3-line text-purple-400"></i>
+                                                        <i className="ri-price-tag-3-line text-brand-brown"></i>
                                                         <span className="font-medium">{v.name}</span>
                                                     </span>
                                                 </td>

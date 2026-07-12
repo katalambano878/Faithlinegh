@@ -74,8 +74,8 @@ const defaultSettings: SiteSettings = {
     social_instagram: 'faithline.gh',
     social_tiktok: 'faithline.gh',
     social_twitter: '',
-    primary_color: '#5A4234',
-    secondary_color: '#A8826B',
+    primary_color: '#5B4436',
+    secondary_color: '#5B4436',
     currency: 'GHS',
     currency_symbol: '₵',
 };

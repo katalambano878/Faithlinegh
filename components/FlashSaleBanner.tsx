@@ -47,7 +47,7 @@ export default function FlashSaleBanner() {
   if (!isVisible) return null;
 
   return (
-    <div className="bg-gradient-to-r from-[#9A4A36] via-[#D98E73] to-[#C9A24B] text-white py-3">
+    <div className="bg-gradient-to-r from-[#5B4436] via-[#5B4436] to-[#5B4436] text-white py-3">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
@@ -81,7 +81,7 @@ export default function FlashSaleBanner() {
 
             <a
               href={flashSale.ctaLink}
-              className="bg-white text-[#9A4A36] px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors whitespace-nowrap"
+              className="bg-white text-[#5B4436] px-6 py-2 rounded-lg font-bold hover:bg-gray-100 transition-colors whitespace-nowrap"
             >
               {flashSale.ctaText}
             </a>

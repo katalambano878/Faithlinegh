@@ -17,8 +17,8 @@ interface Rider {
 const STATUS_COLORS: Record<string, string> = {
     active: 'bg-gray-100 text-gray-800',
     inactive: 'bg-gray-100 text-gray-800',
-    on_delivery: 'bg-blue-100 text-blue-800',
-    off_duty: 'bg-yellow-100 text-yellow-800',
+    on_delivery: 'bg-brand-cream text-brand-brown',
+    off_duty: 'bg-brand-cream text-yellow-800',
 };
 
 const VEHICLE_ICONS: Record<string, string> = {
@@ -146,7 +146,7 @@ export default function RidersPage() {
         <div className="space-y-6">
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium ${
-                    toast.startsWith('Error') ? 'bg-red-600 text-white' : 'bg-gray-700 text-white'
+                    toast.startsWith('Error') ? 'bg-brand-brown text-white' : 'bg-brand-brown text-white'
                 }`}>{toast}</div>
             )}
 
@@ -156,7 +156,7 @@ export default function RidersPage() {
                     <p className="text-gray-500 mt-1">Manage your delivery fleet</p>
                 </div>
                 <button onClick={openAddModal}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium text-sm">
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark transition-colors font-medium text-sm">
                     <i className="ri-add-line" /> Add Rider
                 </button>
             </div>
@@ -181,7 +181,7 @@ export default function RidersPage() {
                             <p className="text-xs text-gray-500 mt-1">Available</p>
                         </div>
                         <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                            <p className="text-2xl font-bold text-blue-600">{riders.filter(r => r.status === 'on_delivery').length}</p>
+                            <p className="text-2xl font-bold text-brand-brown">{riders.filter(r => r.status === 'on_delivery').length}</p>
                             <p className="text-xs text-gray-500 mt-1">On Delivery</p>
                         </div>
                         <div className="bg-white border border-gray-200 rounded-2xl p-4">
@@ -270,13 +270,13 @@ export default function RidersPage() {
                                             </button>
                                             <button onClick={() => handleToggleStatus(rider)}
                                                 className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                                    rider.status === 'active' ? 'text-amber-600 hover:bg-amber-50' : 'text-gray-700 hover:bg-gray-50'
+                                                    rider.status === 'active' ? 'text-brand-brown hover:bg-brand-cream' : 'text-gray-700 hover:bg-gray-50'
                                                 }`}>
                                                 <i className={`${rider.status === 'active' ? 'ri-pause-line' : 'ri-play-line'} mr-1`} />
                                                 {rider.status === 'active' ? 'Deactivate' : 'Activate'}
                                             </button>
                                             <button onClick={() => handleDelete(rider)}
-                                                className="py-2 px-3 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                                className="py-2 px-3 text-sm text-brand-brown hover:bg-brand-cream rounded-lg transition-colors">
                                                 <i className="ri-delete-bin-line" />
                                             </button>
                                         </div>
@@ -346,7 +346,7 @@ export default function RidersPage() {
                                 <button onClick={() => setShowModal(false)}
                                     className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
                                 <button onClick={handleSave} disabled={saving}
-                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-semibold disabled:opacity-50 transition-colors">
+                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark font-semibold disabled:opacity-50 transition-colors">
                                     {saving ? 'Saving...' : editingRider ? 'Update Rider' : 'Add Rider'}
                                 </button>
                             </div>

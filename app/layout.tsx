@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Playfair_Display } from "next/font/google";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { siteGraph, jsonLd } from "@/lib/seo";
@@ -13,6 +13,13 @@ const supabaseHost = (() => {
     return null;
   }
 })();
+
+const playfair = Playfair_Display({
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
 
 const montserrat = Montserrat({
   weight: ["300", "400", "500", "600", "700"],
@@ -29,7 +36,7 @@ export const metadata: Metadata = {
   category: "shopping",
   referrer: "origin-when-cross-origin",
   title: {
-    default: "Faithlinegh | Quality, Affordable Bags, Basics & Dresses",
+    default: "Faithlinegh | Effortless Style. Elevated Essentials.",
     template: "%s | Faithlinegh",
   },
   description:
@@ -94,7 +101,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_GH",
     url: siteUrl,
-    title: "Faithlinegh | Quality, Affordable Bags, Basics & Dresses",
+    title: "Faithlinegh | Effortless Style. Elevated Essentials.",
     description:
       "Quality, affordable bags, basics and dresses with nationwide delivery in Ghana.",
     siteName: "Faithlinegh",
@@ -109,7 +116,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Faithlinegh | Quality, Affordable Bags, Basics & Dresses",
+    title: "Faithlinegh | Effortless Style. Elevated Essentials.",
     description:
       "Quality, affordable bags, basics and dresses with nationwide delivery in Ghana.",
     images: ["/twitter-image.png"],
@@ -133,12 +140,12 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* PWA Meta Tags */}
-        <meta name="theme-color" content="#5A4234" />
+        <meta name="theme-color" content="#5B4436" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Faithlinegh" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-TileColor" content="#5A4234" />
+        <meta name="msapplication-TileColor" content="#5B4436" />
         <meta name="msapplication-tap-highlight" content="no" />
 
         {/* Apple Touch Icons */}
@@ -170,7 +177,7 @@ export default function RootLayout({
         />
       </head>
 
-      <body className={`antialiased overflow-x-hidden pwa-body ${montserrat.variable} font-sans`} style={{ fontFamily: "var(--font-montserrat), system-ui, sans-serif" }}>
+      <body className={`antialiased overflow-x-hidden pwa-body ${montserrat.variable} ${playfair.variable} font-sans`} style={{ fontFamily: "var(--font-montserrat), system-ui, sans-serif" }}>
         {/* Google Analytics */}
         {GA_MEASUREMENT_ID && (
           <>

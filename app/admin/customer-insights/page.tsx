@@ -129,9 +129,9 @@ export default function CustomerInsightsPage() {
   const getSegmentBadge = (segment: string) => {
     const badges: any = {
       vip: 'bg-gray-100 text-gray-900',
-      returning: 'bg-blue-100 text-blue-700',
-      new: 'bg-amber-100 text-amber-700',
-      'at-risk': 'bg-red-100 text-red-700'
+      returning: 'bg-brand-cream text-brand-brown',
+      new: 'bg-brand-cream text-brand-brown',
+      'at-risk': 'bg-red-100 text-brand-brown'
     };
     return badges[segment] || 'bg-gray-100 text-gray-700';
   };
@@ -149,8 +149,8 @@ export default function CustomerInsightsPage() {
   const getRiskBadge = (risk: string) => {
     const badges: any = {
       low: 'bg-gray-100 text-gray-900',
-      medium: 'bg-amber-100 text-amber-700',
-      high: 'bg-red-100 text-red-700'
+      medium: 'bg-brand-cream text-brand-brown',
+      high: 'bg-red-100 text-brand-brown'
     };
     return badges[risk] || 'bg-gray-100';
   };
@@ -172,7 +172,7 @@ export default function CustomerInsightsPage() {
             </button>
             <Link
               href="/admin"
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap text-center"
+              className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap text-center"
             >
               Back to Dashboard
             </Link>
@@ -193,30 +193,30 @@ export default function CustomerInsightsPage() {
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-lg">
-                <i className="ri-refresh-line text-2xl text-blue-700"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-refresh-line text-2xl text-brand-brown"></i>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">Returning Customers</p>
             <p className="text-3xl font-bold text-gray-900">{stats.returning}</p>
-            <p className="text-sm text-blue-700 font-semibold mt-2">More than 1 order</p>
+            <p className="text-sm text-brand-brown font-semibold mt-2">More than 1 order</p>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 flex items-center justify-center bg-red-100 rounded-lg">
-                <i className="ri-alert-line text-2xl text-red-700"></i>
+                <i className="ri-alert-line text-2xl text-brand-brown"></i>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">At Risk</p>
             <p className="text-3xl font-bold text-gray-900">{stats.atRisk}</p>
-            <p className="text-sm text-red-700 font-semibold mt-2">Inactive &gt; 90 days</p>
+            <p className="text-sm text-brand-brown font-semibold mt-2">Inactive &gt; 90 days</p>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-purple-100 rounded-lg">
-                <i className="ri-line-chart-line text-2xl text-purple-700"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-line-chart-line text-2xl text-brand-brown"></i>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">Avg. Lifetime Value</p>
@@ -327,9 +327,9 @@ export default function CustomerInsightsPage() {
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 bg-gray-200 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${customer.engagementScore >= 80 ? 'bg-gray-700' :
-                            customer.engagementScore >= 60 ? 'bg-blue-600' :
-                              customer.engagementScore >= 40 ? 'bg-amber-600' : 'bg-red-600'
+                          className={`h-2 rounded-full ${customer.engagementScore >= 80 ? 'bg-brand-brown' :
+                            customer.engagementScore >= 60 ? 'bg-brand-brown' :
+                              customer.engagementScore >= 40 ? 'bg-brand-brown' : 'bg-brand-brown'
                             }`}
                           style={{ width: `${customer.engagementScore}%` }}
                         ></div>

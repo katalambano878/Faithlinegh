@@ -58,7 +58,7 @@ export default function ProductEditor({ productId }: { productId: string }) {
             <i className="ri-eye-line mr-2"></i>
             Preview
           </button>
-          <button className="px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
+          <button className="px-6 py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
             <i className="ri-save-line mr-2"></i>
             Save Changes
           </button>
@@ -202,9 +202,9 @@ export default function ProductEditor({ productId }: { productId: string }) {
                 </div>
               </div>
 
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-blue-900 font-semibold mb-1">Discount Calculation</p>
-                <p className="text-blue-800">
+              <div className="p-4 bg-brand-cream border border-brand-brown/20 rounded-lg">
+                <p className="text-brand-brown font-semibold mb-1">Discount Calculation</p>
+                <p className="text-brand-brown">
                   Savings: ₵ {(parseFloat(comparePrice) - parseFloat(price)).toFixed(2)} 
                   <span className="ml-2">
                     ({(((parseFloat(comparePrice) - parseFloat(price)) / parseFloat(comparePrice)) * 100).toFixed(0)}% off)
@@ -265,7 +265,7 @@ export default function ProductEditor({ productId }: { productId: string }) {
                   <h3 className="text-lg font-bold text-gray-900">Product Variants</h3>
                   <p className="text-gray-600 mt-1">Manage different versions of this product</p>
                 </div>
-                <button className="px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
+                <button className="px-4 py-2 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
                   <i className="ri-add-line mr-2"></i>
                   Add Variant
                 </button>
@@ -315,7 +315,7 @@ export default function ProductEditor({ productId }: { productId: string }) {
                           />
                         </td>
                         <td className="py-4 px-4">
-                          <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">
+                          <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer">
                             <i className="ri-delete-bin-line text-lg"></i>
                           </button>
                         </td>
@@ -349,7 +349,7 @@ export default function ProductEditor({ productId }: { productId: string }) {
                       <button className="w-9 h-9 flex items-center justify-center bg-white text-gray-900 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
                         <i className="ri-eye-line"></i>
                       </button>
-                      <button className="w-9 h-9 flex items-center justify-center bg-white text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer">
+                      <button className="w-9 h-9 flex items-center justify-center bg-white text-brand-brown rounded-lg hover:bg-brand-cream transition-colors cursor-pointer">
                         <i className="ri-delete-bin-line"></i>
                       </button>
                     </div>

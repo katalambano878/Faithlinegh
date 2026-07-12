@@ -79,14 +79,14 @@ export default function SizeGuideModal({ isOpen, onClose, category = 'General' }
           </div>
 
           <div className="p-6">
-            <div className="bg-[#F3F3F3] border border-[#A8826B]/30 rounded-lg p-4 mb-6">
+            <div className="bg-[#F3F3F3] border border-[#5B4436]/30 rounded-lg p-4 mb-6">
               <div className="flex items-start">
                 <div className="w-6 h-6 flex items-center justify-center mr-3">
-                  <i className="ri-information-line text-xl text-[#A8826B]"></i>
+                  <i className="ri-information-line text-xl text-[#5B4436]"></i>
                 </div>
                 <div>
-                  <h3 className="font-semibold text-[#5A4234] mb-2">How to Measure</h3>
-                  <ul className="text-sm text-[#5A4234] space-y-1">
+                  <h3 className="font-semibold text-[#5B4436] mb-2">How to Measure</h3>
+                  <ul className="text-sm text-[#5B4436] space-y-1">
                     <li>• Use a soft measuring tape for accurate measurements</li>
                     <li>• Measure over light clothing or undergarments</li>
                     <li>• Keep the tape parallel to the floor</li>
@@ -162,7 +162,7 @@ export default function SizeGuideModal({ isOpen, onClose, category = 'General' }
               <p className="text-sm text-gray-600 mb-4">
                 Still not sure about sizing? Our customer service team is here to help!
               </p>
-              <button className="px-6 py-3 bg-brand-brown text-white rounded-lg font-semibold hover:bg-[#2C1D14] transition-colors whitespace-nowrap">
+              <button className="px-6 py-3 bg-brand-brown text-white rounded-lg font-semibold hover:bg-[#47362C] transition-colors whitespace-nowrap">
                 Contact Support
               </button>
             </div>

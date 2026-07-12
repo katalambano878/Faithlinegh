@@ -67,10 +67,10 @@ export default function PasswordStrengthMeter({ password }: PasswordStrengthMete
   };
 
   const getStrengthColor = () => {
-    if (strength < 40) return 'bg-[#D98E73]';
-    if (strength < 70) return 'bg-[#C9A24B]';
-    if (strength < 90) return 'bg-[#C9A24B]';
-    return 'bg-gray-700';
+    if (strength < 40) return 'bg-[#5B4436]';
+    if (strength < 70) return 'bg-[#5B4436]';
+    if (strength < 90) return 'bg-[#5B4436]';
+    return 'bg-brand-brown';
   };
 
   if (!password) return null;
@@ -85,9 +85,9 @@ export default function PasswordStrengthMeter({ password }: PasswordStrengthMete
           />
         </div>
         <span className={`text-xs font-medium ${
-          strength < 40 ? 'text-[#9A4A36]' :
-          strength < 70 ? 'text-[#A8826B]' :
-          strength < 90 ? 'text-[#A8826B]' :
+          strength < 40 ? 'text-[#5B4436]' :
+          strength < 70 ? 'text-[#5B4436]' :
+          strength < 90 ? 'text-[#5B4436]' :
           'text-gray-700'
         }`}>
           {getStrengthText()}
@@ -98,7 +98,7 @@ export default function PasswordStrengthMeter({ password }: PasswordStrengthMete
         <div className="space-y-1">
           {feedback.map((item, index) => (
             <div key={index} className="flex items-center gap-1.5 text-xs text-gray-600">
-              <i className="ri-close-circle-line text-[#D98E73] w-3 h-3 flex items-center justify-center"></i>
+              <i className="ri-close-circle-line text-[#5B4436] w-3 h-3 flex items-center justify-center"></i>
               <span>{item}</span>
             </div>
           ))}

@@ -85,8 +85,8 @@ export default function PWASettingsPage() {
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#A8826B]/10 rounded-full flex items-center justify-center">
-                <i className="ri-smartphone-line text-[#A8826B]"></i>
+              <div className="w-10 h-10 bg-[#5B4436]/10 rounded-full flex items-center justify-center">
+                <i className="ri-smartphone-line text-[#5B4436]"></i>
               </div>
               Installation Status
             </h2>
@@ -107,8 +107,8 @@ export default function PWASettingsPage() {
 
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#A8826B]/10 rounded-full flex items-center justify-center">
-                <i className="ri-notification-line text-[#A8826B]"></i>
+              <div className="w-10 h-10 bg-[#5B4436]/10 rounded-full flex items-center justify-center">
+                <i className="ri-notification-line text-[#5B4436]"></i>
               </div>
               Notifications
             </h2>
@@ -123,7 +123,7 @@ export default function PWASettingsPage() {
                 {notificationPermission === 'default' && (
                   <button
                     onClick={requestNotificationPermission}
-                    className="px-4 py-2 bg-[#5A4234] text-white rounded-lg hover:bg-[#5A4234]/90 transition-colors whitespace-nowrap"
+                    className="px-4 py-2 bg-[#5B4436] text-white rounded-lg hover:bg-[#5B4436]/90 transition-colors whitespace-nowrap"
                   >
                     Enable
                   </button>
@@ -134,16 +134,16 @@ export default function PWASettingsPage() {
                   </div>
                 )}
                 {notificationPermission === 'denied' && (
-                  <div className="w-12 h-12 bg-[#F3DBCF] rounded-full flex items-center justify-center">
-                    <i className="ri-close-line text-[#9A4A36] text-2xl"></i>
+                  <div className="w-12 h-12 bg-[#E8DFD4] rounded-full flex items-center justify-center">
+                    <i className="ri-close-line text-[#5B4436] text-2xl"></i>
                   </div>
                 )}
               </div>
 
               {notificationPermission === 'granted' && (
-                <div className="bg-[#A8826B]/10 border border-[#A8826B]/20 rounded-xl p-4">
-                  <p className="text-sm text-[#A8826B] font-medium mb-2">You will receive notifications for:</p>
-                  <ul className="space-y-1 text-sm text-[#A8826B]/80">
+                <div className="bg-[#5B4436]/10 border border-[#5B4436]/20 rounded-xl p-4">
+                  <p className="text-sm text-[#5B4436] font-medium mb-2">You will receive notifications for:</p>
+                  <ul className="space-y-1 text-sm text-[#5B4436]/80">
                     <li className="flex items-center gap-2">
                       <i className="ri-check-line"></i>
                       <span>Order confirmations and updates</span>
@@ -168,8 +168,8 @@ export default function PWASettingsPage() {
 
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#FAF3EE] rounded-full flex items-center justify-center">
-                <i className="ri-database-line text-[#A8826B]"></i>
+              <div className="w-10 h-10 bg-[#F4F2F1] rounded-full flex items-center justify-center">
+                <i className="ri-database-line text-[#5B4436]"></i>
               </div>
               Storage & Cache
             </h2>
@@ -183,7 +183,7 @@ export default function PWASettingsPage() {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                   <div
-                    className="bg-[#A8826B] h-full rounded-full transition-all"
+                    className="bg-[#5B4436] h-full rounded-full transition-all"
                     style={{ width: `${(storageUsage.used / storageUsage.quota) * 100}%` }}
                   ></div>
                 </div>
@@ -196,16 +196,16 @@ export default function PWASettingsPage() {
                 </div>
                 <button
                   onClick={clearCache}
-                  className="px-4 py-2 bg-[#9A4A36] text-white rounded-lg hover:bg-[#9A4A36]/90 transition-colors whitespace-nowrap"
+                  className="px-4 py-2 bg-[#5B4436] text-white rounded-lg hover:bg-[#5B4436]/90 transition-colors whitespace-nowrap"
                 >
                   Clear Cache
                 </button>
               </div>
 
-              <div className="bg-[#FAF3EE] border border-[#C9A24B]/30 rounded-xl p-4">
+              <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-xl p-4">
                 <div className="flex items-start gap-3">
-                  <i className="ri-information-line text-[#8C6A52] text-xl"></i>
-                  <div className="text-sm text-[#8C6A52]">
+                  <i className="ri-information-line text-[#5B4436] text-xl"></i>
+                  <div className="text-sm text-[#5B4436]">
                     <p className="font-medium mb-1">About Cache</p>
                     <p>Cached data helps the app load faster and work offline. Clearing cache will remove offline access temporarily.</p>
                   </div>
@@ -229,26 +229,26 @@ export default function PWASettingsPage() {
                 </div>
                 <p className="text-sm text-gray-800">Browse cached pages without internet</p>
               </div>
-              <div className="p-4 bg-[#A8826B]/10 rounded-xl">
+              <div className="p-4 bg-[#5B4436]/10 rounded-xl">
                 <div className="flex items-center gap-3 mb-2">
-                  <i className="ri-rocket-line text-[#A8826B] text-xl"></i>
-                  <span className="font-semibold text-[#A8826B]">Fast Loading</span>
+                  <i className="ri-rocket-line text-[#5B4436] text-xl"></i>
+                  <span className="font-semibold text-[#5B4436]">Fast Loading</span>
                 </div>
-                <p className="text-sm text-[#A8826B]/80">Instant page loads with smart caching</p>
+                <p className="text-sm text-[#5B4436]/80">Instant page loads with smart caching</p>
               </div>
-              <div className="p-4 bg-[#A8826B]/10 rounded-xl">
+              <div className="p-4 bg-[#5B4436]/10 rounded-xl">
                 <div className="flex items-center gap-3 mb-2">
-                  <i className="ri-home-line text-[#A8826B] text-xl"></i>
-                  <span className="font-semibold text-[#A8826B]">Home Screen</span>
+                  <i className="ri-home-line text-[#5B4436] text-xl"></i>
+                  <span className="font-semibold text-[#5B4436]">Home Screen</span>
                 </div>
-                <p className="text-sm text-[#A8826B]/80">Add to home screen like a native app</p>
+                <p className="text-sm text-[#5B4436]/80">Add to home screen like a native app</p>
               </div>
-              <div className="p-4 bg-[#FAF3EE]/50 rounded-xl">
+              <div className="p-4 bg-[#F4F2F1]/50 rounded-xl">
                 <div className="flex items-center gap-3 mb-2">
-                  <i className="ri-refresh-line text-[#A8826B] text-xl"></i>
-                  <span className="font-semibold text-[#8C6A52]">Auto Updates</span>
+                  <i className="ri-refresh-line text-[#5B4436] text-xl"></i>
+                  <span className="font-semibold text-[#5B4436]">Auto Updates</span>
                 </div>
-                <p className="text-sm text-[#8C6A52]/80">Automatic updates in the background</p>
+                <p className="text-sm text-[#5B4436]/80">Automatic updates in the background</p>
               </div>
             </div>
           </div>

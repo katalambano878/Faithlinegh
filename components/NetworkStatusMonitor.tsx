@@ -38,14 +38,14 @@ export default function NetworkStatusMonitor() {
   if (!isSlowConnection) return null;
 
   return (
-    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] bg-[#C9A24B] text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 animate-slide-down">
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[9998] bg-[#5B4436] text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-3 animate-slide-down">
       <i className="ri-signal-wifi-1-line text-xl"></i>
       <span className="font-medium whitespace-nowrap">
         Slow Connection Detected
       </span>
       <button 
         onClick={() => setIsSlowConnection(false)}
-        className="w-6 h-6 flex items-center justify-center hover:bg-[#A8826B] rounded-full transition-colors"
+        className="w-6 h-6 flex items-center justify-center hover:bg-[#5B4436] rounded-full transition-colors"
       >
         <i className="ri-close-line"></i>
       </button>

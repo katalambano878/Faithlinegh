@@ -800,7 +800,7 @@ export default function POSPage() {
             {/* Barcode Scan Feedback */}
             {scanFeedback && (
                 <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 px-6 py-3 rounded-xl shadow-2xl font-bold text-sm animate-in fade-in slide-in-from-top-2 ${
-                    scanFeedback.startsWith('✓') ? 'bg-gray-700 text-white' : 'bg-red-600 text-white'
+                    scanFeedback.startsWith('✓') ? 'bg-brand-brown text-white' : 'bg-brand-brown text-white'
                 }`}>
                     <i className={`mr-2 ${scanFeedback.startsWith('✓') ? 'ri-barcode-line' : 'ri-error-warning-line'}`} />
                     {scanFeedback}
@@ -844,12 +844,12 @@ export default function POSPage() {
                             {heldOrders.length > 0 && (
                                 <button
                                     onClick={() => setShowHeldOrders(true)}
-                                    className="relative px-3 py-2.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors text-sm font-medium"
+                                    className="relative px-3 py-2.5 bg-brand-cream text-brand-brown border border-brand-brown/20 rounded-lg hover:bg-brand-cream transition-colors text-sm font-medium"
                                     title="Held Orders (F5)"
                                 >
                                     <i className="ri-pause-circle-line mr-1" />
                                     Held
-                                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-brand-brown text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                         {heldOrders.length}
                                     </span>
                                 </button>
@@ -963,7 +963,7 @@ export default function POSPage() {
                                                 {outOfStock ? 'OUT' : `${product.quantity}`}
                                             </div>
                                             {inCart && (
-                                                <div className="absolute top-2 left-2 w-6 h-6 bg-gray-700 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                                                <div className="absolute top-2 left-2 w-6 h-6 bg-brand-brown text-white text-xs font-bold rounded-full flex items-center justify-center">
                                                     {inCart.cartQuantity}
                                                 </div>
                                             )}
@@ -973,7 +973,7 @@ export default function POSPage() {
                                             <div className="flex items-center justify-between mt-1.5">
                                                 <span className="text-gray-900 font-bold text-sm">₵{product.price.toFixed(2)}</span>
                                                 {!outOfStock && (
-                                                    <div className="w-7 h-7 rounded-full bg-gray-50 text-gray-900 flex items-center justify-center group-hover:bg-gray-900 group-hover:text-white transition-colors">
+                                                    <div className="w-7 h-7 rounded-full bg-gray-50 text-gray-900 flex items-center justify-center group-hover:bg-brand-bag-dark group-hover:text-white transition-colors">
                                                         <i className="ri-add-line text-sm" />
                                                     </div>
                                                 )}
@@ -1023,7 +1023,7 @@ export default function POSPage() {
                         {cart.length > 0 && (
                             <button
                                 onClick={holdCurrentOrder}
-                                className="text-xs px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 font-medium"
+                                className="text-xs px-2 py-1 bg-brand-cream text-brand-brown border border-brand-brown/20 rounded-lg hover:bg-brand-cream font-medium"
                                 title="Hold Order (F4)"
                             >
                                 <i className="ri-pause-circle-line mr-1" />Hold
@@ -1052,7 +1052,7 @@ export default function POSPage() {
                                 <div className="flex-1 min-w-0 flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
                                         <p className="text-xs font-semibold text-gray-900 line-clamp-1 pr-1">{item.name}</p>
-                                        <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-red-500 flex-shrink-0">
+                                        <button onClick={() => removeFromCart(item.id)} className="text-gray-400 hover:text-brand-brown flex-shrink-0">
                                             <i className="ri-close-line text-sm" />
                                         </button>
                                     </div>
@@ -1068,11 +1068,11 @@ export default function POSPage() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-gray-900">₵{(item.price * item.cartQuantity * (1 - item.discount / 100)).toFixed(2)}</p>
-                                            {item.discount > 0 && <p className="text-[10px] text-red-500 line-through">₵{(item.price * item.cartQuantity).toFixed(2)}</p>}
+                                            {item.discount > 0 && <p className="text-[10px] text-brand-brown line-through">₵{(item.price * item.cartQuantity).toFixed(2)}</p>}
                                         </div>
                                     </div>
                                     {item.discount > 0 && (
-                                        <span className="text-[10px] text-red-600 font-medium">-{item.discount}% discount</span>
+                                        <span className="text-[10px] text-brand-brown font-medium">-{item.discount}% discount</span>
                                     )}
                                 </div>
                             </div>
@@ -1088,7 +1088,7 @@ export default function POSPage() {
                             <span>₵{cartSubtotal.toFixed(2)}</span>
                         </div>
                         {totalDiscount > 0 && (
-                            <div className="flex justify-between text-red-600">
+                            <div className="flex justify-between text-brand-brown">
                                 <span>Discount</span>
                                 <span>-₵{totalDiscount.toFixed(2)}</span>
                             </div>
@@ -1131,14 +1131,14 @@ export default function POSPage() {
                         <button
                             onClick={emptyCart}
                             disabled={cart.length === 0}
-                            className="px-3 py-3 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="px-3 py-3 border border-brand-brown/20 text-brand-brown rounded-lg hover:bg-brand-cream font-semibold text-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <i className="ri-delete-bin-line mr-1" />Clear
                         </button>
                         <button
                             onClick={() => { setShowCheckoutModal(true); setCheckoutError(null); }}
                             disabled={cart.length === 0}
-                            className="px-3 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-900 font-bold text-sm shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="px-3 py-3 bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark font-bold text-sm shadow-sm transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             Charge ₵{grandTotal.toFixed(2)}
                         </button>
@@ -1152,8 +1152,8 @@ export default function POSPage() {
                     <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                         {completedOrder ? (
                             <div className="p-8 text-center flex flex-col items-center justify-center space-y-5 overflow-y-auto">
-                                <div className={`w-20 h-20 rounded-full flex items-center justify-center ${completedOrder.paymentPending ? 'bg-amber-100' : 'bg-gray-100'}`}>
-                                    <i className={`text-5xl ${completedOrder.paymentPending ? 'ri-time-line text-amber-600' : 'ri-checkbox-circle-fill text-gray-700'}`} />
+                                <div className={`w-20 h-20 rounded-full flex items-center justify-center ${completedOrder.paymentPending ? 'bg-brand-cream' : 'bg-gray-100'}`}>
+                                    <i className={`text-5xl ${completedOrder.paymentPending ? 'ri-time-line text-brand-brown' : 'ri-checkbox-circle-fill text-gray-700'}`} />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900">
@@ -1172,7 +1172,7 @@ export default function POSPage() {
                                         <div className="mt-4 space-y-3">
                                             <p className="text-sm text-gray-600">Customer can pay using this link:</p>
                                             <a href={completedOrder.paymentUrl} target="_blank" rel="noopener noreferrer"
-                                                className="inline-flex items-center px-6 py-3 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 transition-colors">
+                                                className="inline-flex items-center px-6 py-3 bg-brand-brown text-white rounded-xl font-semibold hover:bg-brand-bag-dark transition-colors">
                                                 <i className="ri-external-link-line mr-2" />Open Payment Page
                                             </a>
                                             <div>
@@ -1193,7 +1193,7 @@ export default function POSPage() {
                                         <i className="ri-printer-line mr-2" />Print Receipt
                                     </button>
                                     <button onClick={resetCheckout}
-                                        className="py-3 px-4 bg-gray-700 text-white rounded-xl font-semibold hover:bg-gray-900 transition-colors">
+                                        className="py-3 px-4 bg-brand-brown text-white rounded-xl font-semibold hover:bg-brand-bag-dark transition-colors">
                                         New Order
                                     </button>
                                 </div>
@@ -1209,16 +1209,16 @@ export default function POSPage() {
 
                                 <div className="p-5 space-y-5 overflow-y-auto">
                                     {checkoutError && (
-                                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                                            <i className="ri-error-warning-line text-red-500 mt-0.5" />
-                                            <p className="text-sm text-red-700">{checkoutError}</p>
+                                        <div className="bg-brand-cream border border-brand-brown/20 rounded-lg p-3 flex items-start gap-2">
+                                            <i className="ri-error-warning-line text-brand-brown mt-0.5" />
+                                            <p className="text-sm text-brand-brown">{checkoutError}</p>
                                         </div>
                                     )}
 
                                     <div className="text-center py-4 bg-gray-50 rounded-xl border border-gray-100">
                                         <p className="text-xs text-gray-800 uppercase tracking-wider font-semibold">Amount to Pay</p>
                                         <p className="text-4xl font-extrabold text-gray-900 mt-1">₵{grandTotal.toFixed(2)}</p>
-                                        {totalDiscount > 0 && <p className="text-xs text-red-500 mt-1">Discount: -₵{totalDiscount.toFixed(2)}</p>}
+                                        {totalDiscount > 0 && <p className="text-xs text-brand-brown mt-1">Discount: -₵{totalDiscount.toFixed(2)}</p>}
                                     </div>
 
                                     {/* Customer */}
@@ -1245,7 +1245,7 @@ export default function POSPage() {
                                                     <p className="font-semibold text-gray-900 text-sm">{selectedCustomer.full_name}</p>
                                                     <p className="text-xs text-gray-600">{selectedCustomer.email} {selectedCustomer.phone && `| ${selectedCustomer.phone}`}</p>
                                                 </div>
-                                                <button onClick={() => setSelectedCustomer(null)} className="text-gray-400 hover:text-red-500"><i className="ri-close-line" /></button>
+                                                <button onClick={() => setSelectedCustomer(null)} className="text-gray-400 hover:text-brand-brown"><i className="ri-close-line" /></button>
                                             </div>
                                         )}
 
@@ -1269,7 +1269,7 @@ export default function POSPage() {
                                                         value={guestDetails.phone}
                                                         onChange={e => setGuestDetails({ ...guestDetails, phone: e.target.value })}
                                                         className={`w-full px-3 py-2 border rounded-md text-sm focus:ring-1 focus:ring-gray-600 outline-none ${
-                                                            paymentMethod === 'momo' && !guestDetails.phone ? 'border-amber-400 bg-amber-50' : 'border-gray-300'
+                                                            paymentMethod === 'momo' && !guestDetails.phone ? 'border-brand-brown/40 bg-brand-cream' : 'border-gray-300'
                                                         }`} />
                                                 </div>
                                             </div>
@@ -1300,16 +1300,16 @@ export default function POSPage() {
                                             </button>
                                         </div>
                                         {deliveryMethod === 'doorstep' && (
-                                            <div className="mt-2 bg-blue-50 p-3 rounded-lg border border-blue-200 space-y-2">
+                                            <div className="mt-2 bg-brand-cream p-3 rounded-lg border border-brand-brown/20 space-y-2">
                                                 <input type="text" placeholder="Street Address *" value={guestDetails.address}
                                                     onChange={e => setGuestDetails({ ...guestDetails, address: e.target.value })}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-brand-brown outline-none" />
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <input type="text" placeholder="City *" value={guestDetails.city}
                                                         onChange={e => setGuestDetails({ ...guestDetails, city: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none" />
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-brand-brown outline-none" />
                                                     <select value={guestDetails.region} onChange={e => setGuestDetails({ ...guestDetails, region: e.target.value })}
-                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-blue-500 outline-none">
+                                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-brand-brown outline-none">
                                                         <option value="">Region *</option>
                                                         {ghanaRegions.map(r => <option key={r} value={r}>{r}</option>)}
                                                     </select>
@@ -1352,13 +1352,13 @@ export default function POSPage() {
                                                     placeholder="0.00" autoFocus />
                                             </div>
                                             {changeDue > 0 && <p className="text-right text-gray-700 font-bold mt-2">Change: ₵{changeDue.toFixed(2)}</p>}
-                                            {changeDue < 0 && amountTendered && <p className="text-right text-red-500 font-medium mt-2">Insufficient</p>}
+                                            {changeDue < 0 && amountTendered && <p className="text-right text-brand-brown font-medium mt-2">Insufficient</p>}
                                             <div className="grid grid-cols-4 gap-2 mt-3">
                                                 {[1, 2, 5, 10, 20, 50, 100, 200].map(amount => (
                                                     <button key={amount} onClick={() => setAmountTendered(amount.toString())}
                                                         className={`px-2 py-2 rounded-lg text-sm font-medium transition-colors ${
                                                             parseFloat(amountTendered) === amount
-                                                                ? 'bg-gray-700 text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                                                                ? 'bg-brand-brown text-white' : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                                                         }`}>
                                                         ₵{amount}
                                                     </button>
@@ -1376,9 +1376,9 @@ export default function POSPage() {
                                     )}
 
                                     {paymentMethod === 'momo' && (
-                                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
-                                            <i className="ri-information-line text-amber-600 mt-0.5" />
-                                            <div className="text-sm text-amber-800">
+                                        <div className="bg-brand-cream border border-brand-brown/20 rounded-lg p-3 flex items-start gap-2">
+                                            <i className="ri-information-line text-brand-brown mt-0.5" />
+                                            <div className="text-sm text-brand-brown">
                                                 <p className="font-semibold">Mobile Money</p>
                                                 <p className="mt-1">A payment link will be generated for the customer.</p>
                                             </div>
@@ -1386,9 +1386,9 @@ export default function POSPage() {
                                     )}
 
                                     {paymentMethod === 'card' && (
-                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-start gap-2">
-                                            <i className="ri-bank-card-line text-blue-600 mt-0.5" />
-                                            <div className="text-sm text-blue-800">
+                                        <div className="bg-brand-cream border border-brand-brown/20 rounded-lg p-3 flex items-start gap-2">
+                                            <i className="ri-bank-card-line text-brand-brown mt-0.5" />
+                                            <div className="text-sm text-brand-brown">
                                                 <p className="font-semibold">Card Payment</p>
                                                 <p className="mt-1">Process on your POS terminal, then confirm here.</p>
                                             </div>
@@ -1398,7 +1398,7 @@ export default function POSPage() {
 
                                 <div className="p-5 border-t border-gray-100 bg-gray-50 shrink-0">
                                     <button onClick={handleCheckout} disabled={processing}
-                                        className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+                                        className="w-full py-4 bg-gray-900 text-white rounded-xl font-bold text-lg shadow-lg hover:bg-brand-bag-dark disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
                                         {processing ? (
                                             <><i className="ri-loader-4-line animate-spin" /><span>Processing...</span></>
                                         ) : paymentMethod === 'momo' ? (
@@ -1420,7 +1420,7 @@ export default function POSPage() {
                     <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
                         <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                             <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <i className="ri-pause-circle-line text-amber-600" />
+                                <i className="ri-pause-circle-line text-brand-brown" />
                                 Held Orders ({heldOrders.length})
                             </h3>
                             <button onClick={() => setShowHeldOrders(false)} className="w-8 h-8 rounded-full hover:bg-gray-200 flex items-center justify-center text-gray-500">
@@ -1453,11 +1453,11 @@ export default function POSPage() {
                                         </div>
                                         <div className="flex gap-2">
                                             <button onClick={() => recallOrder(held.id)}
-                                                className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-semibold hover:bg-gray-900 transition-colors">
+                                                className="flex-1 py-2 bg-brand-brown text-white rounded-lg text-sm font-semibold hover:bg-brand-bag-dark transition-colors">
                                                 <i className="ri-refresh-line mr-1" />Recall
                                             </button>
                                             <button onClick={() => deleteHeldOrder(held.id)}
-                                                className="px-3 py-2 border border-red-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors">
+                                                className="px-3 py-2 border border-brand-brown/20 text-brand-brown rounded-lg text-sm font-medium hover:bg-brand-cream transition-colors">
                                                 <i className="ri-delete-bin-line" />
                                             </button>
                                         </div>

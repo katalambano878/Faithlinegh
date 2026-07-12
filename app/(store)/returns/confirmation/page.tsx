@@ -23,9 +23,9 @@ export default function ReturnConfirmationPage() {
               Return ID: <span className="font-semibold">{returnId}</span>
             </p>
 
-            <div className="mb-8 p-6 bg-[#A8826B]/5 border border-[#A8826B]/20 rounded-xl text-left">
+            <div className="mb-8 p-6 bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-xl text-left">
               <h2 className="font-bold text-gray-900 mb-4 flex items-center">
-                <i className="ri-mail-line text-2xl text-[#A8826B] mr-2"></i>
+                <i className="ri-mail-line text-2xl text-[#5B4436] mr-2"></i>
                 Check Your Email
               </h2>
               <p className="text-sm text-gray-700 mb-3">
@@ -99,7 +99,7 @@ export default function ReturnConfirmationPage() {
             <div className="space-y-3">
               <Link
                 href="/account"
-                className="block w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                className="block w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap"
               >
                 Track Return Status
               </Link>
@@ -118,12 +118,12 @@ export default function ReturnConfirmationPage() {
             </div>
           </div>
 
-          <div className="mt-8 bg-[#FAF3EE] border border-[#A8826B]/30 rounded-xl p-6">
+          <div className="mt-8 bg-[#F4F2F1] border border-[#5B4436]/30 rounded-xl p-6">
             <div className="flex items-start space-x-3">
-              <i className="ri-alert-line text-2xl text-[#8C6A52] mt-0.5"></i>
+              <i className="ri-alert-line text-2xl text-[#5B4436] mt-0.5"></i>
               <div>
-                <p className="font-semibold text-[#5A4234] mb-2">Important Reminders</p>
-                <ul className="text-sm text-[#8C6A52] space-y-1">
+                <p className="font-semibold text-[#5B4436] mb-2">Important Reminders</p>
+                <ul className="text-sm text-[#5B4436] space-y-1">
                   <li>• Return must be shipped within 7 days</li>
                   <li>• Items must be unused with original tags</li>
                   <li>• Keep your tracking number for reference</li>

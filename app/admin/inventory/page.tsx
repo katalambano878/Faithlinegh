@@ -133,7 +133,7 @@ export default function InventoryManagementPage() {
           </div>
           <Link
             href="/admin"
-            className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap text-center"
+            className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap text-center"
           >
             Back to Dashboard
           </Link>
@@ -146,8 +146,8 @@ export default function InventoryManagementPage() {
                 <p className="text-sm text-gray-600 mb-1">Total Products</p>
                 <p className="text-3xl font-bold text-gray-900">{products.length}</p>
               </div>
-              <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-lg">
-                <i className="ri-stack-line text-2xl text-blue-600"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-stack-line text-2xl text-brand-brown"></i>
               </div>
             </div>
           </div>
@@ -156,10 +156,10 @@ export default function InventoryManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Low Stock Items</p>
-                <p className="text-3xl font-bold text-amber-600">{lowStockCount}</p>
+                <p className="text-3xl font-bold text-brand-brown">{lowStockCount}</p>
               </div>
-              <div className="w-12 h-12 flex items-center justify-center bg-amber-100 rounded-lg">
-                <i className="ri-alert-line text-2xl text-amber-600"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-alert-line text-2xl text-brand-brown"></i>
               </div>
             </div>
           </div>
@@ -168,10 +168,10 @@ export default function InventoryManagementPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 mb-1">Out of Stock</p>
-                <p className="text-3xl font-bold text-red-600">{outOfStockCount}</p>
+                <p className="text-3xl font-bold text-brand-brown">{outOfStockCount}</p>
               </div>
               <div className="w-12 h-12 flex items-center justify-center bg-red-100 rounded-lg">
-                <i className="ri-close-circle-line text-2xl text-red-600"></i>
+                <i className="ri-close-circle-line text-2xl text-brand-brown"></i>
               </div>
             </div>
           </div>
@@ -225,7 +225,7 @@ export default function InventoryManagementPage() {
 
               <button
                 onClick={() => setShowImportModal(true)}
-                className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
+                className="bg-gray-900 hover:bg-brand-bag-dark text-white px-4 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
               >
                 <i className="ri-upload-line"></i>
                 <span>Import CSV</span>
@@ -249,7 +249,7 @@ export default function InventoryManagementPage() {
               <div className="flex items-center space-x-3">
                 <button
                   onClick={handleBulkRestock}
-                  className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                  className="bg-gray-900 hover:bg-brand-bag-dark text-white px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
                 >
                   Bulk Restock
                 </button>
@@ -326,13 +326,13 @@ export default function InventoryManagementPage() {
                           </span>
                         )}
                         {product.status === 'low' && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-amber-100 text-amber-700 whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-brand-cream text-brand-brown whitespace-nowrap">
                             <i className="ri-alert-fill mr-1"></i>
                             Low Stock
                           </span>
                         )}
                         {product.status === 'out' && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-700 whitespace-nowrap">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-brand-brown whitespace-nowrap">
                             <i className="ri-close-circle-fill mr-1"></i>
                             Out of Stock
                           </span>
@@ -347,7 +347,7 @@ export default function InventoryManagementPage() {
                             <i className="ri-edit-line text-lg"></i>
                           </button>
                           <button
-                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 transition-colors cursor-pointer"
+                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown transition-colors cursor-pointer"
                             title="View Details"
                           >
                             <i className="ri-eye-line text-lg"></i>

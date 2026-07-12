@@ -63,7 +63,7 @@ export default function ShippingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gradient-to-br from-gray-100 via-white to-[#FAF3EE]/40 py-16">
+      <div className="bg-gradient-to-br from-gray-100 via-white to-[#F4F2F1]/40 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">Shipping & Delivery</h1>
@@ -247,20 +247,20 @@ export default function ShippingPage() {
           </p>
           <div className="grid md:grid-cols-4 gap-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-[#A8826B]/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i className="ri-checkbox-circle-line text-2xl text-[#A8826B]"></i>
+              <div className="w-12 h-12 bg-[#5B4436]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i className="ri-checkbox-circle-line text-2xl text-[#5B4436]"></i>
               </div>
               <p className="font-medium text-gray-900">Order Confirmed</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-[#FAF3EE] rounded-full flex items-center justify-center mx-auto mb-3">
-                <i className="ri-package-line text-2xl text-[#8C6A52]"></i>
+              <div className="w-12 h-12 bg-[#F4F2F1] rounded-full flex items-center justify-center mx-auto mb-3">
+                <i className="ri-package-line text-2xl text-[#5B4436]"></i>
               </div>
               <p className="font-medium text-gray-900">Processing</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-[#A8826B]/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                <i className="ri-truck-line text-2xl text-[#A8826B]"></i>
+              <div className="w-12 h-12 bg-[#5B4436]/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i className="ri-truck-line text-2xl text-[#5B4436]"></i>
               </div>
               <p className="font-medium text-gray-900">Out for Delivery</p>
             </div>
@@ -274,7 +274,7 @@ export default function ShippingPage() {
           <div className="mt-8 text-center">
             <Link
               href="/order-tracking"
-              className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-full font-medium hover:bg-gray-800 transition-colors whitespace-nowrap"
+              className="inline-flex items-center gap-2 bg-gray-900 text-white px-8 py-4 rounded-full font-medium hover:bg-brand-bag-dark transition-colors whitespace-nowrap"
             >
               <i className="ri-map-pin-line"></i>
               Track Your Order
@@ -296,7 +296,7 @@ export default function ShippingPage() {
             </Link>
             <Link
               href="/faqs"
-              className="inline-flex items-center gap-2 bg-gray-700 text-white px-6 py-3 rounded-full font-medium hover:bg-gray-600 transition-colors whitespace-nowrap"
+              className="inline-flex items-center gap-2 bg-brand-brown text-white px-6 py-3 rounded-full font-medium hover:bg-gray-600 transition-colors whitespace-nowrap"
             >
               View FAQs
             </Link>

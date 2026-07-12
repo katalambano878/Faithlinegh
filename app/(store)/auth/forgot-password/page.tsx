@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
             </p>
             <Link
               href="/auth/login"
-              className="inline-block bg-gray-900 hover:bg-gray-800 text-white px-8 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+              className="inline-block bg-gray-900 hover:bg-brand-bag-dark text-white px-8 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
             >
               Back to Sign In
             </Link>
@@ -90,19 +90,19 @@ export default function ForgotPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${
-                  error ? 'border-[#D98E73]' : 'border-gray-300'
+                  error ? 'border-[#5B4436]' : 'border-gray-300'
                 }`}
                 placeholder="you@example.com"
               />
               {error && (
-                <p className="text-sm text-[#9A4A36] mt-2">{error}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{error}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {isLoading || verifying ? (verifying ? 'Verifying...' : 'Sending...') : 'Send Reset Link'}
             </button>

@@ -167,7 +167,7 @@ export default function ArticlePage() {
               <div className="flex space-x-4">
                 <button
                   onClick={() => handleHelpful(true)}
-                  className="flex-1 py-3 px-6 border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white rounded-lg font-semibold transition-colors whitespace-nowrap"
+                  className="flex-1 py-3 px-6 border-2 border-gray-900 text-gray-900 hover:bg-brand-bag-dark hover:text-white rounded-lg font-semibold transition-colors whitespace-nowrap"
                 >
                   <i className="ri-thumb-up-line mr-2"></i>
                   Yes, it was helpful
@@ -196,8 +196,8 @@ export default function ArticlePage() {
                   </>
                 ) : (
                   <>
-                    <div className="w-16 h-16 flex items-center justify-center bg-[#A8826B]/10 rounded-full mx-auto mb-4">
-                      <i className="ri-customer-service-line text-3xl text-[#A8826B]"></i>
+                    <div className="w-16 h-16 flex items-center justify-center bg-[#5B4436]/10 rounded-full mx-auto mb-4">
+                      <i className="ri-customer-service-line text-3xl text-[#5B4436]"></i>
                     </div>
                     <p className="text-lg font-semibold text-gray-900 mb-2">
                       Sorry we couldn't help
@@ -207,7 +207,7 @@ export default function ArticlePage() {
                     </p>
                     <Link
                       href="/support/ticket"
-                      className="inline-block bg-[#5A4234] hover:bg-[#5A4234]/90 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                      className="inline-block bg-[#5B4436] hover:bg-[#5B4436]/90 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
                     >
                       Contact Support
                     </Link>

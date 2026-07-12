@@ -150,7 +150,7 @@ export default async function CategoriesPage() {
       </div>
 
       <div className="bg-white px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 pt-2">
-        <div className="max-w-4xl mx-auto rounded-2xl bg-gradient-to-br from-brand-brown to-[#2C1D14] px-6 sm:px-10 py-8 sm:py-10 text-center shadow-[0_12px_40px_-18px_rgba(61,43,33,0.45)]">
+        <div className="max-w-4xl mx-auto rounded-2xl bg-gradient-to-br from-brand-brown to-[#47362C] px-6 sm:px-10 py-8 sm:py-10 text-center shadow-[0_12px_40px_-18px_rgba(61,43,33,0.45)]">
           <h2 className="text-xl sm:text-2xl font-bold text-white mb-3">
             Can&apos;t Find What You&apos;re Looking For?
           </h2>

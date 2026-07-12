@@ -44,12 +44,12 @@ export default function TicketsPage() {
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
   const priorityBadge = (p: string) => {
-    const c: Record<string, string> = { urgent: 'bg-red-100 text-red-700 ring-1 ring-red-200', high: 'bg-orange-100 text-orange-700', medium: 'bg-blue-100 text-blue-700', low: 'bg-gray-100 text-gray-600' };
+    const c: Record<string, string> = { urgent: 'bg-red-100 text-brand-brown ring-1 ring-red-200', high: 'bg-brand-cream text-brand-brown', medium: 'bg-brand-cream text-brand-brown', low: 'bg-gray-100 text-gray-600' };
     return <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${c[p] || c.medium}`}>{p}</span>;
   };
 
   const statusBadge = (s: string) => {
-    const c: Record<string, string> = { open: 'bg-blue-100 text-blue-700', in_progress: 'bg-yellow-100 text-yellow-700', waiting_customer: 'bg-purple-100 text-purple-700', waiting_agent: 'bg-orange-100 text-orange-700', resolved: 'bg-gray-100 text-gray-900', closed: 'bg-gray-100 text-gray-600' };
+    const c: Record<string, string> = { open: 'bg-brand-cream text-brand-brown', in_progress: 'bg-brand-cream text-brand-brown', waiting_customer: 'bg-brand-cream text-brand-brown', waiting_agent: 'bg-brand-cream text-brand-brown', resolved: 'bg-gray-100 text-gray-900', closed: 'bg-gray-100 text-gray-600' };
     return <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${c[s] || c.open}`}>{s.replace(/_/g, ' ')}</span>;
   };
 
@@ -58,8 +58,8 @@ export default function TicketsPage() {
     const deadline = new Date(ticket.sla_deadline).getTime();
     const now = Date.now();
     const hoursLeft = (deadline - now) / 3600000;
-    if (hoursLeft < 0) return <span className="text-[9px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded">SLA BREACHED</span>;
-    if (hoursLeft < 2) return <span className="text-[9px] font-bold text-orange-600 bg-orange-50 px-1.5 py-0.5 rounded">SLA &lt;2h</span>;
+    if (hoursLeft < 0) return <span className="text-[9px] font-bold text-brand-brown bg-brand-cream px-1.5 py-0.5 rounded">SLA BREACHED</span>;
+    if (hoursLeft < 2) return <span className="text-[9px] font-bold text-brand-brown bg-brand-cream px-1.5 py-0.5 rounded">SLA &lt;2h</span>;
     return null;
   };
 
@@ -77,7 +77,7 @@ export default function TicketsPage() {
           <h1 className="text-2xl font-bold text-gray-900">Support Tickets</h1>
         </div>
         <button onClick={() => setShowNewModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors">
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark text-sm font-medium transition-colors">
           <i className="ri-add-line" /> New Ticket
         </button>
       </div>
@@ -86,7 +86,7 @@ export default function TicketsPage() {
       <div className="flex gap-1 bg-white rounded-xl border border-gray-100 p-1 overflow-x-auto">
         {STATUS_TABS.map(tab => (
           <button key={tab} onClick={() => { setStatusTab(tab); setPage(1); }}
-            className={`px-4 py-2 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${statusTab === tab ? 'bg-gray-700 text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
+            className={`px-4 py-2 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${statusTab === tab ? 'bg-brand-brown text-white' : 'text-gray-600 hover:bg-gray-50'}`}>
             {tab === 'all' ? 'All' : tab.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
           </button>
         ))}
@@ -235,7 +235,7 @@ function NewTicketModal({ onClose, onCreated }: { onClose: () => void; onCreated
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 text-sm bg-gray-700 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="px-4 py-2 text-sm bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark disabled:opacity-50">
               {saving ? 'Creating...' : 'Create Ticket'}
             </button>
           </div>

@@ -14,14 +14,14 @@ interface Module {
 }
 
 const colorMap: Record<string, string> = {
-  red: 'bg-red-100 text-red-600',
-  blue: 'bg-blue-100 text-blue-600',
-  purple: 'bg-purple-100 text-purple-600',
+  red: 'bg-red-100 text-brand-brown',
+  blue: 'bg-brand-cream text-brand-brown',
+  purple: 'bg-brand-cream text-brand-brown',
   emerald: 'bg-gray-100 text-gray-700',
-  orange: 'bg-orange-100 text-orange-600',
-  amber: 'bg-amber-100 text-amber-600',
-  yellow: 'bg-yellow-100 text-yellow-600',
-  indigo: 'bg-indigo-100 text-indigo-600',
+  orange: 'bg-brand-cream text-brand-brown',
+  amber: 'bg-brand-cream text-brand-brown',
+  yellow: 'bg-brand-cream text-yellow-600',
+  indigo: 'bg-brand-cream text-brand-brown',
   gray: 'bg-gray-100 text-gray-600'
 };
 
@@ -224,11 +224,11 @@ export default function ModulesPage() {
               />
             </div>
             {pinError && (
-              <p className="text-red-500 text-sm font-medium animate-pulse">{pinError}</p>
+              <p className="text-brand-brown text-sm font-medium animate-pulse">{pinError}</p>
             )}
             <button
               type="submit"
-              className="w-full bg-gray-900 hover:bg-gray-900 text-white font-bold py-4 rounded-xl transition-colors text-lg"
+              className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white font-bold py-4 rounded-xl transition-colors text-lg"
             >
               Unlock Dashboard
             </button>
@@ -298,7 +298,7 @@ export default function ModulesPage() {
                         </div>
                         <button
                           onClick={() => toggleModule(module.id, module.enabled)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${module.enabled ? 'bg-gray-700' : 'bg-gray-300'}`}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${module.enabled ? 'bg-brand-brown' : 'bg-gray-300'}`}
                         >
                           <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${module.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>

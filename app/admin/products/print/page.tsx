@@ -126,7 +126,7 @@ export default function PrintInventoryPage() {
             <div className="mb-6 print-hidden flex flex-wrap gap-3 items-center">
                 <button
                     onClick={() => window.print()}
-                    className="px-6 py-2 bg-black text-white rounded shadow hover:bg-gray-800 transition-colors font-semibold flex items-center"
+                    className="px-6 py-2 bg-black text-white rounded shadow hover:bg-brand-bag-dark transition-colors font-semibold flex items-center"
                 >
                     <i className="ri-printer-line mr-2"></i>
                     Print Now
@@ -134,7 +134,7 @@ export default function PrintInventoryPage() {
                 <button
                     onClick={handleShareWhatsApp}
                     disabled={sharing}
-                    className="px-6 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600 transition-colors font-semibold flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="px-6 py-2 bg-brand-brown text-white rounded shadow hover:bg-brand-brown transition-colors font-semibold flex items-center disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                     <i className={`${sharing ? 'ri-loader-4-line animate-spin' : 'ri-whatsapp-line'} mr-2`}></i>
                     {sharing ? 'Generating PDF…' : 'Share on WhatsApp'}

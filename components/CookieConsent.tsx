@@ -118,7 +118,7 @@ export default function CookieConsent() {
                   disabled={!acceptedTerms}
                   className={`px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${
                     acceptedTerms
-                      ? 'bg-brand-brown hover:bg-[#2C1D14] text-white cursor-pointer'
+                      ? 'bg-brand-brown hover:bg-[#47362C] text-white cursor-pointer'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                   title={!acceptedTerms ? 'Please accept Terms & Conditions first' : ''}
@@ -244,7 +244,7 @@ export default function CookieConsent() {
                   disabled={!acceptedTerms}
                   className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${
                     acceptedTerms
-                      ? 'bg-brand-brown hover:bg-[#2C1D14] text-white cursor-pointer'
+                      ? 'bg-brand-brown hover:bg-[#47362C] text-white cursor-pointer'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >
@@ -255,7 +255,7 @@ export default function CookieConsent() {
                   disabled={!acceptedTerms}
                   className={`flex-1 px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap ${
                     acceptedTerms
-                      ? 'bg-brand-brown hover:bg-[#2C1D14] text-white cursor-pointer'
+                      ? 'bg-brand-brown hover:bg-[#47362C] text-white cursor-pointer'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   }`}
                 >

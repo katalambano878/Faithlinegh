@@ -43,17 +43,17 @@ export default function AdminBlogPage() {
         <Link
           href="/blog"
           target="_blank"
-          className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+          className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
         >
           <i className="ri-external-link-line mr-2"></i>
           View Live Blog
         </Link>
       </div>
 
-      <div className="bg-[#A8826B]/5 border border-[#A8826B]/20 rounded-xl p-4">
+      <div className="bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-xl p-4">
         <div className="flex items-start gap-3">
-          <i className="ri-information-line text-xl text-[#A8826B] mt-0.5"></i>
-          <div className="text-sm text-[#5A4234]">
+          <i className="ri-information-line text-xl text-[#5B4436] mt-0.5"></i>
+          <div className="text-sm text-[#5B4436]">
             <p className="font-semibold mb-1">Blog content is managed in code</p>
             <p>
               Posts live in the site source (<code className="bg-white/60 px-1 rounded">app/(store)/blog</code>) and are
@@ -70,7 +70,7 @@ export default function AdminBlogPage() {
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-900 truncate">{post.title}</h3>
                 {post.featured && (
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-[#A8826B]/10 text-[#A8826B] whitespace-nowrap">
+                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase rounded-full bg-[#5B4436]/10 text-[#5B4436] whitespace-nowrap">
                     Featured
                   </span>
                 )}

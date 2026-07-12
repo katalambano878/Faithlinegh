@@ -86,7 +86,7 @@ export default function AccessibilityMenu() {
     <>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed left-0 top-1/2 -translate-y-1/2 bg-gray-900 hover:bg-gray-800 text-white p-3 rounded-r-lg shadow-lg z-[9997] transition-all"
+        className="fixed left-0 top-1/2 -translate-y-1/2 bg-gray-900 hover:bg-brand-bag-dark text-white p-3 rounded-r-lg shadow-lg z-[9997] transition-all"
         aria-label="Accessibility Menu"
       >
         <i className="ri-accessibility-line text-2xl"></i>

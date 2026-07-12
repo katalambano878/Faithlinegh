@@ -15,14 +15,14 @@ export default function StockNotification({ stockCount, threshold = 10, viewCoun
       {isLowStock && (
         <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${
           isVeryLowStock 
-            ? 'bg-[#F3DBCF]/50 border border-[#D98E73]/30' 
-            : 'bg-[#FAF3EE]/50 border border-[#C9A24B]/30'
+            ? 'bg-[#E8DFD4]/50 border border-[#5B4436]/30' 
+            : 'bg-[#F4F2F1]/50 border border-[#5B4436]/30'
         }`}>
           <div className={`w-2 h-2 rounded-full animate-pulse ${
-            isVeryLowStock ? 'bg-[#D98E73]' : 'bg-[#C9A24B]'
+            isVeryLowStock ? 'bg-[#5B4436]' : 'bg-[#5B4436]'
           }`}></div>
           <span className={`text-sm font-semibold ${
-            isVeryLowStock ? 'text-[#9A4A36]' : 'text-[#8C6A52]'
+            isVeryLowStock ? 'text-[#5B4436]' : 'text-[#5B4436]'
           }`}>
             {isVeryLowStock ? '🔥 ' : '⚠️ '}
             Only {stockCount} left in stock - Order soon!
@@ -31,18 +31,18 @@ export default function StockNotification({ stockCount, threshold = 10, viewCoun
       )}
 
       {viewCount && viewCount > 50 && (
-        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#A8826B]/10 border border-[#A8826B]/30">
-          <div className="w-6 h-6 flex items-center justify-center bg-[#5A4234] rounded-full">
+        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-[#5B4436]/10 border border-[#5B4436]/30">
+          <div className="w-6 h-6 flex items-center justify-center bg-[#5B4436] rounded-full">
             <i className="ri-eye-fill text-white text-xs"></i>
           </div>
-          <span className="text-sm font-semibold text-[#A8826B]">
+          <span className="text-sm font-semibold text-[#5B4436]">
             🔥 {viewCount.toLocaleString()} people viewed this today
           </span>
         </div>
       )}
 
       {viewCount && viewCount > 200 && (
-        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gradient-to-r from-[#D98E73] to-[#E3B9A6] text-white">
+        <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gradient-to-r from-[#5B4436] to-[#5B4436] text-white">
           <div className="w-6 h-6 flex items-center justify-center bg-white/20 rounded-full animate-pulse">
             <i className="ri-fire-fill text-sm"></i>
           </div>

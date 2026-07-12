@@ -199,7 +199,7 @@ export default function MobileFilterDrawer({ isOpen, onClose }: MobileFilterDraw
                   <div className="flex items-center space-x-1">
                     {[...Array(5)].map((_, i) => (
                       <div key={i} className="w-4 h-4 flex items-center justify-center">
-                        <i className={`${i < rating ? 'ri-star-fill text-[#C9A24B]' : 'ri-star-line text-gray-300'} text-sm`}></i>
+                        <i className={`${i < rating ? 'ri-star-fill text-[#5B4436]' : 'ri-star-line text-gray-300'} text-sm`}></i>
                       </div>
                     ))}
                     <span className="text-sm text-gray-600 ml-1">& Up</span>
@@ -213,7 +213,7 @@ export default function MobileFilterDrawer({ isOpen, onClose }: MobileFilterDraw
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4">
           <button
             onClick={onClose}
-            className="w-full bg-brand-brown text-white py-3 rounded-lg font-medium hover:bg-[#2C1D14] transition-colors whitespace-nowrap"
+            className="w-full bg-brand-brown text-white py-3 rounded-lg font-medium hover:bg-[#47362C] transition-colors whitespace-nowrap"
           >
             Show Results ({234})
           </button>

@@ -98,7 +98,7 @@ function OrderSuccessContent() {
     return (
       <main className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <i className="ri-error-warning-line text-4xl text-[#D98E73] mb-4 block"></i>
+          <i className="ri-error-warning-line text-4xl text-[#5B4436] mb-4 block"></i>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
           <p className="text-gray-600 mb-6">We couldn't locate the order details.</p>
           <Link href="/shop" className="text-gray-900 font-semibold hover:underline">
@@ -128,7 +128,7 @@ function OrderSuccessContent() {
                 animationDuration: `${3 + Math.random() * 2}s`
               }}
             >
-              <i className={`ri-${['heart', 'star', 'gift'][Math.floor(Math.random() * 3)]}-fill ${['text-gray-500', 'text-[#C9A24B]', 'text-[#A8826B]'][Math.floor(Math.random() * 3)]} text-xl opacity-70`}></i>
+              <i className={`ri-${['heart', 'star', 'gift'][Math.floor(Math.random() * 3)]}-fill ${['text-gray-500', 'text-[#5B4436]', 'text-[#5B4436]'][Math.floor(Math.random() * 3)]} text-xl opacity-70`}></i>
             </div>
           ))}
         </div>
@@ -166,7 +166,7 @@ function OrderSuccessContent() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
               <Link
                 href={`/account?tab=orders`}
-                className="bg-gray-900 hover:bg-gray-800 text-white px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center justify-center whitespace-nowrap"
+                className="bg-gray-900 hover:bg-brand-bag-dark text-white px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center justify-center whitespace-nowrap"
               >
                 <i className="ri-file-list-3-line mr-2"></i>
                 View Order
@@ -180,10 +180,10 @@ function OrderSuccessContent() {
               </Link>
             </div>
 
-            <div className="bg-gradient-to-r from-[#FAF3EE]/50 to-[#F3F3F3] rounded-xl p-6 border-2 border-[#C9A24B]/30">
+            <div className="bg-gradient-to-r from-[#F4F2F1]/50 to-[#F3F3F3] rounded-xl p-6 border-2 border-[#5B4436]/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 flex items-center justify-center bg-[#C9A24B] rounded-full">
+                  <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436] rounded-full">
                     <i className="ri-star-fill text-white text-2xl"></i>
                   </div>
                   <div className="text-left">
@@ -193,7 +193,7 @@ function OrderSuccessContent() {
                 </div>
                 <Link
                   href="/auth/signup"
-                  className="bg-[#C9A24B] hover:bg-[#A8826B] text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                  className="bg-[#5B4436] hover:bg-[#5B4436] text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
                 >
                   Join Now
                 </Link>
@@ -221,7 +221,7 @@ function OrderSuccessContent() {
                         <p className="text-xs text-gray-500">{item.variant_name}</p>
                       )}
                       {item.metadata?.preorder_shipping && (
-                        <p className="text-xs text-[#8C6A52] bg-[#FAF3EE]/50 inline-flex items-center gap-1 px-2 py-0.5 rounded mt-1 border border-[#C9A24B]/30">
+                        <p className="text-xs text-[#5B4436] bg-[#F4F2F1]/50 inline-flex items-center gap-1 px-2 py-0.5 rounded mt-1 border border-[#5B4436]/30">
                           <i className="ri-time-line"></i> {item.metadata.preorder_shipping}
                         </p>
                       )}

@@ -158,7 +158,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           <p className="text-gray-500 mb-4">No reviews yet. Be the first to review!</p>
           <button
             onClick={() => setShowReviewForm(true)}
-            className="bg-brand-brown hover:bg-[#2C1D14] text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+            className="bg-brand-brown hover:bg-[#47362C] text-white px-6 py-2 rounded-lg font-semibold transition-colors"
           >
             Write a Review
           </button>
@@ -172,7 +172,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <i
                     key={star}
-                    className={`ri-star-${star <= Math.round(averageRating) ? 'fill' : 'line'} text-xl ${star <= Math.round(averageRating) ? 'text-[#C9A24B]' : 'text-gray-300'
+                    className={`ri-star-${star <= Math.round(averageRating) ? 'fill' : 'line'} text-xl ${star <= Math.round(averageRating) ? 'text-[#5B4436]' : 'text-gray-300'
                       }`}
                   ></i>
                 ))}
@@ -189,11 +189,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                       className="flex items-center space-x-1 hover:text-gray-900 transition-colors"
                     >
                       <span className="text-sm font-medium w-6">{dist.star}</span>
-                      <i className="ri-star-fill text-[#C9A24B] text-sm"></i>
+                      <i className="ri-star-fill text-[#5B4436] text-sm"></i>
                     </button>
                     <div className="flex-1 h-3 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-[#C9A24B] transition-all duration-300"
+                        className="h-full bg-[#5B4436] transition-all duration-300"
                         style={{ width: `${dist.percentage}%` }}
                       ></div>
                     </div>
@@ -221,7 +221,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             {!showReviewForm && (
               <button
                 onClick={() => setShowReviewForm(true)}
-                className="bg-brand-brown hover:bg-[#2C1D14] text-white px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                className="bg-brand-brown hover:bg-[#47362C] text-white px-6 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap"
               >
                 Write a Review
               </button>
@@ -245,7 +245,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   className="w-10 h-10 flex items-center justify-center"
                 >
                   <i
-                    className={`ri-star-${star <= reviewForm.rating ? 'fill' : 'line'} text-3xl ${star <= reviewForm.rating ? 'text-[#C9A24B]' : 'text-gray-300'
+                    className={`ri-star-${star <= reviewForm.rating ? 'fill' : 'line'} text-3xl ${star <= reviewForm.rating ? 'text-[#5B4436]' : 'text-gray-300'
                       }`}
                   ></i>
                 </button>
@@ -254,7 +254,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           </div>
 
           {!user && (
-            <div className="mb-4 p-4 bg-[#FAF3EE]/50 text-[#5A4234] rounded-lg">
+            <div className="mb-4 p-4 bg-[#F4F2F1]/50 text-[#5B4436] rounded-lg">
               You must be logged in to submit a review.
             </div>
           )}
@@ -289,7 +289,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
             <button
               type="submit"
               disabled={isSubmitting || !user}
-              className="bg-brand-brown hover:bg-[#2C1D14] text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
+              className="bg-brand-brown hover:bg-[#47362C] text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
             >
               {isSubmitting ? 'Submitting...' : 'Submit Review'}
             </button>
@@ -330,7 +330,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                 {[1, 2, 3, 4, 5].map((star) => (
                   <i
                     key={star}
-                    className={`ri-star-${star <= review.rating ? 'fill' : 'line'} text-lg ${star <= review.rating ? 'text-[#C9A24B]' : 'text-gray-300'
+                    className={`ri-star-${star <= review.rating ? 'fill' : 'line'} text-lg ${star <= review.rating ? 'text-[#5B4436]' : 'text-gray-300'
                       }`}
                   ></i>
                 ))}

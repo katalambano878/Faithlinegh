@@ -28,7 +28,7 @@ export default function ProductsPage() {
   const statusColors: any = {
     'active': 'bg-gray-100 text-gray-900',
     'draft': 'bg-gray-100 text-gray-700',
-    'archived': 'bg-amber-100 text-amber-700',
+    'archived': 'bg-brand-cream text-brand-brown',
   };
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export default function ProductsPage() {
           </button>
           <Link
             href="/admin/products/new"
-            className="w-full md:w-auto px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center"
+            className="w-full md:w-auto px-6 py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center"
           >
             <i className="ri-add-line mr-2 text-lg"></i>
             Add Product
@@ -179,20 +179,20 @@ export default function ProductsPage() {
         <button
           type="button"
           onClick={() => setStockFilter(prev => prev === 'low_stock' ? null : 'low_stock')}
-          className={`text-left rounded-xl border-2 p-4 transition-colors cursor-pointer ${stockFilter === 'low_stock' ? 'bg-amber-50 border-amber-600' : 'bg-white border-gray-200 hover:border-amber-300'}`}
+          className={`text-left rounded-xl border-2 p-4 transition-colors cursor-pointer ${stockFilter === 'low_stock' ? 'bg-brand-cream text-brand-brown' : 'bg-white border-gray-200 hover:border-brand-brown/30'}`}
         >
           <p className="text-sm text-gray-600 mb-1">Low Stock</p>
-          <p className="text-2xl font-bold text-amber-700">{stats.lowStock}</p>
-          {stockFilter === 'low_stock' && <p className="text-xs text-amber-700 mt-1">Showing low stock only</p>}
+          <p className="text-2xl font-bold text-brand-brown">{stats.lowStock}</p>
+          {stockFilter === 'low_stock' && <p className="text-xs text-brand-brown mt-1">Showing low stock only</p>}
         </button>
         <button
           type="button"
           onClick={() => setStockFilter(prev => prev === 'out_of_stock' ? null : 'out_of_stock')}
-          className={`text-left rounded-xl border-2 p-4 transition-colors cursor-pointer ${stockFilter === 'out_of_stock' ? 'bg-red-50 border-red-600' : 'bg-white border-gray-200 hover:border-red-300'}`}
+          className={`text-left rounded-xl border-2 p-4 transition-colors cursor-pointer ${stockFilter === 'out_of_stock' ? 'bg-brand-cream border-red-600' : 'bg-white border-gray-200 hover:border-red-300'}`}
         >
           <p className="text-sm text-gray-600 mb-1">Out of Stock</p>
-          <p className="text-2xl font-bold text-red-700">{stats.outOfStock}</p>
-          {stockFilter === 'out_of_stock' && <p className="text-xs text-red-700 mt-1">Showing out of stock only</p>}
+          <p className="text-2xl font-bold text-brand-brown">{stats.outOfStock}</p>
+          {stockFilter === 'out_of_stock' && <p className="text-xs text-brand-brown mt-1">Showing out of stock only</p>}
         </button>
       </div>
 
@@ -274,7 +274,7 @@ export default function ProductsPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleBulkDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 Delete
               </button>
@@ -350,10 +350,10 @@ export default function ProductsPage() {
                     <td className="py-4 px-4 text-gray-700">
                       {product.stock}
                       {product.stock <= (product.metadata?.low_stock_threshold || 5) && product.stock > 0 && (
-                        <span className="ml-2 w-2 h-2 rounded-full bg-amber-500 inline-block" title="Low Stock"></span>
+                        <span className="ml-2 w-2 h-2 rounded-full bg-brand-cream0 inline-block" title="Low Stock"></span>
                       )}
                       {product.stock === 0 && (
-                        <span className="ml-2 w-2 h-2 rounded-full bg-red-500 inline-block" title="Out of Stock"></span>
+                        <span className="ml-2 w-2 h-2 rounded-full bg-brand-cream0 inline-block" title="Out of Stock"></span>
                       )}
                     </td>
                     <td className="py-4 px-4">
@@ -365,13 +365,13 @@ export default function ProductsPage() {
                       <div className="flex items-center space-x-2">
                         <Link
                           href={`/admin/products/${product.id}`}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer"
                         >
                           <i className="ri-edit-line text-lg"></i>
                         </Link>
                         <button
                           onClick={() => handleDeleteProduct(product.id)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer"
                         >
                           <i className="ri-delete-bin-line text-lg"></i>
                         </button>
@@ -416,13 +416,13 @@ export default function ProductsPage() {
                 <div className="flex items-center space-x-2">
                   <Link
                     href={`/admin/products/${product.id}`}
-                    className="flex-1 bg-gray-900 hover:bg-gray-800 text-white py-2 rounded-lg text-sm font-medium text-center transition-colors whitespace-nowrap cursor-pointer"
+                    className="flex-1 bg-gray-900 hover:bg-brand-bag-dark text-white py-2 rounded-lg text-sm font-medium text-center transition-colors whitespace-nowrap cursor-pointer"
                   >
                     Edit
                   </Link>
                   <button
                     onClick={() => handleDeleteProduct(product.id)}
-                    className="w-9 h-9 flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:border-red-600 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                    className="w-9 h-9 flex items-center justify-center border-2 border-gray-300 text-gray-700 hover:border-red-600 hover:text-brand-brown rounded-lg transition-colors cursor-pointer"
                   >
                     <i className="ri-delete-bin-line"></i>
                   </button>

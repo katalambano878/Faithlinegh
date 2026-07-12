@@ -111,12 +111,12 @@ export default function AdminOrdersPage() {
   };
 
   const statusColors: Record<string, string> = {
-    'pending': 'bg-amber-100 text-amber-700 border-amber-200',
-    'processing': 'bg-blue-100 text-blue-700 border-blue-200',
-    'shipped': 'bg-purple-100 text-purple-700 border-purple-200',
-    'dispatched_to_rider': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    'pending': 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    'processing': 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    'shipped': 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    'dispatched_to_rider': 'bg-brand-cream text-brand-brown border-brand-brown/20',
     'delivered': 'bg-gray-100 text-gray-900 border-gray-200',
-    'cancelled': 'bg-red-100 text-red-700 border-red-200',
+    'cancelled': 'bg-red-100 text-brand-brown border-brand-brown/20',
     'awaiting_payment': 'bg-gray-100 text-gray-700 border-gray-200'
   };
 
@@ -329,7 +329,7 @@ export default function AdminOrdersPage() {
           </button>
           <button
             onClick={handleExportAll}
-            className="flex-1 md:flex-none bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer shadow-sm flex items-center justify-center"
+            className="flex-1 md:flex-none bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer shadow-sm flex items-center justify-center"
           >
             <i className="ri-download-line mr-2"></i>
             Export
@@ -354,7 +354,7 @@ export default function AdminOrdersPage() {
           onClick={() => { setOrderViewTab('abandoned'); setStatusFilter('all'); }}
           className={`px-6 py-3 font-semibold text-sm border-b-2 transition-colors cursor-pointer ${
             orderViewTab === 'abandoned'
-              ? 'border-amber-600 text-amber-600'
+              ? 'text-brand-brown text-brand-brown'
               : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
@@ -383,12 +383,12 @@ export default function AdminOrdersPage() {
 
       {/* Abandoned carts info banner */}
       {orderViewTab === 'abandoned' && abandonedCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <div className="bg-brand-cream border border-brand-brown/20 rounded-lg p-4">
           <div className="flex items-start space-x-3">
-            <i className="ri-information-line text-xl text-amber-600 mt-0.5"></i>
+            <i className="ri-information-line text-xl text-brand-brown mt-0.5"></i>
             <div>
-              <p className="text-sm font-semibold text-amber-800">Abandoned Carts</p>
-              <p className="text-sm text-amber-700 mt-1">
+              <p className="text-sm font-semibold text-brand-brown">Abandoned Carts</p>
+              <p className="text-sm text-brand-brown mt-1">
                 These orders were created but payment was not completed. You can resend payment links to customers.
               </p>
             </div>
@@ -480,25 +480,25 @@ export default function AdminOrdersPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleBulkAction('Mark as Processing', 'processing')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 Mark Processing
               </button>
               <button
                 onClick={() => handleBulkAction('Mark as Packaged', 'shipped')}
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 Mark Packaged
               </button>
               <button
                 onClick={() => handleBulkAction('Mark as Dispatched To Rider', 'dispatched_to_rider')}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 Dispatched To Rider
               </button>
               <button
                 onClick={() => handleBulkAction('Export')}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 <i className="ri-download-line mr-2"></i>
                 Export
@@ -579,7 +579,7 @@ export default function AdminOrdersPage() {
                       <div className="flex flex-col">
                         <span className="text-gray-700">{order.payment_method || 'N/A'}</span>
                         {orderViewTab === 'abandoned' && (
-                          <span className={`text-xs mt-1 ${order.payment_status === 'failed' ? 'text-red-600' : 'text-amber-600'}`}>
+                          <span className={`text-xs mt-1 ${order.payment_status === 'failed' ? 'text-brand-brown' : 'text-brand-brown'}`}>
                             {order.payment_status === 'failed' ? 'Failed' : 'Pending'}
                           </span>
                         )}
@@ -603,7 +603,7 @@ export default function AdminOrdersPage() {
                           <button
                             onClick={() => handleResendPaymentLink(order)}
                             disabled={sendingPaymentLink === order.id}
-                            className="w-8 h-8 flex items-center justify-center text-amber-600 hover:text-amber-800 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                            className="w-8 h-8 flex items-center justify-center text-brand-brown hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                             title="Resend Payment Link"
                           >
                             {sendingPaymentLink === order.id ? (
@@ -615,7 +615,7 @@ export default function AdminOrdersPage() {
                         )}
                         <button
                           onClick={() => handlePrintInvoice(order.id)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer"
                           title="Print Invoice"
                         >
                           <i className="ri-printer-line text-lg w-4 h-4 flex items-center justify-center"></i>

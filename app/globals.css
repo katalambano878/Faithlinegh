@@ -1,4 +1,11 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.5.0/remixicon.min.css');
+:root {
+  --brand-primary: #5B4436;
+  --brand-primary-dark: #47362C;
+  --brand-cream: #F4F2F1;
+  --brand-tan: #E8DFD4;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -527,7 +534,7 @@ img {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #5A4234 0%, #6E5341 100%);
+  background: linear-gradient(135deg, #5B4436 0%, #47362C 100%);
   animation: splashFadeOut 0.5s ease-out 1.5s forwards;
 }
 

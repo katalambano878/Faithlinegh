@@ -131,7 +131,7 @@ export default function ZonesPage() {
         <div className="space-y-6">
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium ${
-                    toast.startsWith('Error') ? 'bg-red-600 text-white' : 'bg-gray-700 text-white'
+                    toast.startsWith('Error') ? 'bg-brand-brown text-white' : 'bg-brand-brown text-white'
                 }`}>{toast}</div>
             )}
 
@@ -141,7 +141,7 @@ export default function ZonesPage() {
                     <p className="text-gray-500 mt-1">Define delivery areas and pricing</p>
                 </div>
                 <button onClick={openAddModal}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium text-sm">
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark transition-colors font-medium text-sm">
                     <i className="ri-add-line" /> Add Zone
                 </button>
             </div>
@@ -159,7 +159,7 @@ export default function ZonesPage() {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">No delivery zones yet</h3>
                     <p className="text-gray-500 mb-4">Create delivery zones to define areas, fees, and estimated delivery times.</p>
                     <button onClick={openAddModal}
-                        className="px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-medium text-sm">
+                        className="px-5 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark font-medium text-sm">
                         Create First Zone
                     </button>
                 </div>
@@ -213,12 +213,12 @@ export default function ZonesPage() {
                                 </button>
                                 <button onClick={() => handleToggle(zone)}
                                     className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${
-                                        zone.is_active ? 'text-amber-600 hover:bg-amber-50' : 'text-gray-700 hover:bg-gray-50'
+                                        zone.is_active ? 'text-brand-brown hover:bg-brand-cream' : 'text-gray-700 hover:bg-gray-50'
                                     }`}>
                                     {zone.is_active ? 'Deactivate' : 'Activate'}
                                 </button>
                                 <button onClick={() => handleDelete(zone)}
-                                    className="py-2 px-3 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                                    className="py-2 px-3 text-sm text-brand-brown hover:bg-brand-cream rounded-lg transition-colors">
                                     <i className="ri-delete-bin-line" />
                                 </button>
                             </div>
@@ -302,7 +302,7 @@ export default function ZonesPage() {
                                 <button onClick={() => setShowModal(false)}
                                     className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
                                 <button onClick={handleSave} disabled={saving}
-                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-semibold disabled:opacity-50 transition-colors">
+                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark font-semibold disabled:opacity-50 transition-colors">
                                     {saving ? 'Saving...' : editingZone ? 'Update Zone' : 'Create Zone'}
                                 </button>
                             </div>

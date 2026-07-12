@@ -135,7 +135,7 @@ export default function ProductFilters({ onFilterChange }: ProductFiltersProps) 
                   type="number"
                   value={priceRange[0]}
                   onChange={(e) => handlePriceChange(0, Number(e.target.value))}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-200"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-brand-brown focus:ring-2 focus:ring-gray-200"
                   placeholder="Min"
                 />
                 <span className="text-gray-400">-</span>
@@ -143,7 +143,7 @@ export default function ProductFilters({ onFilterChange }: ProductFiltersProps) 
                   type="number"
                   value={priceRange[1]}
                   onChange={(e) => handlePriceChange(1, Number(e.target.value))}
-                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-gray-900 focus:ring-2 focus:ring-gray-200"
+                  className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg text-sm focus:border-brand-brown focus:ring-2 focus:ring-gray-200"
                   placeholder="Max"
                 />
               </div>
@@ -212,7 +212,7 @@ export default function ProductFilters({ onFilterChange }: ProductFiltersProps) 
                         <i
                           key={i}
                           className={`ri-star-${i < rating ? 'fill' : 'line'} text-sm ${
-                            i < rating ? 'text-[#C9A24B]' : 'text-gray-300'
+                            i < rating ? 'text-[#5B4436]' : 'text-gray-300'
                           }`}
                         ></i>
                       ))}

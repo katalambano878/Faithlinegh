@@ -42,7 +42,7 @@ export default function KnowledgeBasePage() {
   }
 
   const categories = [...new Set(articles.map(a => a.category).filter(Boolean))];
-  const sourceColors: Record<string, string> = { manual: 'bg-blue-100 text-blue-700', auto_learned: 'bg-purple-100 text-purple-700', ticket_resolution: 'bg-gray-100 text-gray-900' };
+  const sourceColors: Record<string, string> = { manual: 'bg-brand-cream text-brand-brown', auto_learned: 'bg-brand-cream text-brand-brown', ticket_resolution: 'bg-gray-100 text-gray-900' };
 
   return (
     <div className="space-y-6">
@@ -57,7 +57,7 @@ export default function KnowledgeBasePage() {
           <p className="text-sm text-gray-500 mt-1">{articles.length} articles &middot; AI learns from these to answer customer questions</p>
         </div>
         <button onClick={() => { setEditingArticle(null); setShowModal(true); }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors">
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark text-sm font-medium transition-colors">
           <i className="ri-add-line" /> New Article
         </button>
       </div>
@@ -115,7 +115,7 @@ export default function KnowledgeBasePage() {
                     <i className={`${article.is_published ? 'ri-eye-off-line' : 'ri-eye-line'} text-sm`} />
                   </button>
                   <button onClick={() => deleteArticle(article.id)}
-                    className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-red-400"><i className="ri-delete-bin-6-line text-sm" /></button>
+                    className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-brand-cream text-red-400"><i className="ri-delete-bin-6-line text-sm" /></button>
                 </div>
               </div>
             </div>
@@ -195,7 +195,7 @@ function ArticleModal({ article, onClose, onSaved }: { article: any; onClose: ()
           </label>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50">Cancel</button>
-            <button type="submit" disabled={saving} className="px-4 py-2 text-sm bg-gray-700 text-white rounded-lg hover:bg-gray-900 disabled:opacity-50">
+            <button type="submit" disabled={saving} className="px-4 py-2 text-sm bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark disabled:opacity-50">
               {saving ? 'Saving...' : article ? 'Update' : 'Create Article'}
             </button>
           </div>

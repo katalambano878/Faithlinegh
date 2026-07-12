@@ -51,7 +51,7 @@ export default function WishlistPage() {
             {wishlistItems.length > 0 && (
               <button
                 onClick={addAllToCart}
-                className="bg-brand-brown hover:bg-[#2C1D14] text-white px-6 py-3 rounded-full font-semibold transition-colors whitespace-nowrap shadow-md shadow-brand-brown/20"
+                className="bg-brand-brown hover:bg-[#47362C] text-white px-6 py-3 rounded-full font-semibold transition-colors whitespace-nowrap shadow-md shadow-brand-brown/20"
               >
                 Add All to Cart
               </button>
@@ -68,7 +68,7 @@ export default function WishlistPage() {
             </div>
             <h2 className="text-3xl font-bold text-brand-brown mb-4">Your wishlist is empty</h2>
             <p className="text-brand-brown/60 mb-8 text-lg">Save your favourite items here to easily find them later</p>
-            <Link href="/shop" className="inline-block bg-brand-brown hover:bg-[#2C1D14] text-white px-8 py-4 rounded-full font-semibold transition-colors whitespace-nowrap shadow-md shadow-brand-brown/20">
+            <Link href="/shop" className="inline-block bg-brand-brown hover:bg-[#47362C] text-white px-8 py-4 rounded-full font-semibold transition-colors whitespace-nowrap shadow-md shadow-brand-brown/20">
               Explore Products
             </Link>
           </div>
@@ -82,7 +82,7 @@ export default function WishlistPage() {
                   <ProductCard {...product} slug={product.slug || product.id} />
                   <button
                     onClick={() => removeFromWishlist(product.id)}
-                    className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-md hover:bg-[#F3DBCF]/50 transition-colors z-10"
+                    className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-md hover:bg-[#E8DFD4]/50 transition-colors z-10"
                   >
                     <i className="ri-close-line text-gray-700 text-xl"></i>
                   </button>

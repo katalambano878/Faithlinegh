@@ -210,7 +210,7 @@ export default function RolesPage() {
                                     <div className="flex items-start space-x-4">
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
                                             role.is_system
-                                                ? 'bg-amber-100 text-amber-700'
+                                                ? 'bg-brand-cream text-brand-brown'
                                                 : role.enabled
                                                     ? 'bg-gray-100 text-gray-900'
                                                     : 'bg-gray-100 text-gray-400'
@@ -221,12 +221,12 @@ export default function RolesPage() {
                                             <div className="flex items-center space-x-3">
                                                 <h3 className="text-lg font-bold text-gray-900">{role.name}</h3>
                                                 {role.is_system && (
-                                                    <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
+                                                    <span className="px-2.5 py-0.5 bg-brand-cream text-brand-brown text-xs font-semibold rounded-full">
                                                         SYSTEM
                                                     </span>
                                                 )}
                                                 {!role.enabled && !role.is_system && (
-                                                    <span className="px-2.5 py-0.5 bg-red-100 text-red-700 text-xs font-semibold rounded-full">
+                                                    <span className="px-2.5 py-0.5 bg-red-100 text-brand-brown text-xs font-semibold rounded-full">
                                                         DISABLED
                                                     </span>
                                                 )}
@@ -254,7 +254,7 @@ export default function RolesPage() {
                                                 title={role.enabled ? 'Disable this role' : 'Enable this role'}
                                             >
                                                 <div className={`w-14 h-7 rounded-full transition-colors duration-200 ${
-                                                    role.enabled ? 'bg-gray-700' : 'bg-gray-300'
+                                                    role.enabled ? 'bg-brand-brown' : 'bg-gray-300'
                                                 }`}>
                                                     <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-200 translate-y-1 ${
                                                         role.enabled ? 'translate-x-8' : 'translate-x-1'
@@ -344,8 +344,8 @@ export default function RolesPage() {
 
                                     {role.is_system && (
                                         <div className="px-4 pb-4">
-                                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                                                <p className="text-xs text-amber-800 flex items-center">
+                                            <div className="p-3 bg-brand-cream border border-brand-brown/20 rounded-lg">
+                                                <p className="text-xs text-brand-brown flex items-center">
                                                     <i className="ri-information-line mr-2"></i>
                                                     System role: it cannot be disabled or removed. You can still change feature access above for everyone on this role.
                                                 </p>

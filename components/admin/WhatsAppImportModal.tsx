@@ -172,8 +172,8 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                            <i className="ri-whatsapp-line text-green-600 text-xl"></i>
+                        <div className="w-10 h-10 rounded-full bg-brand-cream flex items-center justify-center">
+                            <i className="ri-whatsapp-line text-brand-brown text-xl"></i>
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-gray-900">Import from WhatsApp</h2>
@@ -191,16 +191,16 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
 
                 <div className="flex-1 overflow-y-auto px-6 py-5">
                     {error && (
-                        <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+                        <div className="mb-4 p-3 rounded-lg bg-brand-cream border border-brand-brown/20 text-brand-brown text-sm">
                             {error}
                         </div>
                     )}
 
                     {step === 'instructions' && (
                         <div className="space-y-5">
-                            <div className="rounded-xl bg-green-50 border border-green-200 p-4">
-                                <p className="text-sm text-green-800 font-medium mb-2">How to export from WhatsApp</p>
-                                <ol className="text-sm text-green-900 space-y-2 list-decimal list-inside">
+                            <div className="rounded-xl bg-brand-cream border border-brand-brown/20 p-4">
+                                <p className="text-sm text-brand-brown font-medium mb-2">How to export from WhatsApp</p>
+                                <ol className="text-sm text-brand-brown space-y-2 list-decimal list-inside">
                                     <li>Open <strong>WhatsApp</strong> on your phone</li>
                                     <li>Go to <strong>Settings → Chats</strong></li>
                                     <li>Tap <strong>Chat history → Export contacts</strong></li>
@@ -221,7 +221,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
 
                             <button
                                 onClick={() => setStep('upload')}
-                                className="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold"
+                                className="w-full py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold"
                             >
                                 Continue to Upload
                             </button>
@@ -231,7 +231,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
                     {step === 'upload' && (
                         <div className="space-y-5">
                             <div
-                                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-green-500 transition-colors cursor-pointer"
+                                className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-brand-brown transition-colors cursor-pointer"
                                 onClick={() => fileInputRef.current?.click()}
                             >
                                 <i className="ri-upload-cloud-2-line text-4xl text-gray-400 mb-3"></i>
@@ -276,7 +276,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
                                 </select>
                                 <button
                                     onClick={handlePasteParse}
-                                    className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold"
+                                    className="flex-1 py-2.5 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg font-semibold"
                                 >
                                     Preview Contacts
                                 </button>
@@ -290,7 +290,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
                                 <p className="text-sm text-gray-600">
                                     <span className="font-semibold text-gray-900">{contacts.length}</span> valid contacts
                                     {invalidRows.length > 0 && (
-                                        <span className="text-amber-700"> · {invalidRows.length} skipped (invalid)</span>
+                                        <span className="text-brand-brown"> · {invalidRows.length} skipped (invalid)</span>
                                     )}
                                 </p>
                                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -339,7 +339,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
 
                             {invalidRows.length > 0 && (
                                 <details className="text-sm">
-                                    <summary className="cursor-pointer text-amber-700 font-medium">
+                                    <summary className="cursor-pointer text-brand-brown font-medium">
                                         View {invalidRows.length} invalid entries
                                     </summary>
                                     <ul className="mt-2 space-y-1 text-gray-600 max-h-32 overflow-y-auto">
@@ -357,30 +357,30 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
                     {step === 'results' && importResult && (
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-center">
-                                    <p className="text-2xl font-bold text-green-700">{importResult.imported}</p>
-                                    <p className="text-xs text-green-800">Imported</p>
+                                <div className="rounded-lg bg-brand-cream border border-brand-brown/20 p-3 text-center">
+                                    <p className="text-2xl font-bold text-brand-brown">{importResult.imported}</p>
+                                    <p className="text-xs text-brand-brown">Imported</p>
                                 </div>
-                                <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-center">
-                                    <p className="text-2xl font-bold text-blue-700">{importResult.updated}</p>
-                                    <p className="text-xs text-blue-800">Updated</p>
+                                <div className="rounded-lg bg-brand-cream border border-brand-brown/20 p-3 text-center">
+                                    <p className="text-2xl font-bold text-brand-brown">{importResult.updated}</p>
+                                    <p className="text-xs text-brand-brown">Updated</p>
                                 </div>
                                 <div className="rounded-lg bg-gray-50 border border-gray-200 p-3 text-center">
                                     <p className="text-2xl font-bold text-gray-700">{importResult.skipped}</p>
                                     <p className="text-xs text-gray-600">Skipped</p>
                                 </div>
-                                <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-center">
-                                    <p className="text-2xl font-bold text-red-700">{importResult.failed}</p>
+                                <div className="rounded-lg bg-brand-cream border border-brand-brown/20 p-3 text-center">
+                                    <p className="text-2xl font-bold text-brand-brown">{importResult.failed}</p>
                                     <p className="text-xs text-red-800">Failed</p>
                                 </div>
                             </div>
 
                             {importResult.failed > 0 && (
-                                <div className="border border-red-200 rounded-lg p-3 max-h-40 overflow-y-auto text-sm">
+                                <div className="border border-brand-brown/20 rounded-lg p-3 max-h-40 overflow-y-auto text-sm">
                                     {importResult.rows
                                         .filter((r) => r.status === 'failed')
                                         .map((r) => (
-                                            <p key={r.previewId} className="text-red-700">
+                                            <p key={r.previewId} className="text-brand-brown">
                                                 {r.fullName} ({r.phone}): {r.message}
                                             </p>
                                         ))}
@@ -412,7 +412,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
                         <button
                             onClick={runImport}
                             disabled={loading || selectedContacts.length === 0}
-                            className="px-6 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white rounded-lg font-semibold"
+                            className="px-6 py-2.5 bg-brand-brown hover:bg-brand-bag-dark disabled:opacity-50 text-white rounded-lg font-semibold"
                         >
                             {loading ? 'Importing…' : `Import ${selectedContacts.length} Contact${selectedContacts.length !== 1 ? 's' : ''}`}
                         </button>
@@ -420,7 +420,7 @@ export default function WhatsAppImportModal({ open, onClose, onImported }: Whats
                     {step === 'results' && (
                         <button
                             onClick={handleClose}
-                            className="px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold"
+                            className="px-6 py-2.5 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold"
                         >
                             Done
                         </button>

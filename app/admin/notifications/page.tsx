@@ -151,7 +151,7 @@ export default function NotificationsPage() {
                 <h2 className="text-xl font-semibold mb-6">Send New Campaign</h2>
 
                 {success && <div className="bg-gray-50 text-gray-900 p-4 rounded-lg mb-4">{success}</div>}
-                {error && <div className="bg-red-50 text-red-700 p-4 rounded-lg mb-4">{error}</div>}
+                {error && <div className="bg-brand-cream text-brand-brown p-4 rounded-lg mb-4">{error}</div>}
 
                 <form onSubmit={handleSend} className="space-y-6">
                     <div>
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
                     <button
                         type="submit"
                         disabled={loading || (!form.channels.email && !form.channels.sms)}
-                        className="w-full bg-gray-900 text-white py-4 rounded-lg font-bold text-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                        className="w-full bg-gray-900 text-white py-4 rounded-lg font-bold text-lg hover:bg-brand-bag-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                     >
                         {loading ? (
                             <span className="flex items-center justify-center">

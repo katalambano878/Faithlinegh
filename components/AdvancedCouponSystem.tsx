@@ -116,7 +116,7 @@ export default function AdvancedCouponSystem({
               </button>
             </div>
             {error && (
-              <p className="text-sm text-[#9A4A36] mt-2 flex items-center">
+              <p className="text-sm text-[#5B4436] mt-2 flex items-center">
                 <i className="ri-error-warning-line mr-1"></i>
                 {error}
               </p>

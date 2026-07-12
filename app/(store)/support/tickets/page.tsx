@@ -54,9 +54,9 @@ export default function MyTicketsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'open': return 'bg-[#A8826B]/10 text-[#A8826B]';
-      case 'in_progress': return 'bg-[#FAF3EE] text-[#8C6A52]';
-      case 'waiting_customer': return 'bg-purple-100 text-purple-700';
+      case 'open': return 'bg-[#5B4436]/10 text-[#5B4436]';
+      case 'in_progress': return 'bg-[#F4F2F1] text-[#5B4436]';
+      case 'waiting_customer': return 'bg-[#5B4436]/10 text-[#5B4436]';
       case 'resolved': return 'bg-gray-100 text-gray-900';
       case 'closed': return 'bg-gray-100 text-gray-600';
       default: return 'bg-gray-100 text-gray-700';
@@ -66,8 +66,8 @@ export default function MyTicketsPage() {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-      case 'high': return 'text-[#9A4A36]';
-      case 'medium': return 'text-[#A8826B]';
+      case 'high': return 'text-[#5B4436]';
+      case 'medium': return 'text-[#5B4436]';
       case 'low': return 'text-gray-700';
       default: return 'text-gray-700';
     }
@@ -94,7 +94,7 @@ export default function MyTicketsPage() {
             </div>
             <Link
               href="/support/ticket"
-              className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+              className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
             >
               <i className="ri-add-line mr-2"></i>
               New Ticket
@@ -114,7 +114,7 @@ export default function MyTicketsPage() {
               <p className="text-gray-600 mb-6">Log in with the email you used when creating your ticket.</p>
               <Link
                 href="/auth/login"
-                className="inline-block bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                className="inline-block bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
               >
                 Sign In
               </Link>
@@ -148,7 +148,7 @@ export default function MyTicketsPage() {
                   <p className="text-gray-600 mb-6">You don't have any support tickets yet</p>
                   <Link
                     href="/support/ticket"
-                    className="inline-block bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                    className="inline-block bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
                   >
                     Create Your First Ticket
                   </Link>
@@ -196,11 +196,11 @@ export default function MyTicketsPage() {
 
           <div className="mt-8 grid md:grid-cols-3 gap-6">
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="w-12 h-12 flex items-center justify-center bg-[#A8826B]/10 rounded-lg mb-4">
-                <i className="ri-time-line text-2xl text-[#A8826B]"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436]/10 rounded-lg mb-4">
+                <i className="ri-time-line text-2xl text-[#5B4436]"></i>
               </div>
               <h3 className="font-bold text-gray-900 mb-2">Response Time</h3>
-              <p className="text-2xl font-bold text-[#A8826B] mb-1">24 hours</p>
+              <p className="text-2xl font-bold text-[#5B4436] mb-1">24 hours</p>
               <p className="text-sm text-gray-600">Average response time</p>
             </div>
 
@@ -214,11 +214,11 @@ export default function MyTicketsPage() {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="w-12 h-12 flex items-center justify-center bg-[#A8826B]/10 rounded-lg mb-4">
-                <i className="ri-customer-service-line text-2xl text-[#A8826B]"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436]/10 rounded-lg mb-4">
+                <i className="ri-customer-service-line text-2xl text-[#5B4436]"></i>
               </div>
               <h3 className="font-bold text-gray-900 mb-2">Support Hours</h3>
-              <p className="text-2xl font-bold text-[#A8826B] mb-1">Mon–Sat</p>
+              <p className="text-2xl font-bold text-[#5B4436] mb-1">Mon–Sat</p>
               <p className="text-sm text-gray-600">9am – 6pm GMT</p>
             </div>
           </div>

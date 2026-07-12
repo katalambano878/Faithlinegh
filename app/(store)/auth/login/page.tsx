@@ -85,7 +85,7 @@ export default function LoginPage() {
 
         <div className="bg-white rounded-xl shadow-sm p-5 sm:p-6">
           {authError && (
-            <div className="mb-4 p-4 bg-[#F3DBCF]/50 border border-[#D98E73]/30 text-[#9A4A36] rounded-lg text-sm">
+            <div className="mb-4 p-4 bg-[#E8DFD4]/50 border border-[#5B4436]/30 text-[#5B4436] rounded-lg text-sm">
               {authError}
             </div>
           )}
@@ -99,12 +99,12 @@ export default function LoginPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.email ? 'border-[#D98E73]' : 'border-gray-300'
+                className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.email ? 'border-[#5B4436]' : 'border-gray-300'
                   }`}
                 placeholder="you@example.com"
               />
               {errors.email && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.email}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.email}</p>
               )}
             </div>
 
@@ -117,7 +117,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full px-3 py-2.5 pr-10 text-sm border rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.password ? 'border-[#D98E73]' : 'border-gray-300'
+                  className={`w-full px-3 py-2.5 pr-10 text-sm border rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.password ? 'border-[#5B4436]' : 'border-gray-300'
                     }`}
                   placeholder="Enter your password"
                 />
@@ -130,7 +130,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.password}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.password}</p>
               )}
             </div>
 
@@ -152,7 +152,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="w-full bg-brand-brown hover:bg-[#2C1D14] text-white py-2.5 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer shadow-md shadow-brand-brown/20"
+              className="w-full bg-brand-brown hover:bg-[#47362C] text-white py-2.5 rounded-full text-sm font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer shadow-md shadow-brand-brown/20"
             >
               {isLoading || verifying ? (
                 <span className="flex items-center justify-center">
@@ -177,14 +177,14 @@ export default function LoginPage() {
                 disabled
                 className="flex items-center justify-center space-x-1.5 border border-gray-200 bg-gray-50 py-2 rounded-lg cursor-not-allowed opacity-60"
               >
-                <i className="ri-google-fill text-lg text-[#9A4A36] grayscale opacity-50"></i>
+                <i className="ri-google-fill text-lg text-[#5B4436] grayscale opacity-50"></i>
                 <span className="text-xs font-medium text-gray-400">Google</span>
               </button>
               <button
                 disabled
                 className="flex items-center justify-center space-x-1.5 border border-gray-200 bg-gray-50 py-2 rounded-lg cursor-not-allowed opacity-60"
               >
-                <i className="ri-facebook-fill text-lg text-[#A8826B] grayscale opacity-50"></i>
+                <i className="ri-facebook-fill text-lg text-[#5B4436] grayscale opacity-50"></i>
                 <span className="text-xs font-medium text-gray-400">Facebook</span>
               </button>
             </div>

@@ -182,7 +182,7 @@ export default function AdminCategoriesPage() {
             setFormData({ name: '', slug: '', description: '', image_url: '', parent_id: '', featured: false, status: 'active' });
             setShowAddModal(true);
           }}
-          className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+          className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
         >
           <i className="ri-add-line mr-2"></i>
           Add Category
@@ -200,7 +200,7 @@ export default function AdminCategoriesPage() {
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Featured</p>
-          <p className="text-2xl font-bold text-blue-700">{categories.filter(c => c.metadata?.featured).length}</p>
+          <p className="text-2xl font-bold text-brand-brown">{categories.filter(c => c.metadata?.featured).length}</p>
         </div>
       </div>
 
@@ -251,7 +251,7 @@ export default function AdminCategoriesPage() {
                     </td>
                     <td className="py-4 px-4">
                       {category.metadata?.featured ? (
-                        <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-semibold whitespace-nowrap">
+                        <span className="px-3 py-1 bg-brand-cream text-brand-brown rounded-full text-xs font-semibold whitespace-nowrap">
                           Featured
                         </span>
                       ) : (
@@ -262,13 +262,13 @@ export default function AdminCategoriesPage() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleEdit(category)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer"
                         >
                           <i className="ri-edit-line text-lg w-4 h-4 flex items-center justify-center"></i>
                         </button>
                         <button
                           onClick={() => handleDelete(category.id)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer"
                         >
                           <i className="ri-delete-bin-line text-lg w-4 h-4 flex items-center justify-center"></i>
                         </button>
@@ -436,7 +436,7 @@ export default function AdminCategoriesPage() {
               <button
                 onClick={handleSubmit}
                 disabled={saving || uploading}
-                className={`px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center ${saving ? 'opacity-70' : ''}`}
+                className={`px-6 py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center ${saving ? 'opacity-70' : ''}`}
               >
                 {saving && <i className="ri-loader-4-line animate-spin mr-2"></i>}
                 {showAddModal ? 'Add Category' : 'Save Changes'}

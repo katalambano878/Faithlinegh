@@ -73,7 +73,7 @@ export default function CartPage() {
               </div>
               <h2 className="text-3xl font-bold text-brand-brown mb-4">Your cart is empty</h2>
               <p className="text-brand-brown/60 mb-8 text-lg">Looks like you haven&apos;t added anything to your cart yet</p>
-              <Link href="/shop" className="inline-block bg-brand-brown hover:bg-[#2C1D14] text-white px-8 py-4 rounded-full font-semibold transition-colors whitespace-nowrap shadow-md shadow-brand-brown/20">
+              <Link href="/shop" className="inline-block bg-brand-brown hover:bg-[#47362C] text-white px-8 py-4 rounded-full font-semibold transition-colors whitespace-nowrap shadow-md shadow-brand-brown/20">
                 Continue Shopping
               </Link>
             </div>
@@ -105,7 +105,7 @@ export default function CartPage() {
                               </Link>
                               <button
                                 onClick={() => removeFromCart(item.id, item.variant)}
-                                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#9A4A36] transition-colors"
+                                className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-[#5B4436] transition-colors"
                               >
                                 <i className="ri-close-line text-xl"></i>
                               </button>
@@ -131,7 +131,7 @@ export default function CartPage() {
                                       title={item.quantity <= (item.moq || 1) ? 'Remove item' : 'Decrease quantity'}
                                     >
                                       {item.quantity <= (item.moq || 1) ? (
-                                        <i className="ri-delete-bin-line text-[#D98E73]"></i>
+                                        <i className="ri-delete-bin-line text-[#5B4436]"></i>
                                       ) : (
                                         <i className="ri-subtract-line"></i>
                                       )}
@@ -152,7 +152,7 @@ export default function CartPage() {
                                     </button>
                                   </div>
                                   {(item.moq || 1) > 1 && (
-                                    <span className="text-xs text-[#A8826B] mt-1">
+                                    <span className="text-xs text-[#5B4436] mt-1">
                                       Min. order: {item.moq} units
                                     </span>
                                   )}
@@ -221,7 +221,7 @@ export default function CartPage() {
                       </div>
 
                       {shipping > 0 && (
-                        <p className="text-sm text-[#A8826B]">
+                        <p className="text-sm text-[#5B4436]">
                           {/* Shipping threshold text removed */}
                         </p>
                       )}
@@ -243,7 +243,7 @@ export default function CartPage() {
 
                     <Link
                       href="/checkout"
-                      className="block w-full bg-brand-brown hover:bg-[#2C1D14] text-white py-4 rounded-full font-semibold text-center transition-colors mt-6 mb-3 whitespace-nowrap shadow-md shadow-brand-brown/20"
+                      className="block w-full bg-brand-brown hover:bg-[#47362C] text-white py-4 rounded-full font-semibold text-center transition-colors mt-6 mb-3 whitespace-nowrap shadow-md shadow-brand-brown/20"
                     >
                       Proceed to Checkout
                     </Link>

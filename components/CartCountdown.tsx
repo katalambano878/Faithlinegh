@@ -49,7 +49,7 @@ export default function CartCountdown() {
   if (!isActive) return null;
 
   return (
-    <div className="bg-gradient-to-r from-[#C9A24B] to-[#9A4A36] text-white py-3 px-4 rounded-lg mb-6">
+    <div className="bg-gradient-to-r from-[#5B4436] to-[#5B4436] text-white py-3 px-4 rounded-lg mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full">

@@ -215,9 +215,9 @@ export default function AdminCustomersPage() {
   }
 
   const statusColors: any = {
-    'New': 'bg-blue-100 text-blue-700',
+    'New': 'bg-brand-cream text-brand-brown',
     'Active': 'bg-gray-100 text-gray-900',
-    'VIP': 'bg-purple-100 text-purple-700',
+    'VIP': 'bg-brand-cream text-brand-brown',
     'Inactive': 'bg-gray-100 text-gray-700'
   };
 
@@ -290,12 +290,12 @@ export default function AdminCustomersPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setImportModalOpen(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+            className="bg-brand-brown hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
           >
             <i className="ri-whatsapp-line mr-2"></i>
             Import from WhatsApp
           </button>
-          <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
+          <button className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer">
             <i className="ri-download-line mr-2"></i>
             Export Customers
           </button>
@@ -319,7 +319,7 @@ export default function AdminCustomersPage() {
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">VIP Customers</p>
-          <p className="text-2xl font-bold text-purple-700">{stats.vip}</p>
+          <p className="text-2xl font-bold text-brand-brown">{stats.vip}</p>
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Avg Lifetime Value</p>
@@ -375,15 +375,15 @@ export default function AdminCustomersPage() {
               {selectedCustomers.length} customer{selectedCustomers.length > 1 ? 's' : ''} selected
             </p>
             <div className="flex items-center space-x-2">
-              <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer">
+              <button className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer">
                 <i className="ri-mail-line mr-2"></i>
                 Send Email
               </button>
-              <button className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer">
+              <button className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer">
                 <i className="ri-vip-crown-line mr-2"></i>
                 Mark as VIP
               </button>
-              <button className="px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer">
+              <button className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer">
                 <i className="ri-download-line mr-2"></i>
                 Export
               </button>
@@ -459,7 +459,7 @@ export default function AdminCustomersPage() {
                           </span>
                         )}
                         {customer.isWhatsAppImport && (
-                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-cream text-brand-brown">
                             WhatsApp
                           </span>
                         )}
@@ -473,10 +473,10 @@ export default function AdminCustomersPage() {
                         >
                           <i className="ri-eye-line text-lg"></i>
                         </Link>
-                        <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer">
+                        <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer">
                           <i className="ri-mail-line text-lg"></i>
                         </button>
-                        <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer">
+                        <button className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg transition-colors cursor-pointer">
                           <i className="ri-delete-bin-line text-lg"></i>
                         </button>
                       </div>

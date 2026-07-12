@@ -177,7 +177,7 @@ function AccountContent() {
             </div>
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:text-[#9A4A36] hover:border-[#D98E73]/30 transition-all font-medium shadow-sm w-full md:w-auto justify-center md:justify-start"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 hover:text-[#5B4436] hover:border-[#5B4436]/30 transition-all font-medium shadow-sm w-full md:w-auto justify-center md:justify-start"
             >
               <i className="ri-logout-box-r-line"></i>
               Sign Out
@@ -244,7 +244,7 @@ function AccountContent() {
                     <p className="text-gray-500 mb-8">Update your personal details and contact info.</p>
 
                     {profileMessage.text && (
-                      <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${profileMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#F3DBCF]/50 text-[#9A4A36] border border-[#D98E73]/20'}`}>
+                      <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${profileMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#E8DFD4]/50 text-[#5B4436] border border-[#5B4436]/20'}`}>
                         <i className={`text-xl mt-0.5 ${profileMessage.type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line'}`}></i>
                         <div>{profileMessage.text}</div>
                       </div>
@@ -304,7 +304,7 @@ function AccountContent() {
                         <button
                           type="submit"
                           disabled={profileLoading}
-                          className="px-8 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-xl font-semibold transition-all shadow-lg shadow-gray-900/20 active:scale-95 disabled:opacity-50 disabled:shadow-none"
+                          className="px-8 py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-xl font-semibold transition-all shadow-lg shadow-gray-900/20 active:scale-95 disabled:opacity-50 disabled:shadow-none"
                         >
                           {profileLoading ? 'Saving Info...' : 'Save Profile Information'}
                         </button>
@@ -316,7 +316,7 @@ function AccountContent() {
                       <p className="text-gray-500 mb-6">Ensure your account uses a strong, unique password.</p>
 
                       {passwordMessage.text && (
-                        <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${passwordMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#F3DBCF]/50 text-[#9A4A36] border border-[#D98E73]/20'}`}>
+                        <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${passwordMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#E8DFD4]/50 text-[#5B4436] border border-[#5B4436]/20'}`}>
                           <i className={`text-xl mt-0.5 ${passwordMessage.type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line'}`}></i>
                           <div>{passwordMessage.text}</div>
                         </div>
@@ -391,7 +391,7 @@ function AccountContent() {
                               </span>
                             )}
                             {option.status === 'unverified' && (
-                              <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 bg-[#FAF3EE] text-[#8C6A52] rounded-full flex items-center gap-1">
+                              <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 bg-[#F4F2F1] text-[#5B4436] rounded-full flex items-center gap-1">
                                 <i className="ri-error-warning-fill"></i> <span className="hidden sm:inline">Verify</span>
                               </span>
                             )}

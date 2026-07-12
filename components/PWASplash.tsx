@@ -35,7 +35,7 @@ export default function PWASplash() {
         />
       </div>
       <h1 className="text-white text-xl font-bold mb-2">Faithlinegh</h1>
-      <p className="text-[#A8826B] text-sm font-medium mb-8">Smart Sourcing, Seamless Shopping</p>
+      <p className="text-[#5B4436] text-sm font-medium mb-8">Smart Sourcing, Seamless Shopping</p>
       <div className="pwa-splash-dots flex gap-1.5">
         <span className="w-2 h-2 bg-white rounded-full" />
         <span className="w-2 h-2 bg-white rounded-full" />

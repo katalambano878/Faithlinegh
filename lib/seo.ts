@@ -15,7 +15,7 @@ export const SITE_LEGAL_NAME = SITE_NAME;
 export const LOCALE = 'en_GH';
 export const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || '+233541770961';
 
-export const SITE_TAGLINE = 'Quality, Affordable Bags, Basics & Dresses in Ghana';
+export const SITE_TAGLINE = 'Effortless Style. Elevated Essentials. Curated for You.';
 export const SITE_DESCRIPTION =
   'Faithlinegh is a Ghanaian fashion store for quality, affordable bags, basic tops and dresses for women — shop online with fast, nationwide delivery across Ghana.';
 

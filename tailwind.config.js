@@ -5,26 +5,29 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          // Soft blush / nude palette
-          brown: '#5A4234',   // deep espresso — primary text & buttons
-          carton: '#A8826B',  // warm mocha taupe — secondary accent
-          cream: '#FAF3EE',   // soft blush background
-          blush: '#EDD7CA',   // signature blush (brand swatch)
-          nude: '#E6D4C6',    // cooler blush edge
-          sand: '#F7EDE6',    // pale blush tint
-          purple: '#A8826B',  // alias of carton (legacy usage)
-          pink: '#F3DBCF',    // soft blush pink
-          coral: '#D98E73',   // muted terracotta
-          yellow: '#FAF3EE',  // pale blush (legacy "yellow" tint)
-          tan: '#8C6A52',     // deep taupe
-          gold: '#C9A24B',    // champagne gold (matches logo)
-          oxblood: '#9A4A36', // soft terracotta-red (sale/discount)
-          rose: '#E3B9A6',    // dusty rose
+          // Chocolate brown from the BAGS handbag in the reference mockup
+          brown: '#5B4436',
+          carton: '#5B4436',
+          cream: '#F4F2F1',
+          blush: '#E8DFD4',
+          nude: '#E8DFD4',
+          sand: '#F4F2F1',
+          purple: '#5B4436',
+          pink: '#E8DFD4',
+          coral: '#5B4436',
+          yellow: '#F4F2F1',
+          tan: '#5B4436',
+          gold: '#5B4436',
+          oxblood: '#5B4436',
+          rose: '#5B4436',
+          bag: '#5B4436',
+          'bag-dark': '#47362C',
         },
       },
       fontFamily: {
         sans: ['Montserrat', 'sans-serif'],
         display: ['Montserrat', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'Georgia', 'serif'],
       },
       animation: {
         'just-landed-scroll': 'just-landed-scroll 30s linear infinite',
@@ -44,4 +47,3 @@ module.exports = {
   },
   plugins: [],
 }
-

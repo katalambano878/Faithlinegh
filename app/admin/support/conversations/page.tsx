@@ -80,7 +80,7 @@ export default function ConversationsPage() {
 
   const sentimentIcon = (s: string) => {
     if (s === 'positive') return <span className="text-gray-600"><i className="ri-emotion-happy-line text-lg" /></span>;
-    if (s === 'negative') return <span className="text-red-500"><i className="ri-emotion-unhappy-line text-lg" /></span>;
+    if (s === 'negative') return <span className="text-brand-brown"><i className="ri-emotion-unhappy-line text-lg" /></span>;
     return <span className="text-gray-400"><i className="ri-emotion-normal-line text-lg" /></span>;
   };
 
@@ -183,14 +183,14 @@ export default function ConversationsPage() {
                   <span className="text-xs font-semibold text-gray-700 bg-gray-100 px-2 py-0.5 rounded-full">{conv.message_count || 0}</span>
                 </div>
                 <div className="col-span-1">
-                  {conv.category && <span className="text-[10px] font-semibold uppercase bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">{conv.category}</span>}
+                  {conv.category && <span className="text-[10px] font-semibold uppercase bg-brand-cream text-brand-brown px-1.5 py-0.5 rounded">{conv.category}</span>}
                 </div>
                 <div className="col-span-1 flex gap-1 flex-wrap">
-                  {conv.is_escalated && <span className="text-[9px] font-bold bg-red-100 text-red-600 px-1.5 py-0.5 rounded">ESC</span>}
+                  {conv.is_escalated && <span className="text-[9px] font-bold bg-red-100 text-brand-brown px-1.5 py-0.5 rounded">ESC</span>}
                   {conv.is_resolved ? (
                     <span className="text-[9px] font-bold bg-gray-100 text-gray-700 px-1.5 py-0.5 rounded">OK</span>
                   ) : (
-                    <span className="text-[9px] font-bold bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded">OPEN</span>
+                    <span className="text-[9px] font-bold bg-brand-cream text-brand-brown px-1.5 py-0.5 rounded">OPEN</span>
                   )}
                 </div>
                 <div className="col-span-2 text-right">

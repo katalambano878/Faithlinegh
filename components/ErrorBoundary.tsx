@@ -35,8 +35,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       return (
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="text-center max-w-md">
-            <div className="w-20 h-20 mx-auto mb-6 bg-[#F3DBCF]/50 rounded-full flex items-center justify-center">
-              <i className="ri-error-warning-line text-4xl text-[#D98E73]"></i>
+            <div className="w-20 h-20 mx-auto mb-6 bg-[#E8DFD4]/50 rounded-full flex items-center justify-center">
+              <i className="ri-error-warning-line text-4xl text-[#5B4436]"></i>
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">Something went wrong</h2>
             <p className="text-gray-600 mb-6">
@@ -47,7 +47,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
-              className="inline-flex items-center px-6 py-3 bg-brand-brown hover:bg-[#2C1D14] text-white rounded-full font-semibold transition-colors cursor-pointer shadow-md shadow-brand-brown/20"
+              className="inline-flex items-center px-6 py-3 bg-brand-brown hover:bg-[#47362C] text-white rounded-full font-semibold transition-colors cursor-pointer shadow-md shadow-brand-brown/20"
             >
               <i className="ri-refresh-line mr-2"></i>
               Refresh Page

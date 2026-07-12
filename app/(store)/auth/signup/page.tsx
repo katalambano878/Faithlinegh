@@ -168,7 +168,7 @@ function SignupForm() {
             We've sent a confirmation link to <strong>{formData.email}</strong>.<br />
             Please check your inbox to activate your account.
           </p>
-          <Link href="/auth/login" className="inline-block bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
+          <Link href="/auth/login" className="inline-block bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-bag-dark transition-colors">
             Back to Login
           </Link>
         </div>
@@ -189,8 +189,8 @@ function SignupForm() {
 
         <div className="bg-white rounded-xl shadow-sm p-8">
           {authError && (
-            <div ref={errorRef} className="mb-4 p-4 bg-[#F3DBCF]/50 border border-[#D98E73]/30 text-[#9A4A36] rounded-lg text-sm flex items-start gap-3">
-              <i className="ri-error-warning-line text-[#D98E73] text-lg flex-shrink-0 mt-0.5"></i>
+            <div ref={errorRef} className="mb-4 p-4 bg-[#E8DFD4]/50 border border-[#5B4436]/30 text-[#5B4436] rounded-lg text-sm flex items-start gap-3">
+              <i className="ri-error-warning-line text-[#5B4436] text-lg flex-shrink-0 mt-0.5"></i>
               <span>{authError}</span>
             </div>
           )}
@@ -205,12 +205,12 @@ function SignupForm() {
                   type="text"
                   value={formData.firstName}
                   onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.firstName ? 'border-[#D98E73]' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.firstName ? 'border-[#5B4436]' : 'border-gray-300'
                     }`}
                   placeholder="John"
                 />
                 {errors.firstName && (
-                  <p className="text-sm text-[#9A4A36] mt-1">{errors.firstName}</p>
+                  <p className="text-sm text-[#5B4436] mt-1">{errors.firstName}</p>
                 )}
               </div>
               <div>
@@ -221,12 +221,12 @@ function SignupForm() {
                   type="text"
                   value={formData.lastName}
                   onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.lastName ? 'border-[#D98E73]' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.lastName ? 'border-[#5B4436]' : 'border-gray-300'
                     }`}
                   placeholder="Doe"
                 />
                 {errors.lastName && (
-                  <p className="text-sm text-[#9A4A36] mt-1">{errors.lastName}</p>
+                  <p className="text-sm text-[#5B4436] mt-1">{errors.lastName}</p>
                 )}
               </div>
             </div>
@@ -239,12 +239,12 @@ function SignupForm() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.email ? 'border-[#D98E73]' : 'border-gray-300'
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.email ? 'border-[#5B4436]' : 'border-gray-300'
                   }`}
                 placeholder="you@example.com"
               />
               {errors.email && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.email}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.email}</p>
               )}
             </div>
 
@@ -256,12 +256,12 @@ function SignupForm() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.phone ? 'border-[#D98E73]' : 'border-gray-300'
+                className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.phone ? 'border-[#5B4436]' : 'border-gray-300'
                   }`}
                 placeholder="+233 XX XXX XXXX"
               />
               {errors.phone && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.phone}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.phone}</p>
               )}
             </div>
 
@@ -274,7 +274,7 @@ function SignupForm() {
                   type={showPassword ? 'text' : 'password'}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.password ? 'border-[#D98E73]' : 'border-gray-300'
+                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.password ? 'border-[#5B4436]' : 'border-gray-300'
                     }`}
                   placeholder="At least 8 characters"
                 />
@@ -288,7 +288,7 @@ function SignupForm() {
               </div>
               <PasswordStrengthMeter password={formData.password} />
               {errors.password && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.password}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.password}</p>
               )}
             </div>
 
@@ -301,7 +301,7 @@ function SignupForm() {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.confirmPassword ? 'border-[#D98E73]' : 'border-gray-300'
+                  className={`w-full px-4 py-3 pr-12 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.confirmPassword ? 'border-[#5B4436]' : 'border-gray-300'
                     }`}
                   placeholder="Re-enter password"
                 />
@@ -314,7 +314,7 @@ function SignupForm() {
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.confirmPassword}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -338,14 +338,14 @@ function SignupForm() {
                 </span>
               </label>
               {errors.acceptTerms && (
-                <p className="text-sm text-[#9A4A36] mt-2">{errors.acceptTerms}</p>
+                <p className="text-sm text-[#5B4436] mt-2">{errors.acceptTerms}</p>
               )}
             </div>
 
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer"
+              className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap cursor-pointer"
             >
               {isLoading || verifying ? (
                 <span className="flex items-center justify-center">
@@ -370,14 +370,14 @@ function SignupForm() {
                 disabled
                 className="flex items-center justify-center space-x-2 border-2 border-gray-200 bg-gray-50 py-3 rounded-lg cursor-not-allowed opacity-60"
               >
-                <i className="ri-google-fill text-xl text-[#9A4A36] grayscale opacity-50"></i>
+                <i className="ri-google-fill text-xl text-[#5B4436] grayscale opacity-50"></i>
                 <span className="font-medium text-gray-400">Google</span>
               </button>
               <button
                 disabled
                 className="flex items-center justify-center space-x-2 border-2 border-gray-200 bg-gray-50 py-3 rounded-lg cursor-not-allowed opacity-60"
               >
-                <i className="ri-facebook-fill text-xl text-[#A8826B] grayscale opacity-50"></i>
+                <i className="ri-facebook-fill text-xl text-[#5B4436] grayscale opacity-50"></i>
                 <span className="font-medium text-gray-400">Facebook</span>
               </button>
             </div>

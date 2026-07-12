@@ -309,7 +309,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                         />
                       ) : null}
                       {discount > 0 && (
-                        <span className="absolute top-6 right-6 bg-[#9A4A36] text-white text-sm font-semibold px-4 py-2 rounded-full">
+                        <span className="absolute top-6 right-6 bg-[#5B4436] text-white text-sm font-semibold px-4 py-2 rounded-full">
                           Save {discount}%
                         </span>
                       )}
@@ -364,7 +364,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     onClick={() => setIsWishlisted(!isWishlisted)}
                     className="w-12 h-12 flex items-center justify-center border-2 border-gray-200 hover:border-brand-brown rounded-full transition-colors cursor-pointer"
                   >
-                    <i className={`${isWishlisted ? 'ri-heart-fill text-[#9A4A36]' : 'ri-heart-line text-gray-700'} text-xl`}></i>
+                    <i className={`${isWishlisted ? 'ri-heart-fill text-[#5B4436]' : 'ri-heart-line text-gray-700'} text-xl`}></i>
                   </button>
                 </div>
 
@@ -373,7 +373,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     {[1, 2, 3, 4, 5].map((star) => (
                       <i
                         key={star}
-                        className={`${star <= Math.round(product.rating) ? 'ri-star-fill text-[#C9A24B]' : 'ri-star-line text-gray-300'} text-lg`}
+                        className={`${star <= Math.round(product.rating) ? 'ri-star-fill text-[#5B4436]' : 'ri-star-line text-gray-300'} text-lg`}
                       ></i>
                     ))}
                   </div>
@@ -408,7 +408,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                           </span>
                           {selectedColor
                             ? <span className="text-sm font-semibold text-brand-brown">{selectedColor}</span>
-                            : <span className="text-xs text-[#D98E73] font-medium animate-pulse">← Pick a color</span>
+                            : <span className="text-xs text-[#5B4436] font-medium animate-pulse">← Pick a color</span>
                           }
                         </div>
                         <div className="flex flex-wrap gap-2">
@@ -481,7 +481,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                             <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{stepLabel}Size / Type</span>
                             {selectedVariant
                               ? <span className="text-sm font-semibold text-brand-brown">₵{(selectedVariant.price || product.price).toFixed(2)}</span>
-                              : <span className="text-xs text-[#D98E73] font-medium animate-pulse">← Pick a size</span>
+                              : <span className="text-xs text-[#5B4436] font-medium animate-pulse">← Pick a size</span>
                             }
                           </div>
 
@@ -592,12 +592,12 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                         </span>
                       )}
                       {activeStock > 0 ? (
-                        <span className="text-[#A8826B] font-medium text-sm">
+                        <span className="text-[#5B4436] font-medium text-sm">
                           <i className="ri-checkbox-circle-line mr-1"></i>
                           In Stock
                         </span>
                       ) : (
-                        <span className="text-[#9A4A36] font-medium">
+                        <span className="text-[#5B4436] font-medium">
                           <i className="ri-close-circle-line mr-1"></i>
                           Out of Stock
                         </span>
@@ -618,7 +618,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                   {activeStock > 0 && !needsVariantSelection && !needsColorSelection && (
                     <button
                       onClick={handleBuyNow}
-                      className="sm:w-auto bg-brand-brown hover:bg-[#2C1D14] text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+                      className="sm:w-auto bg-brand-brown hover:bg-[#47362C] text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
                     >
                       Buy Now
                     </button>

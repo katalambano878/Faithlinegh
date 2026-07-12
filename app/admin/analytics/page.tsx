@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
               <option value="90days">Last 90 Days</option>
               <option value="year">This Year</option>
             </select>
-            <button className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center">
+            <button className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer flex items-center justify-center">
               <i className="ri-download-line mr-2"></i>
               Export
             </button>
@@ -211,8 +211,8 @@ export default function AnalyticsPage() {
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-blue-100 rounded-lg">
-                <i className="ri-shopping-cart-line text-2xl text-blue-700"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-shopping-cart-line text-2xl text-brand-brown"></i>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">Total Orders</p>
@@ -221,8 +221,8 @@ export default function AnalyticsPage() {
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-purple-100 rounded-lg">
-                <i className="ri-bar-chart-box-line text-2xl text-purple-700"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-bar-chart-box-line text-2xl text-brand-brown"></i>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">Avg. Order Value</p>
@@ -231,8 +231,8 @@ export default function AnalyticsPage() {
 
           <div className="bg-white rounded-xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-12 h-12 flex items-center justify-center bg-amber-100 rounded-lg">
-                <i className="ri-percent-line text-2xl text-amber-700"></i>
+              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
+                <i className="ri-percent-line text-2xl text-brand-brown"></i>
               </div>
             </div>
             <p className="text-sm text-gray-600 mb-1">Conversion Rate</p>

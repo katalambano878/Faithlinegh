@@ -60,8 +60,8 @@ export default function SessionTimeoutWarning() {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-[#FAF3EE] rounded-full flex items-center justify-center">
-            <i className="ri-time-line text-2xl text-[#A8826B]"></i>
+          <div className="w-12 h-12 bg-[#F4F2F1] rounded-full flex items-center justify-center">
+            <i className="ri-time-line text-2xl text-[#5B4436]"></i>
           </div>
           <div>
             <h3 className="font-bold text-lg">Session Timeout Warning</h3>
@@ -69,18 +69,18 @@ export default function SessionTimeoutWarning() {
           </div>
         </div>
 
-        <div className="bg-[#FAF3EE]/50 border border-[#C9A24B]/30 rounded-lg p-4 mb-6">
+        <div className="bg-[#F4F2F1]/50 border border-[#5B4436]/30 rounded-lg p-4 mb-6">
           <p className="text-sm text-gray-700 mb-2">
             You will be automatically logged out in:
           </p>
           <div className="flex items-center gap-2">
-            <div className="flex-1 h-2 bg-[#C9A24B]/30 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-[#5B4436]/30 rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#C9A24B] transition-all duration-1000"
+                className="h-full bg-[#5B4436] transition-all duration-1000"
                 style={{ width: `${(countdown / 60) * 100}%` }}
               />
             </div>
-            <span className="text-2xl font-bold text-[#A8826B] tabular-nums">
+            <span className="text-2xl font-bold text-[#5B4436] tabular-nums">
               {countdown}s
             </span>
           </div>
@@ -95,7 +95,7 @@ export default function SessionTimeoutWarning() {
           </button>
           <button
             onClick={handleStayLoggedIn}
-            className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-medium whitespace-nowrap"
+            className="flex-1 px-4 py-2.5 bg-black text-white rounded-lg hover:bg-brand-bag-dark transition-colors font-medium whitespace-nowrap"
           >
             Stay Logged In
           </button>

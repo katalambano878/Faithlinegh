@@ -71,11 +71,11 @@ export default function SupportAnalyticsPage() {
       {/* Summary KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {[
-          { label: 'Conversations', value: s.totalConversations, icon: 'ri-chat-3-line', color: 'text-blue-600 bg-blue-50' },
+          { label: 'Conversations', value: s.totalConversations, icon: 'ri-chat-3-line', color: 'text-brand-brown bg-brand-cream' },
           { label: 'Tickets', value: s.totalTickets, icon: 'ri-ticket-line', color: 'text-gray-700 bg-gray-50' },
-          { label: 'AI Handled', value: `${aiRate}%`, icon: 'ri-robot-2-line', color: 'text-purple-600 bg-purple-50' },
-          { label: 'Escalated', value: `${escalationRate}%`, icon: 'ri-alarm-warning-line', color: 'text-orange-600 bg-orange-50' },
-          { label: 'Avg Rating', value: s.avgRating, icon: 'ri-star-line', color: 'text-amber-600 bg-amber-50' },
+          { label: 'AI Handled', value: `${aiRate}%`, icon: 'ri-robot-2-line', color: 'text-brand-brown bg-brand-cream' },
+          { label: 'Escalated', value: `${escalationRate}%`, icon: 'ri-alarm-warning-line', color: 'text-brand-brown bg-brand-cream' },
+          { label: 'Avg Rating', value: s.avgRating, icon: 'ri-star-line', color: 'text-brand-brown bg-brand-cream' },
           { label: 'Avg Resolution', value: `${s.avgResolutionHours}h`, icon: 'ri-time-line', color: 'text-cyan-600 bg-cyan-50' },
         ].map((kpi) => (
           <div key={kpi.label} className="bg-white rounded-xl border border-gray-100 p-4">
@@ -183,24 +183,24 @@ export default function SupportAnalyticsPage() {
       )}
 
       {/* AI Performance Card */}
-      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-r from-brand-brown to-brand-bag-dark rounded-xl p-6 text-white">
         <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><i className="ri-robot-2-line" /> AI Performance Summary</h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
           <div>
             <p className="text-3xl font-bold">{s.aiHandled}</p>
-            <p className="text-purple-200 text-xs mt-1">Conversations handled by AI</p>
+            <p className="text-white/70 text-xs mt-1">Conversations handled by AI</p>
           </div>
           <div>
             <p className="text-3xl font-bold">{s.escalated}</p>
-            <p className="text-purple-200 text-xs mt-1">Escalated to human</p>
+            <p className="text-white/70 text-xs mt-1">Escalated to human</p>
           </div>
           <div>
             <p className="text-3xl font-bold">{s.resolved}</p>
-            <p className="text-purple-200 text-xs mt-1">Auto-resolved by AI</p>
+            <p className="text-white/70 text-xs mt-1">Auto-resolved by AI</p>
           </div>
           <div>
             <p className="text-3xl font-bold">{s.avgFirstResponseMinutes}m</p>
-            <p className="text-purple-200 text-xs mt-1">Avg first response time</p>
+            <p className="text-white/70 text-xs mt-1">Avg first response time</p>
           </div>
         </div>
       </div>

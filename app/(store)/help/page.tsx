@@ -241,36 +241,36 @@ export default function HelpCenterPage() {
               href="/support/ticket"
               className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-16 h-16 flex items-center justify-center bg-[#A8826B]/10 rounded-full mx-auto mb-4">
-                <i className="ri-customer-service-2-line text-3xl text-[#A8826B]"></i>
+              <div className="w-16 h-16 flex items-center justify-center bg-[#5B4436]/10 rounded-full mx-auto mb-4">
+                <i className="ri-customer-service-2-line text-3xl text-[#5B4436]"></i>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Contact Support</h3>
               <p className="text-gray-600 text-sm mb-4">Get help from our support team</p>
-              <span className="text-[#A8826B] font-semibold whitespace-nowrap">Create Ticket →</span>
+              <span className="text-[#5B4436] font-semibold whitespace-nowrap">Create Ticket →</span>
             </Link>
 
             <Link
               href="/returns"
               className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-16 h-16 flex items-center justify-center bg-[#A8826B]/10 rounded-full mx-auto mb-4">
-                <i className="ri-arrow-left-right-line text-3xl text-[#A8826B]"></i>
+              <div className="w-16 h-16 flex items-center justify-center bg-[#5B4436]/10 rounded-full mx-auto mb-4">
+                <i className="ri-arrow-left-right-line text-3xl text-[#5B4436]"></i>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Start a Return</h3>
               <p className="text-gray-600 text-sm mb-4">Return or exchange your item</p>
-              <span className="text-[#A8826B] font-semibold whitespace-nowrap">Initiate Return →</span>
+              <span className="text-[#5B4436] font-semibold whitespace-nowrap">Initiate Return →</span>
             </Link>
 
             <Link
               href="/order-tracking"
               className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-16 h-16 flex items-center justify-center bg-[#FAF3EE] rounded-full mx-auto mb-4">
-                <i className="ri-map-pin-line text-3xl text-[#8C6A52]"></i>
+              <div className="w-16 h-16 flex items-center justify-center bg-[#F4F2F1] rounded-full mx-auto mb-4">
+                <i className="ri-map-pin-line text-3xl text-[#5B4436]"></i>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Track Order</h3>
               <p className="text-gray-600 text-sm mb-4">Check your order status</p>
-              <span className="text-[#8C6A52] font-semibold whitespace-nowrap">Track Now →</span>
+              <span className="text-[#5B4436] font-semibold whitespace-nowrap">Track Now →</span>
             </Link>
           </div>
         </div>

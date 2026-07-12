@@ -87,9 +87,9 @@ export default function AdminReviewsPage() {
   };
 
   const statusColors: Record<string, string> = {
-    pending: 'bg-amber-100 text-amber-700',
+    pending: 'bg-brand-cream text-brand-brown',
     approved: 'bg-gray-100 text-gray-900',
-    rejected: 'bg-red-100 text-red-700'
+    rejected: 'bg-red-100 text-brand-brown'
   };
 
   const handleSelectAll = () => {
@@ -140,7 +140,7 @@ export default function AdminReviewsPage() {
         {[1, 2, 3, 4, 5].map((star) => (
           <i
             key={star}
-            className={`${star <= rating ? 'ri-star-fill text-amber-500' : 'ri-star-line text-gray-300'} text-lg`}
+            className={`${star <= rating ? 'ri-star-fill text-brand-brown' : 'ri-star-line text-gray-300'} text-lg`}
           ></i>
         ))}
       </div>
@@ -167,10 +167,10 @@ export default function AdminReviewsPage() {
         </button>
         <button
           onClick={() => setStatusFilter('pending')}
-          className={`p-4 rounded-xl border-2 transition-all text-left ${statusFilter === 'pending' ? 'border-amber-700 bg-amber-50' : 'border-gray-200 bg-white'
+          className={`p-4 rounded-xl border-2 transition-all text-left ${statusFilter === 'pending' ? 'border-brand-brown bg-brand-cream' : 'border-gray-200 bg-white'
             }`}
         >
-          <p className="text-2xl font-bold text-amber-700">{stats.pending}</p>
+          <p className="text-2xl font-bold text-brand-brown">{stats.pending}</p>
           <p className="text-sm text-gray-600 mt-1">Pending Review</p>
         </button>
         <button
@@ -183,10 +183,10 @@ export default function AdminReviewsPage() {
         </button>
         <button
           onClick={() => setStatusFilter('rejected')}
-          className={`p-4 rounded-xl border-2 transition-all text-left ${statusFilter === 'rejected' ? 'border-red-700 bg-red-50' : 'border-gray-200 bg-white'
+          className={`p-4 rounded-xl border-2 transition-all text-left ${statusFilter === 'rejected' ? 'border-red-700 bg-brand-cream' : 'border-gray-200 bg-white'
             }`}
         >
-          <p className="text-2xl font-bold text-red-700">{stats.rejected}</p>
+          <p className="text-2xl font-bold text-brand-brown">{stats.rejected}</p>
           <p className="text-sm text-gray-600 mt-1">Rejected</p>
         </button>
       </div>
@@ -213,14 +213,14 @@ export default function AdminReviewsPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handleBulkAction('Approve')}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-900 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 <i className="ri-check-line mr-2"></i>
                 Approve
               </button>
               <button
                 onClick={() => handleBulkAction('Reject')}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+                className="px-4 py-2 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
               >
                 <i className="ri-close-line mr-2"></i>
                 Reject

@@ -44,7 +44,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <i className="ri-error-warning-line text-4xl text-red-500 mb-4 block"></i>
+          <i className="ri-error-warning-line text-4xl text-brand-brown mb-4 block"></i>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Product Not Found</h2>
           <p className="text-gray-600">The product you are trying to edit does not exist or has been deleted.</p>
         </div>

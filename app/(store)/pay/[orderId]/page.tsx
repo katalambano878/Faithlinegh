@@ -109,14 +109,14 @@ export default function PaymentPage() {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="w-20 h-20 mx-auto mb-6 bg-[#F3DBCF] rounded-full flex items-center justify-center">
-            <i className="ri-error-warning-line text-4xl text-[#D98E73]"></i>
+          <div className="w-20 h-20 mx-auto mb-6 bg-[#E8DFD4] rounded-full flex items-center justify-center">
+            <i className="ri-error-warning-line text-4xl text-[#5B4436]"></i>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Order Not Found</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <Link
             href="/"
-            className="inline-flex items-center px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors"
+            className="inline-flex items-center px-6 py-3 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors"
           >
             <i className="ri-home-line mr-2"></i>
             Go to Homepage
@@ -136,7 +136,7 @@ export default function PaymentPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-6">
-            <span className="text-2xl font-bold text-[#5A4234]">Faithlinegh</span>
+            <span className="text-2xl font-bold text-[#5B4436]">Faithlinegh</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Complete Your Payment</h1>
           <p className="text-gray-600 mt-2">Hi {customerName}, your order is waiting for payment.</p>
@@ -144,20 +144,20 @@ export default function PaymentPage() {
 
         {/* Out-of-stock warning */}
         {hasStockIssue && (
-          <div className="bg-[#F3DBCF] border border-[#D98E73]/30 rounded-xl p-5 mb-6">
+          <div className="bg-[#E8DFD4] border border-[#5B4436]/30 rounded-xl p-5 mb-6">
             <div className="flex items-start space-x-3">
-              <i className="ri-error-warning-fill text-2xl text-[#D98E73] mt-0.5 flex-shrink-0"></i>
+              <i className="ri-error-warning-fill text-2xl text-[#5B4436] mt-0.5 flex-shrink-0"></i>
               <div>
-                <p className="font-semibold text-[#9A4A36] mb-1">Some items are no longer available</p>
-                <p className="text-sm text-[#9A4A36] mb-3">
+                <p className="font-semibold text-[#5B4436] mb-1">Some items are no longer available</p>
+                <p className="text-sm text-[#5B4436] mb-3">
                   Unfortunately the following item{outOfStockItems.length > 1 ? 's are' : ' is'} out of stock and your order cannot be completed:
                 </p>
                 <ul className="list-disc list-inside space-y-1 mb-3">
                   {outOfStockItems.map((name, i) => (
-                    <li key={i} className="text-sm font-medium text-[#9A4A36]">{name}</li>
+                    <li key={i} className="text-sm font-medium text-[#5B4436]">{name}</li>
                   ))}
                 </ul>
-                <p className="text-sm text-[#9A4A36]">
+                <p className="text-sm text-[#5B4436]">
                   Please <Link href="/contact" className="underline font-semibold">contact us</Link> or{' '}
                   <Link href="/shop" className="underline font-semibold">browse other products</Link>.
                 </p>
@@ -181,9 +181,9 @@ export default function PaymentPage() {
                   name.toLowerCase().includes(item.product_name?.toLowerCase())
                 );
                 return (
-                  <div key={item.id} className={`flex justify-between text-sm ${isOOS ? 'text-[#D98E73]' : 'text-gray-700'}`}>
+                  <div key={item.id} className={`flex justify-between text-sm ${isOOS ? 'text-[#5B4436]' : 'text-gray-700'}`}>
                     <span className="flex items-center gap-1">
-                      {isOOS && <i className="ri-close-circle-fill text-[#D98E73]"></i>}
+                      {isOOS && <i className="ri-close-circle-fill text-[#5B4436]"></i>}
                       {item.product_name}{item.variant_name ? ` — ${item.variant_name}` : ''} × {item.quantity}
                     </span>
                     <span>₵ {(item.unit_price * item.quantity).toFixed(2)}</span>
@@ -218,32 +218,32 @@ export default function PaymentPage() {
 
         {/* Payment status banners */}
         {!hasStockIssue && order?.payment_status === 'pending' && (
-          <div className="bg-[#FAF3EE] border border-[#C9A24B]/30 rounded-lg p-4 mb-6">
+          <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 mb-6">
             <div className="flex items-start space-x-3">
-              <i className="ri-time-line text-xl text-[#8C6A52] mt-0.5"></i>
+              <i className="ri-time-line text-xl text-[#5B4436] mt-0.5"></i>
               <div>
-                <p className="text-sm font-semibold text-[#8C6A52]">Payment Pending</p>
-                <p className="text-sm text-[#8C6A52] mt-1">Complete your payment to confirm your order.</p>
+                <p className="text-sm font-semibold text-[#5B4436]">Payment Pending</p>
+                <p className="text-sm text-[#5B4436] mt-1">Complete your payment to confirm your order.</p>
               </div>
             </div>
           </div>
         )}
 
         {!hasStockIssue && order?.payment_status === 'failed' && (
-          <div className="bg-[#F3DBCF] border border-[#D98E73]/30 rounded-lg p-4 mb-6">
+          <div className="bg-[#E8DFD4] border border-[#5B4436]/30 rounded-lg p-4 mb-6">
             <div className="flex items-start space-x-3">
-              <i className="ri-error-warning-line text-xl text-[#D98E73] mt-0.5"></i>
+              <i className="ri-error-warning-line text-xl text-[#5B4436] mt-0.5"></i>
               <div>
-                <p className="text-sm font-semibold text-[#9A4A36]">Payment Failed</p>
-                <p className="text-sm text-[#9A4A36] mt-1">Your previous payment attempt was unsuccessful. Please try again.</p>
+                <p className="text-sm font-semibold text-[#5B4436]">Payment Failed</p>
+                <p className="text-sm text-[#5B4436] mt-1">Your previous payment attempt was unsuccessful. Please try again.</p>
               </div>
             </div>
           </div>
         )}
 
         {error && (
-          <div className="bg-[#F3DBCF] border border-[#D98E73]/30 rounded-lg p-4 mb-6">
-            <p className="text-sm text-[#9A4A36]">{error}</p>
+          <div className="bg-[#E8DFD4] border border-[#5B4436]/30 rounded-lg p-4 mb-6">
+            <p className="text-sm text-[#5B4436]">{error}</p>
           </div>
         )}
 
@@ -252,7 +252,7 @@ export default function PaymentPage() {
           <button
             onClick={handlePayNow}
             disabled={processing}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-xl font-semibold text-lg transition-colors disabled:opacity-70 flex items-center justify-center cursor-pointer"
+            className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-xl font-semibold text-lg transition-colors disabled:opacity-70 flex items-center justify-center cursor-pointer"
           >
             {processing ? (
               <>
@@ -273,7 +273,7 @@ export default function PaymentPage() {
           <div className="space-y-3">
             <Link
               href="/shop"
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center"
+              className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-xl font-semibold text-lg transition-colors flex items-center justify-center"
             >
               <i className="ri-store-2-line mr-2"></i>
               Browse Other Products

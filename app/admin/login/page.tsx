@@ -89,11 +89,11 @@ export default function AdminLoginPage() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
           {error && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3">
-              <i className="ri-error-warning-line text-red-600 text-xl mt-0.5"></i>
+            <div className="mb-6 p-4 bg-brand-cream border border-brand-brown/20 rounded-lg flex items-start space-x-3">
+              <i className="ri-error-warning-line text-brand-brown text-xl mt-0.5"></i>
               <div>
                 <p className="text-red-800 font-semibold">Login Failed</p>
-                <p className="text-red-700 text-sm mt-1">{error}</p>
+                <p className="text-brand-brown text-sm mt-1">{error}</p>
               </div>
             </div>
           )}
@@ -109,7 +109,7 @@ export default function AdminLoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                   placeholder="admin@example.com"
                   required
                 />
@@ -126,7 +126,7 @@ export default function AdminLoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                   placeholder="Enter your password"
                   required
                 />
@@ -143,7 +143,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={isLoading || verifying}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+              className="w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
               {isLoading || verifying ? (
                 <span className="flex items-center justify-center space-x-2">

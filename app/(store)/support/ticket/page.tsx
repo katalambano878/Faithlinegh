@@ -110,7 +110,7 @@ export default function SupportTicketPage() {
                 </p>
                 <Link
                   href="/support/tickets"
-                  className="block bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
+                  className="block bg-gray-900 hover:bg-brand-bag-dark text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
                 >
                   View My Tickets
                 </Link>
@@ -160,7 +160,7 @@ export default function SupportTicketPage() {
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                     placeholder="John Doe"
                     required
                   />
@@ -174,7 +174,7 @@ export default function SupportTicketPage() {
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                     placeholder="you@example.com"
                     required
                   />
@@ -189,7 +189,7 @@ export default function SupportTicketPage() {
                   type="text"
                   value={formData.orderNumber}
                   onChange={(e) => setFormData({ ...formData, orderNumber: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                   placeholder="ORD-2024-001"
                 />
               </div>
@@ -242,7 +242,7 @@ export default function SupportTicketPage() {
                     </div>
                   </label>
                   <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                    formData.priority === 'normal' ? 'border-[#A8826B] bg-[#A8826B]/5' : 'border-gray-300'
+                    formData.priority === 'normal' ? 'border-[#5B4436] bg-[#5B4436]/5' : 'border-gray-300'
                   }`}>
                     <input
                       type="radio"
@@ -257,7 +257,7 @@ export default function SupportTicketPage() {
                     </div>
                   </label>
                   <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                    formData.priority === 'high' ? 'border-[#9A4A36] bg-[#F3DBCF]/50' : 'border-gray-300'
+                    formData.priority === 'high' ? 'border-[#5B4436] bg-[#E8DFD4]/50' : 'border-gray-300'
                   }`}>
                     <input
                       type="radio"
@@ -282,7 +282,7 @@ export default function SupportTicketPage() {
                   type="text"
                   value={formData.subject}
                   onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
                   placeholder="Brief description of your issue"
                   required
                 />
@@ -295,7 +295,7 @@ export default function SupportTicketPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-gray-900 h-32 resize-none"
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown h-32 resize-none"
                   placeholder="Please provide as much detail as possible..."
                   required
                   maxLength={500}
@@ -306,7 +306,7 @@ export default function SupportTicketPage() {
               </div>
 
               {submitError && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
                   <i className="ri-error-warning-line mr-2"></i>
                   {submitError}
                 </div>
@@ -323,7 +323,7 @@ export default function SupportTicketPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  className="flex-1 py-4 bg-gray-900 hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {isSubmitting ? (
                     <>
@@ -338,13 +338,13 @@ export default function SupportTicketPage() {
             </form>
           </div>
 
-          <div className="mt-8 bg-[#A8826B]/5 border border-[#A8826B]/20 rounded-xl p-6">
+          <div className="mt-8 bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-xl p-6">
             <div className="flex items-start space-x-3">
-              <i className="ri-information-line text-2xl text-[#A8826B] mt-0.5"></i>
+              <i className="ri-information-line text-2xl text-[#5B4436] mt-0.5"></i>
               <div>
-                <p className="font-semibold text-[#5A4234] mb-2">Before submitting a ticket</p>
-                <ul className="text-sm text-[#A8826B] space-y-1">
-                  <li>• Check our <Link href="/help" className="underline hover:text-[#5A4234]">Help Center</Link> for quick answers</li>
+                <p className="font-semibold text-[#5B4436] mb-2">Before submitting a ticket</p>
+                <ul className="text-sm text-[#5B4436] space-y-1">
+                  <li>• Check our <Link href="/help" className="underline hover:text-[#5B4436]">Help Center</Link> for quick answers</li>
                   <li>• Average response time: 24 hours</li>
                   <li>• Include your order number for faster assistance</li>
                 </ul>

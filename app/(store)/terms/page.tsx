@@ -10,7 +10,7 @@ export const metadata: Metadata = pageMetadata({
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gradient-to-br from-gray-100 via-white to-[#FAF3EE]/40 py-16">
+      <div className="bg-gradient-to-br from-gray-100 via-white to-[#F4F2F1]/40 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">Terms & Conditions</h1>
@@ -43,27 +43,27 @@ export default function TermsPage() {
             </p>
             <ul className="space-y-2 text-gray-600 mb-6">
               <li className="flex items-start gap-2">
-                <i className="ri-close-circle-line text-[#D98E73] mt-1"></i>
+                <i className="ri-close-circle-line text-[#5B4436] mt-1"></i>
                 <span>Violate any local, national, or international law or regulation</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-close-circle-line text-[#D98E73] mt-1"></i>
+                <i className="ri-close-circle-line text-[#5B4436] mt-1"></i>
                 <span>Transmit any harmful code, viruses, or malicious software</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-close-circle-line text-[#D98E73] mt-1"></i>
+                <i className="ri-close-circle-line text-[#5B4436] mt-1"></i>
                 <span>Attempt to gain unauthorised access to our systems or networks</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-close-circle-line text-[#D98E73] mt-1"></i>
+                <i className="ri-close-circle-line text-[#5B4436] mt-1"></i>
                 <span>Use the website for fraudulent purposes or in connection with any criminal activity</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-close-circle-line text-[#D98E73] mt-1"></i>
+                <i className="ri-close-circle-line text-[#5B4436] mt-1"></i>
                 <span>Impersonate any person or entity or misrepresent your affiliation</span>
               </li>
               <li className="flex items-start gap-2">
-                <i className="ri-close-circle-line text-[#D98E73] mt-1"></i>
+                <i className="ri-close-circle-line text-[#5B4436] mt-1"></i>
                 <span>Interfere with or disrupt the website or servers</span>
               </li>
             </ul>

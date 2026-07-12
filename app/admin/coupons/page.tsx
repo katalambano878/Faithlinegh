@@ -185,9 +185,9 @@ export default function AdminCouponsPage() {
 
   const statusColors: Record<string, string> = {
     Active: 'bg-gray-100 text-gray-900',
-    Scheduled: 'bg-blue-100 text-blue-700',
+    Scheduled: 'bg-brand-cream text-brand-brown',
     Expired: 'bg-gray-100 text-gray-700',
-    Disabled: 'bg-red-100 text-red-700',
+    Disabled: 'bg-red-100 text-brand-brown',
   };
 
   const filteredCoupons = coupons.filter((c) => {
@@ -207,7 +207,7 @@ export default function AdminCouponsPage() {
         </div>
         <button
           onClick={openCreate}
-          className="bg-gray-900 hover:bg-gray-800 text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
+          className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
         >
           <i className="ri-add-line mr-2"></i>
           Create Coupon
@@ -229,7 +229,7 @@ export default function AdminCouponsPage() {
         </div>
         <div className="bg-white rounded-xl border-2 border-gray-200 p-4">
           <p className="text-sm text-gray-600 mb-1">Total Discount</p>
-          <p className="text-2xl font-bold text-purple-700">—</p>
+          <p className="text-2xl font-bold text-brand-brown">—</p>
         </div>
       </div>
 
@@ -299,13 +299,13 @@ export default function AdminCouponsPage() {
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => openEdit(coupon)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg cursor-pointer"
                         >
                           <i className="ri-edit-line text-lg"></i>
                         </button>
                         <button
                           onClick={() => handleDelete(coupon.id, coupon.code)}
-                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
+                          className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown hover:bg-brand-cream rounded-lg cursor-pointer"
                         >
                           <i className="ri-delete-bin-line text-lg"></i>
                         </button>
@@ -333,7 +333,7 @@ export default function AdminCouponsPage() {
 
             <form onSubmit={handleSave} className="p-6 space-y-4">
               {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">{error}</div>
+                <div className="p-3 bg-brand-cream border border-brand-brown/20 rounded-lg text-sm text-brand-brown">{error}</div>
               )}
 
               <div>
@@ -454,7 +454,7 @@ export default function AdminCouponsPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 px-4 py-2.5 bg-gray-900 text-white rounded-lg font-semibold hover:bg-gray-800 disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 bg-gray-900 text-white rounded-lg font-semibold hover:bg-brand-bag-dark disabled:opacity-50"
                 >
                   {saving ? 'Saving…' : editingCoupon ? 'Save Changes' : 'Create Coupon'}
                 </button>

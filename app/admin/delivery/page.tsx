@@ -34,9 +34,9 @@ interface Assignment {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-    assigned: 'bg-yellow-100 text-yellow-800',
-    picked_up: 'bg-blue-100 text-blue-800',
-    in_transit: 'bg-indigo-100 text-indigo-800',
+    assigned: 'bg-brand-cream text-yellow-800',
+    picked_up: 'bg-brand-cream text-brand-brown',
+    in_transit: 'bg-brand-cream text-brand-brown',
     delivered: 'bg-gray-100 text-gray-800',
     failed: 'bg-red-100 text-red-800',
     returned: 'bg-gray-100 text-gray-800',
@@ -92,7 +92,7 @@ export default function DeliveryDashboard() {
                 </div>
                 <div className="flex gap-3">
                     <Link href="/admin/delivery/assignments"
-                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-colors font-medium text-sm">
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark transition-colors font-medium text-sm">
                         <i className="ri-add-line" /> New Assignment
                     </Link>
                     <button onClick={fetchData}
@@ -123,7 +123,7 @@ export default function DeliveryDashboard() {
 
                     {/* Revenue + Fleet + Quick Actions */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-gradient-to-br from-gray-700 to-gray-900 rounded-2xl p-6 text-white">
+                        <div className="bg-gradient-to-br from-brand-brown to-gray-900 rounded-2xl p-6 text-white">
                             <div className="flex items-center justify-between mb-4">
                                 <span className="text-gray-200 text-sm font-medium">Today&apos;s Delivery Revenue</span>
                                 <i className="ri-money-cny-circle-line text-2xl text-gray-200" />
@@ -137,8 +137,8 @@ export default function DeliveryDashboard() {
                             <div className="space-y-3">
                                 <FleetRow label="Total Riders" value={stats?.totalRiders || 0} color="text-gray-900" />
                                 <FleetRow label="Available" value={stats?.activeRiders || 0} color="text-gray-700" />
-                                <FleetRow label="On Delivery" value={stats?.onDeliveryRiders || 0} color="text-blue-600" />
-                                <FleetRow label="Active Zones" value={stats?.activeZones || 0} color="text-indigo-600" />
+                                <FleetRow label="On Delivery" value={stats?.onDeliveryRiders || 0} color="text-brand-brown" />
+                                <FleetRow label="Active Zones" value={stats?.activeZones || 0} color="text-brand-brown" />
                             </div>
                         </div>
 
@@ -154,15 +154,15 @@ export default function DeliveryDashboard() {
                                 </Link>
                                 <Link href="/admin/delivery/riders"
                                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700">
-                                    <div className="w-9 h-9 bg-blue-100 rounded-lg flex items-center justify-center">
-                                        <i className="ri-e-bike-2-line text-blue-600" />
+                                    <div className="w-9 h-9 bg-brand-cream rounded-lg flex items-center justify-center">
+                                        <i className="ri-e-bike-2-line text-brand-brown" />
                                     </div>
                                     Manage Riders
                                 </Link>
                                 <Link href="/admin/delivery/zones"
                                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700">
-                                    <div className="w-9 h-9 bg-amber-100 rounded-lg flex items-center justify-center">
-                                        <i className="ri-map-pin-range-line text-amber-600" />
+                                    <div className="w-9 h-9 bg-brand-cream rounded-lg flex items-center justify-center">
+                                        <i className="ri-map-pin-range-line text-brand-brown" />
                                     </div>
                                     Manage Zones
                                 </Link>
@@ -203,10 +203,10 @@ export default function DeliveryDashboard() {
                                                 {a.orders?.shipping_address?.city || 'N/A'}
                                             </span>
                                             {a.priority === 'urgent' && (
-                                                <span className="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">URGENT</span>
+                                                <span className="px-2 py-1 bg-red-100 text-brand-brown rounded-full text-xs font-bold">URGENT</span>
                                             )}
                                             {a.priority === 'high' && (
-                                                <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold">HIGH</span>
+                                                <span className="px-2 py-1 bg-brand-cream text-brand-brown rounded-full text-xs font-bold">HIGH</span>
                                             )}
                                         </div>
                                     </div>
@@ -256,9 +256,9 @@ export default function DeliveryDashboard() {
 function StatCard({ icon, color, label, value, sub }: { icon: string; color: string; label: string; value: number; sub?: string }) {
     const colorMap: Record<string, string> = {
         gray: 'bg-gray-100 text-gray-700',
-        red: 'bg-red-100 text-red-600',
-        blue: 'bg-blue-100 text-blue-600',
-        amber: 'bg-amber-100 text-amber-600',
+        red: 'bg-red-100 text-brand-brown',
+        blue: 'bg-brand-cream text-brand-brown',
+        amber: 'bg-brand-cream text-brand-brown',
     };
     return (
         <div className="bg-white rounded-2xl border border-gray-200 p-5">

@@ -58,7 +58,7 @@ export default function CustomerDetailsPage() {
     };
 
     if (loading) return <div className="p-8 text-center text-gray-500">Loading customer details...</div>;
-    if (!customer) return <div className="p-8 text-center text-red-500">Customer not found</div>;
+    if (!customer) return <div className="p-8 text-center text-brand-brown">Customer not found</div>;
 
     const totalSpent = orders.reduce((sum, order) => sum + (order.total || 0), 0);
     const displayName = customer.full_name ||
@@ -86,7 +86,7 @@ export default function CustomerDetailsPage() {
                         <div className="flex items-center gap-2">
                             <h1 className="text-3xl font-bold text-gray-900">{displayName}</h1>
                             {isWhatsAppImport && (
-                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-cream text-brand-brown">
                                     WhatsApp
                                 </span>
                             )}
@@ -100,7 +100,7 @@ export default function CustomerDetailsPage() {
                             href={whatsappUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-4 py-2 border border-green-300 bg-green-50 rounded-lg text-green-700 font-medium hover:bg-green-100"
+                            className="px-4 py-2 border border-brand-brown/30 bg-brand-cream rounded-lg text-brand-brown font-medium hover:bg-brand-cream"
                         >
                             <i className="ri-whatsapp-line mr-2"></i>
                             Message on WhatsApp
@@ -110,7 +110,7 @@ export default function CustomerDetailsPage() {
                         <i className="ri-mail-send-line mr-2"></i>
                         Send Email
                     </button>
-                    <button className="px-4 py-2 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-900 cursor-pointer">
+                    <button className="px-4 py-2 bg-brand-brown text-white rounded-lg font-bold hover:bg-brand-bag-dark cursor-pointer">
                         Edit Customer
                     </button>
                 </div>
@@ -169,9 +169,9 @@ export default function CustomerDetailsPage() {
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
                                             ${order.status === 'completed' || order.status === 'delivered' ? 'bg-gray-100 text-gray-800' :
-                                                order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                order.status === 'pending' ? 'bg-brand-cream text-yellow-800' :
                                                     order.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-                                                        order.status === 'dispatched_to_rider' ? 'bg-indigo-100 text-indigo-800' : 'bg-blue-100 text-blue-800'}`}>
+                                                        order.status === 'dispatched_to_rider' ? 'bg-brand-cream text-brand-brown' : 'bg-brand-cream text-brand-brown'}`}>
                                             {order.status === 'dispatched_to_rider' ? 'Dispatched To Rider' : order.status.replace(/_/g, ' ')}
                                         </span>
                                     </td>

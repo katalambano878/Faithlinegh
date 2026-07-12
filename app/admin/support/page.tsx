@@ -29,17 +29,17 @@ export default function SupportDashboard() {
 
   const sentimentIcon = (s: string) => {
     if (s === 'positive') return <i className="ri-emotion-happy-line text-gray-600" />;
-    if (s === 'negative') return <i className="ri-emotion-unhappy-line text-red-500" />;
+    if (s === 'negative') return <i className="ri-emotion-unhappy-line text-brand-brown" />;
     return <i className="ri-emotion-normal-line text-gray-400" />;
   };
 
   const priorityBadge = (p: string) => {
-    const colors: Record<string, string> = { urgent: 'bg-red-100 text-red-700', high: 'bg-orange-100 text-orange-700', medium: 'bg-blue-100 text-blue-700', low: 'bg-gray-100 text-gray-600' };
+    const colors: Record<string, string> = { urgent: 'bg-red-100 text-brand-brown', high: 'bg-brand-cream text-brand-brown', medium: 'bg-brand-cream text-brand-brown', low: 'bg-gray-100 text-gray-600' };
     return <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${colors[p] || colors.medium}`}>{p}</span>;
   };
 
   const statusBadge = (s: string) => {
-    const colors: Record<string, string> = { open: 'bg-blue-100 text-blue-700', in_progress: 'bg-yellow-100 text-yellow-700', waiting_customer: 'bg-purple-100 text-purple-700', resolved: 'bg-gray-100 text-gray-900', closed: 'bg-gray-100 text-gray-600' };
+    const colors: Record<string, string> = { open: 'bg-brand-cream text-brand-brown', in_progress: 'bg-brand-cream text-brand-brown', waiting_customer: 'bg-brand-cream text-brand-brown', resolved: 'bg-gray-100 text-gray-900', closed: 'bg-gray-100 text-gray-600' };
     return <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-full ${colors[s] || colors.open}`}>{s.replace(/_/g, ' ')}</span>;
   };
 
@@ -69,9 +69,9 @@ export default function SupportDashboard() {
 
   const colorMap: Record<string, { bg: string; icon: string; ring: string }> = {
     gray: { bg: 'bg-gray-50', icon: 'text-gray-700', ring: 'ring-gray-600/20' },
-    blue: { bg: 'bg-blue-50', icon: 'text-blue-600', ring: 'ring-blue-500/20' },
-    purple: { bg: 'bg-purple-50', icon: 'text-purple-600', ring: 'ring-purple-500/20' },
-    amber: { bg: 'bg-amber-50', icon: 'text-amber-600', ring: 'ring-amber-500/20' },
+    blue: { bg: 'bg-brand-cream', icon: 'text-brand-brown', ring: 'ring-brand-brown/20' },
+    purple: { bg: 'bg-brand-cream', icon: 'text-brand-brown', ring: 'ring-brand-brown/20' },
+    amber: { bg: 'bg-brand-cream', icon: 'text-brand-brown', ring: 'ring-brand-brown/20' },
   };
 
   return (
@@ -86,7 +86,7 @@ export default function SupportDashboard() {
           <Link href="/admin/support/knowledge-base" className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium transition-colors">
             <i className="ri-book-open-line" /> Knowledge Base
           </Link>
-          <Link href="/admin/support/analytics" className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-900 text-sm font-medium transition-colors">
+          <Link href="/admin/support/analytics" className="inline-flex items-center gap-2 px-4 py-2 bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark text-sm font-medium transition-colors">
             <i className="ri-line-chart-line" /> Analytics
           </Link>
         </div>
@@ -117,13 +117,13 @@ export default function SupportDashboard() {
       <div className="bg-white rounded-xl border border-gray-100 p-4">
         <div className="flex flex-wrap items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <i className="ri-brain-line text-purple-500" />
+            <i className="ri-brain-line text-brand-brown" />
             <span className="text-gray-500">AI Memories:</span>
             <span className="font-semibold text-gray-900">{stats?.ai_memories?.total || 0}</span>
             <span className="text-gray-400">across {stats?.ai_memories?.customers_with_memory || 0} customers</span>
           </div>
           <div className="flex items-center gap-2">
-            <i className="ri-book-open-line text-blue-500" />
+            <i className="ri-book-open-line text-brand-brown" />
             <span className="text-gray-500">KB Articles:</span>
             <span className="font-semibold text-gray-900">{stats?.knowledge_base?.total_articles || 0}</span>
           </div>
@@ -146,7 +146,7 @@ export default function SupportDashboard() {
         <div className="bg-white rounded-xl border border-gray-100">
           <div className="flex items-center justify-between p-4 border-b border-gray-100">
             <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-              <i className="ri-chat-3-line text-blue-500" /> Recent Conversations
+              <i className="ri-chat-3-line text-brand-brown" /> Recent Conversations
             </h2>
             <Link href="/admin/support/conversations" className="text-xs text-gray-700 hover:text-gray-900 font-medium">View all →</Link>
           </div>
@@ -168,7 +168,7 @@ export default function SupportDashboard() {
                   <p className="text-[10px] text-gray-400 mt-1">{new Date(conv.updated_at).toLocaleString()}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  {conv.is_escalated && <span className="px-1.5 py-0.5 text-[9px] font-bold bg-red-100 text-red-600 rounded">ESCALATED</span>}
+                  {conv.is_escalated && <span className="px-1.5 py-0.5 text-[9px] font-bold bg-red-100 text-brand-brown rounded">ESCALATED</span>}
                   {conv.is_resolved && <span className="px-1.5 py-0.5 text-[9px] font-bold bg-gray-100 text-gray-700 rounded">RESOLVED</span>}
                 </div>
               </Link>
@@ -216,17 +216,17 @@ export default function SupportDashboard() {
             <i className="ri-add-circle-line text-2xl text-gray-400 group-hover:text-gray-700" />
             <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900">Create Ticket</span>
           </Link>
-          <Link href="/admin/support/knowledge-base?new=1" className="flex flex-col items-center gap-2 p-4 rounded-lg border border-dashed border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all text-center group">
-            <i className="ri-article-line text-2xl text-gray-400 group-hover:text-blue-600" />
-            <span className="text-xs font-medium text-gray-600 group-hover:text-blue-700">Add KB Article</span>
+          <Link href="/admin/support/knowledge-base?new=1" className="flex flex-col items-center gap-2 p-4 rounded-lg border border-dashed border-gray-200 hover:border-brand-brown/30 hover:bg-brand-cream transition-all text-center group">
+            <i className="ri-article-line text-2xl text-gray-400 group-hover:text-brand-brown" />
+            <span className="text-xs font-medium text-gray-600 group-hover:text-brand-brown">Add KB Article</span>
           </Link>
-          <Link href="/admin/support/conversations" className="flex flex-col items-center gap-2 p-4 rounded-lg border border-dashed border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition-all text-center group">
-            <i className="ri-search-line text-2xl text-gray-400 group-hover:text-purple-600" />
-            <span className="text-xs font-medium text-gray-600 group-hover:text-purple-700">Search Chats</span>
+          <Link href="/admin/support/conversations" className="flex flex-col items-center gap-2 p-4 rounded-lg border border-dashed border-gray-200 hover:border-brand-brown/30 hover:bg-brand-cream transition-all text-center group">
+            <i className="ri-search-line text-2xl text-gray-400 group-hover:text-brand-brown" />
+            <span className="text-xs font-medium text-gray-600 group-hover:text-brand-brown">Search Chats</span>
           </Link>
-          <Link href="/admin/support/analytics" className="flex flex-col items-center gap-2 p-4 rounded-lg border border-dashed border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-all text-center group">
-            <i className="ri-pie-chart-line text-2xl text-gray-400 group-hover:text-amber-600" />
-            <span className="text-xs font-medium text-gray-600 group-hover:text-amber-700">View Reports</span>
+          <Link href="/admin/support/analytics" className="flex flex-col items-center gap-2 p-4 rounded-lg border border-dashed border-gray-200 hover:border-brand-brown/30 hover:bg-brand-cream transition-all text-center group">
+            <i className="ri-pie-chart-line text-2xl text-gray-400 group-hover:text-brand-brown" />
+            <span className="text-xs font-medium text-gray-600 group-hover:text-brand-brown">View Reports</span>
           </Link>
         </div>
       </div>

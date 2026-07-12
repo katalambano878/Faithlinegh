@@ -350,7 +350,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
         />
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <span className="inline-block bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <span className="inline-block bg-brand-brown text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
               {post.category}
             </span>
             <h1 className="text-5xl font-bold text-white mb-6">{post.title}</h1>

@@ -23,11 +23,11 @@ interface Assignment {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-    assigned: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    picked_up: 'bg-blue-100 text-blue-800 border-blue-200',
-    in_transit: 'bg-indigo-100 text-indigo-800 border-indigo-200',
+    assigned: 'bg-brand-cream text-yellow-800 border-yellow-200',
+    picked_up: 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    in_transit: 'bg-brand-cream text-brand-brown border-brand-brown/20',
     delivered: 'bg-gray-100 text-gray-800 border-gray-200',
-    failed: 'bg-red-100 text-red-800 border-red-200',
+    failed: 'bg-red-100 text-red-800 border-brand-brown/20',
     returned: 'bg-gray-100 text-gray-800 border-gray-200',
 };
 
@@ -42,9 +42,9 @@ const STATUS_ICONS: Record<string, string> = {
 
 const PRIORITY_COLORS: Record<string, string> = {
     low: 'text-gray-500',
-    normal: 'text-blue-600',
-    high: 'text-orange-600',
-    urgent: 'text-red-600',
+    normal: 'text-brand-brown',
+    high: 'text-brand-brown',
+    urgent: 'text-brand-brown',
 };
 
 export default function AssignmentsPage() {
@@ -187,7 +187,7 @@ export default function AssignmentsPage() {
         <div className="space-y-6">
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-xl shadow-lg text-sm font-medium ${
-                    toast.startsWith('Error') ? 'bg-red-600 text-white' : 'bg-gray-700 text-white'
+                    toast.startsWith('Error') ? 'bg-brand-brown text-white' : 'bg-brand-brown text-white'
                 }`}>{toast}</div>
             )}
 
@@ -207,19 +207,19 @@ export default function AssignmentsPage() {
                 <>
                     {/* Unassigned Orders */}
                     {unassignedOrders.length > 0 && (
-                        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
+                        <div className="bg-brand-cream border border-brand-brown/20 rounded-2xl p-5">
                             <div className="flex items-center gap-2 mb-4">
-                                <i className="ri-alarm-warning-line text-amber-600 text-xl" />
-                                <h2 className="font-bold text-amber-900">
+                                <i className="ri-alarm-warning-line text-brand-brown text-xl" />
+                                <h2 className="font-bold text-brand-brown">
                                     {unassignedOrders.length} Order{unassignedOrders.length > 1 ? 's' : ''} Awaiting Dispatch
                                 </h2>
                             </div>
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 {unassignedOrders.map(order => (
-                                    <div key={order.id} className="bg-white rounded-xl border border-amber-200 p-4 flex flex-col gap-2">
+                                    <div key={order.id} className="bg-white rounded-xl border border-brand-brown/20 p-4 flex flex-col gap-2">
                                         <div className="flex items-center justify-between">
                                             <span className="font-bold text-gray-900 text-sm">#{order.order_number}</span>
-                                            <span className="text-xs font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
+                                            <span className="text-xs font-medium text-brand-brown bg-brand-cream px-2 py-0.5 rounded-full">
                                                 {order.status}
                                             </span>
                                         </div>
@@ -229,7 +229,7 @@ export default function AssignmentsPage() {
                                             <p><i className="ri-money-cny-circle-line mr-1" />₵ {order.total?.toFixed(2)}</p>
                                         </div>
                                         <button onClick={() => openAssignModal(order)}
-                                            className="mt-2 w-full py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-gray-800 transition-colors">
+                                            className="mt-2 w-full py-2 bg-gray-900 text-white rounded-lg text-sm font-semibold hover:bg-brand-bag-dark transition-colors">
                                             <i className="ri-user-add-line mr-1" /> Assign Rider
                                         </button>
                                     </div>
@@ -329,7 +329,7 @@ export default function AssignmentsPage() {
                                                         )}
                                                         {a.status === 'assigned' && (
                                                             <button onClick={() => handleDelete(a.id)}
-                                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Remove">
+                                                                className="p-2 text-brand-brown hover:bg-brand-cream rounded-lg transition-colors" title="Remove">
                                                                 <i className="ri-delete-bin-line" />
                                                             </button>
                                                         )}
@@ -385,7 +385,7 @@ export default function AssignmentsPage() {
                                     ))}
                                 </select>
                                 {riders.filter(r => r.status === 'active').length === 0 && (
-                                    <p className="text-xs text-red-500 mt-1">No available riders. Add riders first.</p>
+                                    <p className="text-xs text-brand-brown mt-1">No available riders. Add riders first.</p>
                                 )}
                             </div>
 
@@ -421,7 +421,7 @@ export default function AssignmentsPage() {
                                 <button onClick={() => setShowAssignModal(false)}
                                     className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
                                 <button onClick={handleAssign} disabled={saving || !assignForm.rider_id}
-                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-semibold disabled:opacity-50 transition-colors">
+                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark font-semibold disabled:opacity-50 transition-colors">
                                     {saving ? 'Assigning...' : 'Assign Rider'}
                                 </button>
                             </div>
@@ -489,7 +489,7 @@ export default function AssignmentsPage() {
                                     className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
                                 <button onClick={handleStatusUpdate}
                                     disabled={saving || updateForm.status === selectedAssignment.status || (updateForm.status === 'failed' && !updateForm.failure_reason)}
-                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 font-semibold disabled:opacity-50 transition-colors">
+                                    className="flex-1 px-4 py-3 bg-gray-900 text-white rounded-xl hover:bg-brand-bag-dark font-semibold disabled:opacity-50 transition-colors">
                                     {saving ? 'Updating...' : 'Update Status'}
                                 </button>
                             </div>

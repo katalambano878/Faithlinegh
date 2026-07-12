@@ -138,7 +138,7 @@ export default function PWAPrompt() {
                         <p className="text-xs text-gray-500 mt-0.5">
                           Tap the{' '}
                           <span className="inline-flex items-center bg-white border border-gray-200 rounded px-1.5 py-0.5 mx-0.5">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#A8826B]">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#5B4436]">
                               <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
                               <polyline points="16 6 12 2 8 6" />
                               <line x1="12" y1="2" x2="12" y2="15" />
@@ -174,7 +174,7 @@ export default function PWAPrompt() {
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-gray-800">Tap &quot;Add&quot;</p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          Confirm by tapping <span className="font-semibold text-[#A8826B]">Add</span> in the top right corner
+                          Confirm by tapping <span className="font-semibold text-[#5B4436]">Add</span> in the top right corner
                         </p>
                       </div>
                     </div>
@@ -184,7 +184,7 @@ export default function PWAPrompt() {
                 {/* CTA */}
                 <button
                   onClick={handleInstall}
-                  className="w-full bg-brand-brown hover:bg-[#2C1D14] text-white py-4 px-6 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] shadow-lg shadow-brand-brown/20 flex items-center justify-center gap-2"
+                  className="w-full bg-brand-brown hover:bg-[#47362C] text-white py-4 px-6 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] shadow-lg shadow-brand-brown/20 flex items-center justify-center gap-2"
                 >
                   {iosStep < 2 ? (
                     <>
@@ -216,7 +216,7 @@ export default function PWAPrompt() {
                     <p className="text-sm text-gray-500">faithlinegh.com</p>
                     <div className="flex items-center gap-1 mt-1">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <i key={star} className="ri-star-fill text-[#C9A24B] text-xs" />
+                        <i key={star} className="ri-star-fill text-[#5B4436] text-xs" />
                       ))}
                       <span className="text-xs text-gray-400 ml-1">Shopping</span>
                     </div>
@@ -245,7 +245,7 @@ export default function PWAPrompt() {
                 {/* CTA */}
                 <button
                   onClick={handleInstall}
-                  className="w-full bg-brand-brown hover:bg-[#2C1D14] text-white py-4 px-6 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] shadow-lg shadow-brand-brown/20 flex items-center justify-center gap-2"
+                  className="w-full bg-brand-brown hover:bg-[#47362C] text-white py-4 px-6 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] shadow-lg shadow-brand-brown/20 flex items-center justify-center gap-2"
                 >
                   <i className="ri-download-2-line text-xl" />
                   Add to Home Screen

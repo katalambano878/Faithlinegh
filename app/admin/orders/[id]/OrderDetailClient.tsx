@@ -243,17 +243,17 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
   const statusColors: any = {
-    'pending': 'bg-amber-100 text-amber-700 border-amber-200',
-    'processing': 'bg-blue-100 text-blue-700 border-blue-200',
-    'shipped': 'bg-purple-100 text-purple-700 border-purple-200',
-    'dispatched_to_rider': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+    'pending': 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    'processing': 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    'shipped': 'bg-brand-cream text-brand-brown border-brand-brown/20',
+    'dispatched_to_rider': 'bg-brand-cream text-brand-brown border-brand-brown/20',
     'delivered': 'bg-gray-100 text-gray-900 border-gray-200',
-    'cancelled': 'bg-red-100 text-red-700 border-red-200',
+    'cancelled': 'bg-red-100 text-brand-brown border-brand-brown/20',
     'awaiting_payment': 'bg-gray-100 text-gray-700 border-gray-200'
   };
 
   if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (error || !order) return <div className="p-8 text-center text-red-500">{error || 'Order not found'}</div>;
+  if (error || !order) return <div className="p-8 text-center text-brand-brown">{error || 'Order not found'}</div>;
 
   const currentStatus = order.status || 'pending';
   const shippingAddress = order.shipping_address || {};
@@ -380,7 +380,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           </div>
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            className="flex items-center space-x-2 bg-brand-bag-dark hover:bg-brand-bag-dark text-white px-4 py-2 rounded-lg font-medium transition-colors"
           >
             <i className="ri-printer-line text-lg"></i>
             <span>Print Order</span>
@@ -527,7 +527,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <button
                 onClick={() => handleUpdateStatus()}
                 disabled={statusUpdating}
-                className="w-full mt-4 bg-gray-900 hover:bg-gray-800 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
+                className="w-full mt-4 bg-gray-900 hover:bg-brand-bag-dark text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 {statusUpdating ? 'Updating...' : 'Update Status'}
               </button>
@@ -573,8 +573,8 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <span className="text-gray-600">Status</span>
                   <span className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap capitalize ${
                     order.payment_status === 'paid'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-amber-100 text-amber-700'
+                      ? 'bg-brand-cream text-brand-brown'
+                      : 'bg-brand-cream text-brand-brown'
                   }`}>
                     {order.payment_status}
                   </span>
@@ -590,7 +590,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                 <button
                   onClick={handleMarkAsPaid}
                   disabled={markingPaid}
-                  className="mt-4 w-full bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="mt-4 w-full bg-brand-brown hover:bg-brand-bag-dark text-white py-2.5 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {markingPaid ? (
                     <><i className="ri-loader-4-line animate-spin"></i> Marking as Paid...</>
@@ -605,7 +605,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <button
                     onClick={handleReverifyPayment}
                     disabled={reverifying}
-                    className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 py-2.5 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
+                    className="w-full bg-brand-cream hover:bg-brand-cream text-brand-brown border border-brand-brown/20 py-2.5 rounded-lg font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2 text-sm"
                   >
                     {reverifying ? (
                       <><i className="ri-loader-4-line animate-spin"></i> Checking with Moolre...</>
@@ -631,7 +631,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <button
                 onClick={handleResendNotification}
                 disabled={resendingNotification}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50 flex items-center justify-center"
+                className="w-full bg-brand-brown hover:bg-brand-bag-dark text-white py-3 rounded-lg font-semibold transition-colors whitespace-nowrap disabled:opacity-50 flex items-center justify-center"
               >
                 {resendingNotification ? (
                   <>
@@ -663,7 +663,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <button
                 onClick={() => handleUpdateStatus()}
                 disabled={statusUpdating}
-                className="w-full mt-3 bg-gray-700 hover:bg-gray-800 text-white py-2 rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50"
+                className="w-full mt-3 bg-brand-brown hover:bg-brand-bag-dark text-white py-2 rounded-lg font-medium transition-colors whitespace-nowrap disabled:opacity-50"
               >
                 Save Note
               </button>

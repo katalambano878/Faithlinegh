@@ -136,19 +136,19 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-[#FAF3EE] text-[#8C6A52]',
-  processing: 'bg-[#A8826B]/10 text-[#A8826B]',
-  shipped: 'bg-[#A8826B]/10 text-[#A8826B]',
-  dispatched_to_rider: 'bg-[#A8826B]/10 text-[#A8826B]',
+  pending: 'bg-[#F4F2F1] text-[#5B4436]',
+  processing: 'bg-[#5B4436]/10 text-[#5B4436]',
+  shipped: 'bg-[#5B4436]/10 text-[#5B4436]',
+  dispatched_to_rider: 'bg-[#5B4436]/10 text-[#5B4436]',
   delivered: 'bg-gray-100 text-gray-900',
-  cancelled: 'bg-[#F3DBCF] text-[#9A4A36]',
-  open: 'bg-[#A8826B]/10 text-[#A8826B]',
-  in_progress: 'bg-[#FAF3EE] text-[#8C6A52]',
+  cancelled: 'bg-[#E8DFD4] text-[#5B4436]',
+  open: 'bg-[#5B4436]/10 text-[#5B4436]',
+  in_progress: 'bg-[#F4F2F1] text-[#5B4436]',
   resolved: 'bg-gray-100 text-gray-900',
   approved: 'bg-gray-100 text-gray-900',
-  rejected: 'bg-[#F3DBCF] text-[#9A4A36]',
+  rejected: 'bg-[#E8DFD4] text-[#5B4436]',
   paid: 'bg-gray-100 text-gray-900',
-  failed: 'bg-[#F3DBCF] text-[#9A4A36]',
+  failed: 'bg-[#E8DFD4] text-[#5B4436]',
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -546,12 +546,12 @@ export default function ChatWidget() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="fixed bottom-[5.5rem] right-3 z-[9999] w-14 h-14 rounded-full bg-gray-700 hover:bg-gray-800 text-white shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 sm:bottom-6 sm:right-4"
+          className="fixed bottom-[5.5rem] right-3 z-[9999] w-14 h-14 rounded-full bg-brand-brown hover:bg-brand-bag-dark text-white shadow-2xl flex items-center justify-center transition-all duration-300 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-brown focus:ring-offset-2 sm:bottom-6 sm:right-4"
           aria-label="Open chat"
         >
           <i className="ri-chat-smile-3-line text-2xl" aria-hidden />
           {unread > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#D98E73] text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#5B4436] text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-bounce">
               {unread}
             </span>
           )}
@@ -567,7 +567,7 @@ export default function ChatWidget() {
           style={{ animation: 'chatSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards' }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-gray-700 to-gray-800 text-white flex-shrink-0 rounded-t-2xl">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-brand-brown/10 bg-gradient-to-r from-brand-brown to-brand-bag-dark text-white flex-shrink-0 rounded-t-2xl">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
                 <i className="ri-robot-2-line text-lg" aria-hidden />
@@ -653,18 +653,18 @@ export default function ChatWidget() {
               <div className="flex gap-2">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button key={star} type="button" onClick={() => setFeedbackRating(star)}
-                    className={`text-3xl sm:text-2xl transition-transform hover:scale-110 active:scale-95 ${star <= feedbackRating ? 'text-[#C9A24B]' : 'text-gray-300'}`}>
+                    className={`text-3xl sm:text-2xl transition-transform hover:scale-110 active:scale-95 ${star <= feedbackRating ? 'text-[#5B4436]' : 'text-gray-300'}`}>
                     <i className={star <= feedbackRating ? 'ri-star-fill' : 'ri-star-line'} />
                   </button>
                 ))}
               </div>
               {feedbackRating > 0 && (
                 <input value={feedbackText} onChange={(e) => setFeedbackText(e.target.value)}
-                  placeholder="Any feedback? (optional)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-900" />
+                  placeholder="Any feedback? (optional)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-brand-brown" />
               )}
               <div className="flex gap-2">
                 <button type="button" onClick={submitFeedback} disabled={feedbackRating === 0}
-                  className="px-4 py-2 text-sm font-medium bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:opacity-40 transition-colors active:scale-95">
+                  className="px-4 py-2 text-sm font-medium bg-brand-brown text-white rounded-lg hover:bg-brand-bag-dark disabled:opacity-40 transition-colors active:scale-95">
                   Submit &amp; Clear
                 </button>
                 <button type="button" onClick={() => performClearChatRef.current()}
@@ -683,13 +683,13 @@ export default function ChatWidget() {
                   <i className="ri-close-line text-lg" aria-hidden />
                 </button>
                 <div className="flex-1 flex items-center justify-center gap-2.5">
-                  <span className="w-3 h-3 bg-[#D98E73] rounded-full animate-recording-pulse flex-shrink-0" />
-                  <span className="text-sm font-medium text-[#9A4A36] tabular-nums">
+                  <span className="w-3 h-3 bg-[#5B4436] rounded-full animate-recording-pulse flex-shrink-0" />
+                  <span className="text-sm font-medium text-[#5B4436] tabular-nums">
                     {Math.floor(recordingDuration / 60)}:{(recordingDuration % 60).toString().padStart(2, '0')}
                   </span>
                   <span className="text-xs text-gray-400">Recording...</span>
                 </div>
-                <button type="button" onClick={stopRecording} className="shrink-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-[#D98E73] hover:bg-[#9A4A36] text-white flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-[#D98E73]/25" aria-label="Stop and send">
+                <button type="button" onClick={stopRecording} className="shrink-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-[#5B4436] hover:bg-[#5B4436] text-white flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-[#5B4436]/25" aria-label="Stop and send">
                   <i className="ri-stop-fill text-lg" aria-hidden />
                 </button>
               </div>
@@ -701,7 +701,7 @@ export default function ChatWidget() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type or use voice..."
-                  className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 sm:px-4 py-2.5 text-[16px] sm:text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-gray-900 transition-all"
+                  className="flex-1 min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3 sm:px-4 py-2.5 text-[16px] sm:text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-brown focus:border-brand-brown transition-all"
                   disabled={loading}
                   aria-label="Message"
                 />
@@ -709,7 +709,7 @@ export default function ChatWidget() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="shrink-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-gray-700 hover:bg-gray-800 text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-95"
+                    className="shrink-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-brand-brown hover:bg-brand-bag-dark text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-95"
                     aria-label="Send"
                   >
                     <i className="ri-send-plane-fill text-lg" aria-hidden />
@@ -719,7 +719,7 @@ export default function ChatWidget() {
                     type="button"
                     onClick={startRecording}
                     disabled={loading}
-                    className="shrink-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-gray-700 hover:bg-gray-800 text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-95"
+                    className="shrink-0 w-11 h-11 sm:w-10 sm:h-10 rounded-xl bg-brand-brown hover:bg-brand-bag-dark text-white flex items-center justify-center disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-95"
                     aria-label="Voice message"
                   >
                     <i className="ri-mic-line text-lg" aria-hidden />
@@ -792,7 +792,7 @@ function MessageBubble({
           <div
             className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
               isUser
-                ? 'bg-gray-700 text-white rounded-br-sm shadow-sm'
+                ? 'bg-brand-brown text-white rounded-br-sm shadow-sm'
                 : 'bg-white text-gray-800 rounded-bl-sm border border-gray-100 shadow-sm'
             }`}
           >
@@ -861,7 +861,7 @@ function MessageBubble({
             href={a.paymentUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-xl shadow-md transition-all active:scale-[0.98] text-sm"
+            className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-brand-brown hover:bg-brand-bag-dark text-white font-semibold rounded-xl shadow-md transition-all active:scale-[0.98] text-sm"
           >
             <i className="ri-secure-payment-line text-lg" />
             {a.label || 'Pay Now'}
@@ -906,7 +906,7 @@ function ProductCard({ product, onAddToCart }: { product: ChatProduct; onAddToCa
         <div className="flex-1 min-w-0">
           <p className="text-xs sm:text-sm font-medium text-gray-900 truncate">{product.name}</p>
           <p className="text-sm font-bold text-gray-600">₵{product.price.toFixed(2)}</p>
-          <span className={`text-[10px] font-medium ${product.inStock ? 'text-gray-600' : 'text-[#D98E73]'}`}>
+          <span className={`text-[10px] font-medium ${product.inStock ? 'text-gray-600' : 'text-[#5B4436]'}`}>
             {product.inStock ? 'In Stock' : 'Out of Stock'}
           </span>
         </div>
@@ -915,7 +915,7 @@ function ProductCard({ product, onAddToCart }: { product: ChatProduct; onAddToCa
             <button
               type="button"
               onClick={() => onAddToCart(product)}
-              className="px-2.5 sm:px-3 py-1.5 bg-gray-700 hover:bg-gray-800 text-white text-xs font-semibold rounded-lg transition-all active:scale-95"
+              className="px-2.5 sm:px-3 py-1.5 bg-brand-brown hover:bg-brand-bag-dark text-white text-xs font-semibold rounded-lg transition-all active:scale-95"
             >
               <i className="ri-shopping-cart-line mr-0.5 sm:mr-1" />
               Add
@@ -997,15 +997,15 @@ function OrderCard({ order }: { order: ChatOrder }) {
 
 function TicketCard({ ticket }: { ticket: ChatTicket }) {
   return (
-    <div className="bg-white rounded-xl border border-[#A8826B]/20 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 bg-[#A8826B]/5">
+    <div className="bg-white rounded-xl border border-[#5B4436]/20 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 bg-[#5B4436]/5">
         <div className="flex items-center gap-2 mb-1">
-          <i className="ri-customer-service-2-line text-[#A8826B]" />
-          <span className="text-xs font-bold text-[#A8826B]">Support Ticket Created</span>
+          <i className="ri-customer-service-2-line text-[#5B4436]" />
+          <span className="text-xs font-bold text-[#5B4436]">Support Ticket Created</span>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-sm font-medium text-gray-900">{ticket.subject}</p>
-          <span className="text-xs font-mono text-[#A8826B]">#{ticket.ticket_number}</span>
+          <span className="text-xs font-mono text-[#5B4436]">#{ticket.ticket_number}</span>
         </div>
         <p className="text-xs text-gray-500 mt-1">
           Our team will review your ticket and get back to you. You can also check the status in your account.
@@ -1019,11 +1019,11 @@ function TicketCard({ ticket }: { ticket: ChatTicket }) {
 
 function ReturnCard({ ret }: { ret: ChatReturn }) {
   return (
-    <div className="bg-white rounded-xl border border-[#C9A24B]/30 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 bg-[#FAF3EE]/50">
+    <div className="bg-white rounded-xl border border-[#5B4436]/30 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 bg-[#F4F2F1]/50">
         <div className="flex items-center gap-2 mb-1">
-          <i className="ri-arrow-go-back-line text-[#A8826B]" />
-          <span className="text-xs font-bold text-[#8C6A52]">Return Request Submitted</span>
+          <i className="ri-arrow-go-back-line text-[#5B4436]" />
+          <span className="text-xs font-bold text-[#5B4436]">Return Request Submitted</span>
         </div>
         <div className="space-y-1">
           <p className="text-xs text-gray-600">Order: <span className="font-medium">{ret.order_number}</span></p>
@@ -1042,11 +1042,11 @@ function ReturnCard({ ret }: { ret: ChatReturn }) {
 
 function CouponCard({ coupon }: { coupon: ChatCoupon }) {
   return (
-    <div className={`rounded-xl border shadow-sm overflow-hidden ${coupon.valid ? 'bg-white border-gray-100' : 'bg-white border-[#D98E73]/20'}`}>
-      <div className={`px-4 py-3 ${coupon.valid ? 'bg-gray-100/50' : 'bg-[#F3DBCF]/50'}`}>
+    <div className={`rounded-xl border shadow-sm overflow-hidden ${coupon.valid ? 'bg-white border-gray-100' : 'bg-white border-[#5B4436]/20'}`}>
+      <div className={`px-4 py-3 ${coupon.valid ? 'bg-gray-100/50' : 'bg-[#E8DFD4]/50'}`}>
         <div className="flex items-center gap-2 mb-1">
-          <i className={`${coupon.valid ? 'ri-coupon-3-line text-gray-600' : 'ri-close-circle-line text-[#D98E73]'}`} />
-          <span className={`text-xs font-bold ${coupon.valid ? 'text-gray-900' : 'text-[#9A4A36]'}`}>
+          <i className={`${coupon.valid ? 'ri-coupon-3-line text-gray-600' : 'ri-close-circle-line text-[#5B4436]'}`} />
+          <span className={`text-xs font-bold ${coupon.valid ? 'text-gray-900' : 'text-[#5B4436]'}`}>
             {coupon.valid ? 'Valid Coupon' : 'Invalid Coupon'}
           </span>
         </div>
@@ -1059,7 +1059,7 @@ function CouponCard({ coupon }: { coupon: ChatCoupon }) {
           )}
         </div>
         {!coupon.valid && coupon.reason && (
-          <p className="text-xs text-[#D98E73] mt-1">{coupon.reason}</p>
+          <p className="text-xs text-[#5B4436] mt-1">{coupon.reason}</p>
         )}
         {coupon.valid && coupon.minimum_purchase && (
           <p className="text-[10px] text-gray-400 mt-1">Min. purchase: ₵{coupon.minimum_purchase.toFixed(2)}</p>

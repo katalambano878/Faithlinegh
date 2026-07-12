@@ -13,13 +13,13 @@ export default function FreeShippingBar({ currentAmount, threshold = 200 }: Free
   return (
     <div className={`rounded-lg p-4 mb-4 ${
       isQualified 
-        ? 'bg-gradient-to-r from-gray-700 to-gray-800 text-white' 
-        : 'bg-gradient-to-r from-[#FAF3EE]/50 to-[#F3F3F3] border-2 border-[#C9A24B]/30'
+        ? 'bg-gradient-to-r from-brand-brown to-brand-bag-dark text-white' 
+        : 'bg-gradient-to-r from-[#F4F2F1]/50 to-[#F3F3F3] border-2 border-[#5B4436]/30'
     }`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <div className={`w-8 h-8 flex items-center justify-center rounded-full ${
-            isQualified ? 'bg-white/20' : 'bg-[#C9A24B]'
+            isQualified ? 'bg-white/20' : 'bg-[#5B4436]'
           }`}>
             <i className={`ri-truck-line text-lg ${isQualified ? 'text-white' : 'text-white'}`}></i>
           </div>
@@ -32,7 +32,7 @@ export default function FreeShippingBar({ currentAmount, threshold = 200 }: Free
           </span>
         </div>
         {!isQualified && (
-          <span className="text-sm font-bold text-[#A8826B]">
+          <span className="text-sm font-bold text-[#5B4436]">
             {percentage.toFixed(0)}%
           </span>
         )}
@@ -46,7 +46,7 @@ export default function FreeShippingBar({ currentAmount, threshold = 200 }: Free
             className={`h-full transition-all duration-500 ${
               isQualified 
                 ? 'bg-white' 
-                : 'bg-gradient-to-r from-[#C9A24B] to-[#A8826B]'
+                : 'bg-gradient-to-r from-[#5B4436] to-[#5B4436]'
             }`}
             style={{ width: `${percentage}%` }}
           />

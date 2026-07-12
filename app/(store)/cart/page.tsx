@@ -2,18 +2,24 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import CartCountdown from '@/components/CartCountdown';
-import AdvancedCouponSystem from '@/components/AdvancedCouponSystem';
+import CouponInput from '@/components/CouponInput';
 import { useCart } from '@/context/CartContext';
 import PageHero from '@/components/PageHero';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { AppliedCoupon, computeCouponDiscount, loadStoredCoupon } from '@/lib/coupons';
 
 export default function CartPage() {
   usePageTitle('Shopping Cart');
   const { cart: cartItems, removeFromCart, updateQuantity, subtotal, bundleSavings, addToCart } = useCart();
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
   const [savedItems, setSavedItems] = useState<any[]>([]);
+
+  // Restore a previously applied coupon
+  useEffect(() => {
+    setAppliedCoupon(loadStoredCoupon());
+  }, []);
 
   // Function to move item to saved for later (local state only for now)
   const saveForLater = (id: string) => {
@@ -33,29 +39,13 @@ export default function CartPage() {
     }
   };
 
-  const applyCoupon = (coupon: any) => {
-    setAppliedCoupon(coupon);
-  };
-
-  const removeCoupon = () => {
-    setAppliedCoupon(null);
-  };
-
   // Savings calculation is tricky without originalPrice in Context.
   // Assuming 0 for now unless we update Context.
   const savings = 0;
 
-  let couponDiscount = 0;
-  if (appliedCoupon) {
-    if (appliedCoupon.type === 'percentage') {
-      couponDiscount = subtotal * (appliedCoupon.discount / 100);
-    } else {
-      couponDiscount = appliedCoupon.discount;
-    }
-  }
-
+  const couponDiscount = computeCouponDiscount(appliedCoupon, subtotal);
   const shipping = subtotal >= 200 ? 0 : 15;
-  const total = subtotal - couponDiscount + shipping;
+  const total = Math.max(subtotal - couponDiscount + shipping, 0);
 
   return (
     <div className="min-h-screen bg-brand-cream">
@@ -242,11 +232,11 @@ export default function CartPage() {
                       </div>
                     </div>
 
-                    <AdvancedCouponSystem
+                    <CouponInput
                       subtotal={subtotal}
-                      onApply={applyCoupon}
-                      onRemove={removeCoupon}
                       appliedCoupon={appliedCoupon}
+                      onApply={setAppliedCoupon}
+                      onRemove={() => setAppliedCoupon(null)}
                     />
 
                     <Link

@@ -5,10 +5,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CheckoutSteps from '@/components/CheckoutSteps';
 import OrderSummary from '@/components/OrderSummary';
+import CouponInput from '@/components/CouponInput';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import { AppliedCoupon, computeCouponDiscount, loadStoredCoupon, clearStoredCoupon } from '@/lib/coupons';
 
 export default function CheckoutPage() {
   usePageTitle('Checkout');
@@ -55,6 +57,12 @@ export default function CheckoutPage() {
   const [deliveryMethod, setDeliveryMethod] = useState('pickup');
   const [paymentMethod, setPaymentMethod] = useState('moolre');
   const [errors, setErrors] = useState<any>({});
+  const [appliedCoupon, setAppliedCoupon] = useState<AppliedCoupon | null>(null);
+
+  // Restore a coupon applied on the cart page
+  useEffect(() => {
+    setAppliedCoupon(loadStoredCoupon());
+  }, []);
 
 
 
@@ -83,7 +91,8 @@ export default function CheckoutPage() {
   const subtotal = baseSubtotal;
   const shippingCost = 0; // Delivery options temporarily disabled
   const tax = 0; // No Tax
-  const total = cartSubtotal + shippingCost + tax;
+  const couponDiscount = computeCouponDiscount(appliedCoupon, cartSubtotal);
+  const total = Math.max(cartSubtotal - couponDiscount + shippingCost + tax, 0);
 
   const validateShipping = () => {
     const newErrors: any = {};
@@ -149,7 +158,7 @@ export default function CheckoutPage() {
           subtotal: subtotal,
           tax_total: tax,
           shipping_total: shippingCost,
-          discount_total: bundleSavings,
+          discount_total: bundleSavings + couponDiscount,
           total: total,
           shipping_method: deliveryMethod,
           payment_method: paymentMethod,
@@ -159,7 +168,11 @@ export default function CheckoutPage() {
             guest_checkout: !user,
             first_name: shippingData.firstName,
             last_name: shippingData.lastName,
-            tracking_number: trackingNumber
+            tracking_number: trackingNumber,
+            ...(appliedCoupon ? {
+              coupon_code: appliedCoupon.code,
+              coupon_discount: couponDiscount,
+            } : {})
           }
         }])
         .select()
@@ -224,6 +237,15 @@ export default function CheckoutPage() {
 
       if (itemsError) throw itemsError;
 
+      // Count the coupon usage (best-effort, server verifies against the order)
+      if (appliedCoupon && couponDiscount > 0) {
+        fetch('/api/storefront/coupons/redeem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: appliedCoupon.code, orderNumber })
+        }).catch(err => console.error('Coupon redeem error:', err));
+      }
+
       // Note: Stock reduction happens in mark_order_paid when payment is confirmed
 
       // 3. Upsert Customer Record (for both guest and registered users)
@@ -278,8 +300,9 @@ export default function CheckoutPage() {
             throw new Error(paymentResult.message || 'Payment initialization failed');
           }
 
-          // Clear cart before redirecting
+          // Clear cart and coupon before redirecting
           clearCart();
+          clearStoredCoupon();
 
           // Redirect to Moolre
           window.location.href = paymentResult.url;
@@ -305,6 +328,7 @@ export default function CheckoutPage() {
 
       // 6. Clear Cart & Redirect (For COD)
       clearCart();
+      clearStoredCoupon();
       router.push(`/order-success?order=${orderNumber}`);
 
     } catch (err: any) {
@@ -648,7 +672,15 @@ export default function CheckoutPage() {
             {/* Step 3 removed - payment now initiates directly from step 2 */}
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-4">
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <CouponInput
+                subtotal={cartSubtotal}
+                appliedCoupon={appliedCoupon}
+                onApply={setAppliedCoupon}
+                onRemove={() => setAppliedCoupon(null)}
+              />
+            </div>
             <OrderSummary
               items={cart}
               subtotal={subtotal}
@@ -656,6 +688,8 @@ export default function CheckoutPage() {
               tax={tax}
               total={total}
               bundleSavings={bundleSavings}
+              couponDiscount={couponDiscount}
+              couponCode={appliedCoupon?.code}
             />
           </div>
         </div>

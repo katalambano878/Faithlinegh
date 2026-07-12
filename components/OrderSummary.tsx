@@ -15,9 +15,13 @@ interface OrderSummaryProps {
   total: number;
   /** Bundle deal savings deducted from the subtotal */
   bundleSavings?: number;
+  /** Coupon discount deducted from the subtotal */
+  couponDiscount?: number;
+  /** Applied coupon code (shown next to the discount line) */
+  couponCode?: string;
 }
 
-export default function OrderSummary({ items, subtotal, shipping, tax, total, bundleSavings = 0 }: OrderSummaryProps) {
+export default function OrderSummary({ items, subtotal, shipping, tax, total, bundleSavings = 0, couponDiscount = 0, couponCode }: OrderSummaryProps) {
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 sticky top-4">
       <h2 className="text-xl font-bold text-brand-brown mb-6">Order Summary</h2>
@@ -55,6 +59,14 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total, bu
               <i className="ri-stack-line"></i> Bundle savings
             </span>
             <span className="font-semibold">−₵ {bundleSavings.toFixed(2)}</span>
+          </div>
+        )}
+        {couponDiscount > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span className="flex items-center gap-1">
+              <i className="ri-price-tag-3-line"></i> Coupon{couponCode ? ` (${couponCode})` : ''}
+            </span>
+            <span className="font-semibold">−₵ {couponDiscount.toFixed(2)}</span>
           </div>
         )}
         <div className="flex justify-between text-gray-700">

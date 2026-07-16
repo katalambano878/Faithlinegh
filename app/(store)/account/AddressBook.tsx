@@ -180,7 +180,7 @@ export default function AddressBook() {
               )}
               <button
                 onClick={() => deleteAddress(address.id)}
-                className="px-4 py-2 border border-[#5B4436] text-[#5B4436] rounded-lg font-semibold hover:bg-[#E8DFD4]/50 transition-colors whitespace-nowrap"
+                className="px-4 py-2 border border-[#5B4436] text-[#5B4436] rounded-lg font-semibold hover:bg-[#E6DFD5]/50 transition-colors whitespace-nowrap"
               >
                 <i className="ri-delete-bin-line"></i>
               </button>

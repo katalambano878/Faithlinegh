@@ -10,8 +10,8 @@ export default function FraudDetectionAlert({ riskLevel, reasons, orderId }: Fra
   const getRiskColor = () => {
     switch (riskLevel) {
       case 'low': return 'bg-gray-50 border-gray-200 text-gray-800';
-      case 'medium': return 'bg-[#F4F2F1]/50 border-[#5B4436]/30 text-[#5B4436]';
-      case 'high': return 'bg-[#E8DFD4]/50 border-[#5B4436]/30 text-[#5B4436]';
+      case 'medium': return 'bg-[#E6DFD5]/50 border-[#5B4436]/30 text-[#5B4436]';
+      case 'high': return 'bg-[#E6DFD5]/50 border-[#5B4436]/30 text-[#5B4436]';
     }
   };
 
@@ -65,7 +65,7 @@ export default function FraudDetectionAlert({ riskLevel, reasons, orderId }: Fra
                   <i className="ri-pause-circle-line mr-1"></i>
                   Hold Order
                 </button>
-                <button className="px-3 py-1.5 bg-white text-[#5B4436] rounded text-sm font-medium hover:bg-[#E8DFD4]/50 transition-colors whitespace-nowrap">
+                <button className="px-3 py-1.5 bg-white text-[#5B4436] rounded text-sm font-medium hover:bg-[#E6DFD5]/50 transition-colors whitespace-nowrap">
                   <i className="ri-customer-service-line mr-1"></i>
                   Contact Customer
                 </button>

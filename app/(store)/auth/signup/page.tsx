@@ -158,7 +158,7 @@ function SignupForm() {
 
   if (success) {
     return (
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6">
+      <main className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6">
         <div className="max-w-md w-full text-center">
           <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <i className="ri-mail-send-line text-4xl text-gray-700"></i>
@@ -177,7 +177,7 @@ function SignupForm() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6">
+    <main className="min-h-screen bg-white flex items-center justify-center py-12 px-4 sm:px-6">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <Link href="/" className="inline-block mb-5">
@@ -189,7 +189,7 @@ function SignupForm() {
 
         <div className="bg-white rounded-xl shadow-sm p-8">
           {authError && (
-            <div ref={errorRef} className="mb-4 p-4 bg-[#E8DFD4]/50 border border-[#5B4436]/30 text-[#5B4436] rounded-lg text-sm flex items-start gap-3">
+            <div ref={errorRef} className="mb-4 p-4 bg-[#E6DFD5]/50 border border-[#5B4436]/30 text-[#5B4436] rounded-lg text-sm flex items-start gap-3">
               <i className="ri-error-warning-line text-[#5B4436] text-lg flex-shrink-0 mt-0.5"></i>
               <span>{authError}</span>
             </div>

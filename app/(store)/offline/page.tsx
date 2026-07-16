@@ -40,7 +40,7 @@ export default function OfflinePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-white via-white to-white flex items-center justify-center px-6">
       <div className="max-w-md w-full text-center">
         {/* Animated illustration */}
         <div className="relative mb-8">

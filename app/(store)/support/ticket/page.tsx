@@ -89,7 +89,7 @@ export default function SupportTicketPage() {
     return (
       <>
         <Header />
-        <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
+        <main className="min-h-screen bg-white flex items-center justify-center py-12">
           <div className="max-w-md mx-auto px-4 text-center">
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-full mx-auto mb-6">
@@ -132,7 +132,7 @@ export default function SupportTicketPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 py-12">
+      <main className="min-h-screen bg-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <Link
             href="/help"
@@ -257,7 +257,7 @@ export default function SupportTicketPage() {
                     </div>
                   </label>
                   <label className={`flex-1 p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                    formData.priority === 'high' ? 'border-[#5B4436] bg-[#E8DFD4]/50' : 'border-gray-300'
+                    formData.priority === 'high' ? 'border-[#5B4436] bg-[#E6DFD5]/50' : 'border-gray-300'
                   }`}>
                     <input
                       type="radio"
@@ -306,7 +306,7 @@ export default function SupportTicketPage() {
               </div>
 
               {submitError && (
-                <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
+                <div className="bg-[#E6DFD5] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
                   <i className="ri-error-warning-line mr-2"></i>
                   {submitError}
                 </div>

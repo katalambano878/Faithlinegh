@@ -63,7 +63,7 @@ export default function ShippingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gradient-to-br from-gray-100 via-white to-[#F4F2F1]/40 py-16">
+      <div className="bg-gradient-to-br from-white via-white to-white/40 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">Shipping & Delivery</h1>
@@ -253,7 +253,7 @@ export default function ShippingPage() {
               <p className="font-medium text-gray-900">Order Confirmed</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 bg-[#F4F2F1] rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-12 h-12 bg-[#E6DFD5] rounded-full flex items-center justify-center mx-auto mb-3">
                 <i className="ri-package-line text-2xl text-[#5B4436]"></i>
               </div>
               <p className="font-medium text-gray-900">Processing</p>

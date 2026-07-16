@@ -48,7 +48,7 @@ export default function CartPage() {
   const total = Math.max(subtotal - couponDiscount + shipping, 0);
 
   return (
-    <div className="min-h-screen bg-brand-cream">
+    <div className="min-h-screen bg-white">
       <PageHero title="Shopping Cart" />
       <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 

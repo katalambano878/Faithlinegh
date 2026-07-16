@@ -73,7 +73,7 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 flex items-center justify-center py-8 px-4 sm:px-6">
+    <main className="min-h-screen bg-white flex items-center justify-center py-8 px-4 sm:px-6">
       <div className="max-w-sm w-full">
         <div className="text-center mb-5">
           <Link href="/" className="inline-block mb-3">
@@ -85,7 +85,7 @@ export default function LoginPage() {
 
         <div className="bg-white rounded-xl shadow-sm p-5 sm:p-6">
           {authError && (
-            <div className="mb-4 p-4 bg-[#E8DFD4]/50 border border-[#5B4436]/30 text-[#5B4436] rounded-lg text-sm">
+            <div className="mb-4 p-4 bg-[#E6DFD5]/50 border border-[#5B4436]/30 text-[#5B4436] rounded-lg text-sm">
               {authError}
             </div>
           )}

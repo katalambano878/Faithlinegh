@@ -2,13 +2,22 @@
 :root {
   --brand-primary: #5B4436;
   --brand-primary-dark: #47362C;
-  --brand-cream: #F4F2F1;
-  --brand-tan: #E8DFD4;
+  --brand-cream: #E6DFD5;
+  --brand-tan: #E6DFD5;
+  --brand-surface: #E6DFD5;
 }
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  .pwa-body {
+    background-color: #ffffff;
+  }
+}
 
 /* ========================================
    ANIMATIONS & EFFECTS

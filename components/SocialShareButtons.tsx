@@ -88,7 +88,7 @@ export default function SocialShareButtons({ url, title, description, image }: S
 
               <button
                 onClick={() => handleShare('pinterest')}
-                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[#E8DFD4]/50 transition-colors group"
+                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[#E6DFD5]/50 transition-colors group"
               >
                 <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436] text-white rounded-full group-hover:scale-110 transition-transform">
                   <i className="ri-pinterest-fill text-xl"></i>
@@ -128,7 +128,7 @@ export default function SocialShareButtons({ url, title, description, image }: S
 
               <button
                 onClick={() => handleShare('reddit')}
-                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[#F4F2F1]/50 transition-colors group"
+                className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-[#E6DFD5]/50 transition-colors group"
               >
                 <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436] text-white rounded-full group-hover:scale-110 transition-transform">
                   <i className="ri-reddit-fill text-xl"></i>

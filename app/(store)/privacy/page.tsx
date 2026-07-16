@@ -10,7 +10,7 @@ export const metadata: Metadata = pageMetadata({
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-gradient-to-br from-gray-50 via-white to-[#F4F2F1]/40 py-16">
+      <div className="bg-gradient-to-br from-white via-white to-white/40 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">Privacy Policy</h1>
@@ -214,7 +214,7 @@ export default function PrivacyPage() {
               </div>
             </div>
 
-            <div className="bg-[#F4F2F1]/50 border border-[#5B4436]/30 p-6 rounded-xl mt-6">
+            <div className="bg-[#E6DFD5]/50 border border-[#5B4436]/30 p-6 rounded-xl mt-6">
               <p className="text-sm text-gray-600 leading-relaxed">
                 <strong className="text-gray-900">Important:</strong> While we implement strong security measures, no method of transmission or storage is 100% secure. We cannot guarantee absolute security but continually work to protect your information.
               </p>

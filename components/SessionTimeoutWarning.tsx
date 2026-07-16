@@ -60,7 +60,7 @@ export default function SessionTimeoutWarning() {
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-[#F4F2F1] rounded-full flex items-center justify-center">
+          <div className="w-12 h-12 bg-[#E6DFD5] rounded-full flex items-center justify-center">
             <i className="ri-time-line text-2xl text-[#5B4436]"></i>
           </div>
           <div>
@@ -69,7 +69,7 @@ export default function SessionTimeoutWarning() {
           </div>
         </div>
 
-        <div className="bg-[#F4F2F1]/50 border border-[#5B4436]/30 rounded-lg p-4 mb-6">
+        <div className="bg-[#E6DFD5]/50 border border-[#5B4436]/30 rounded-lg p-4 mb-6">
           <p className="text-sm text-gray-700 mb-2">
             You will be automatically logged out in:
           </p>

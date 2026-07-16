@@ -10,7 +10,7 @@ export default function ReturnConfirmationPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center py-12">
+      <main className="min-h-screen bg-white flex items-center justify-center py-12">
         <div className="max-w-2xl mx-auto px-4">
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-full mx-auto mb-6">
@@ -118,7 +118,7 @@ export default function ReturnConfirmationPage() {
             </div>
           </div>
 
-          <div className="mt-8 bg-[#F4F2F1] border border-[#5B4436]/30 rounded-xl p-6">
+          <div className="mt-8 bg-[#E6DFD5] border border-[#5B4436]/30 rounded-xl p-6">
             <div className="flex items-start space-x-3">
               <i className="ri-alert-line text-2xl text-[#5B4436] mt-0.5"></i>
               <div>

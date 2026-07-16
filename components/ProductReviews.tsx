@@ -254,7 +254,7 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
           </div>
 
           {!user && (
-            <div className="mb-4 p-4 bg-[#F4F2F1]/50 text-[#5B4436] rounded-lg">
+            <div className="mb-4 p-4 bg-[#E6DFD5]/50 text-[#5B4436] rounded-lg">
               You must be logged in to submit a review.
             </div>
           )}

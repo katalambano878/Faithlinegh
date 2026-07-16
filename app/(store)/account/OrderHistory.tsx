@@ -76,9 +76,9 @@ export default function OrderHistory() {
       case 'shipped':
         return 'bg-[#5B4436]/10 text-[#5B4436]';
       case 'processing':
-        return 'bg-[#F4F2F1] text-[#5B4436]';
+        return 'bg-[#E6DFD5] text-[#5B4436]';
       case 'cancelled':
-        return 'bg-[#E8DFD4] text-[#5B4436]';
+        return 'bg-[#E6DFD5] text-[#5B4436]';
       default: // pending
         return 'bg-gray-100 text-gray-700';
     }

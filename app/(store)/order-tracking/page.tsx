@@ -157,12 +157,12 @@ function OrderTrackingContent() {
     if (!order) return { label: 'Unknown', color: 'bg-gray-100 text-gray-800' };
     
     const statusMap: Record<string, { label: string; color: string }> = {
-      'pending': { label: 'Pending', color: 'bg-[#F4F2F1] text-[#5B4436]' },
+      'pending': { label: 'Pending', color: 'bg-[#E6DFD5] text-[#5B4436]' },
       'processing': { label: 'Processing', color: 'bg-[#5B4436]/10 text-[#5B4436]' },
       'shipped': { label: 'Packaged', color: 'bg-[#5B4436]/10 text-[#5B4436]' },
       'dispatched_to_rider': { label: 'Dispatched To Rider', color: 'bg-[#5B4436]/10 text-[#5B4436]' },
       'delivered': { label: 'Delivered', color: 'bg-gray-100 text-gray-800' },
-      'cancelled': { label: 'Cancelled', color: 'bg-[#E8DFD4] text-[#5B4436]' }
+      'cancelled': { label: 'Cancelled', color: 'bg-[#E6DFD5] text-[#5B4436]' }
     };
 
     return statusMap[order.status] || { label: order.status, color: 'bg-gray-100 text-gray-800' };
@@ -171,7 +171,7 @@ function OrderTrackingContent() {
   // Search form
   if (!isTracking || !order) {
     return (
-      <main className="min-h-screen bg-gray-50 py-12 px-4">
+      <main className="min-h-screen bg-white py-12 px-4">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold text-gray-900 mb-2">Track Your Order</h1>
@@ -207,7 +207,7 @@ function OrderTrackingContent() {
               </div>
 
               {error && (
-                <div className="p-4 bg-[#E8DFD4]/50 border border-[#5B4436]/30 rounded-lg">
+                <div className="p-4 bg-[#E6DFD5]/50 border border-[#5B4436]/30 rounded-lg">
                   <p className="text-sm text-[#5B4436]">{error}</p>
                 </div>
               )}
@@ -259,7 +259,7 @@ function OrderTrackingContent() {
     .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
+    <main className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <button 
@@ -425,7 +425,7 @@ function OrderTrackingContent() {
 export default function OrderTrackingPage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <main className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-gray-900 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>

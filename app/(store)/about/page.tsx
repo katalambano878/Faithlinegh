@@ -62,7 +62,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
-      <section className="border-b border-brand-carton/15 bg-[#F4F2F1]">
+      <section className="border-b border-brand-carton/15 bg-[#E6DFD5]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 lg:py-20">
           <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
             <AnimatedSection className="lg:col-span-6" animation="fade-up">

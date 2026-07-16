@@ -67,7 +67,7 @@ export default function PWASettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
+    <div className="min-h-screen bg-white py-12 px-4">
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"
@@ -134,7 +134,7 @@ export default function PWASettingsPage() {
                   </div>
                 )}
                 {notificationPermission === 'denied' && (
-                  <div className="w-12 h-12 bg-[#E8DFD4] rounded-full flex items-center justify-center">
+                  <div className="w-12 h-12 bg-[#E6DFD5] rounded-full flex items-center justify-center">
                     <i className="ri-close-line text-[#5B4436] text-2xl"></i>
                   </div>
                 )}
@@ -168,7 +168,7 @@ export default function PWASettingsPage() {
 
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#F4F2F1] rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-[#E6DFD5] rounded-full flex items-center justify-center">
                 <i className="ri-database-line text-[#5B4436]"></i>
               </div>
               Storage & Cache
@@ -202,7 +202,7 @@ export default function PWASettingsPage() {
                 </button>
               </div>
 
-              <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-xl p-4">
+              <div className="bg-[#E6DFD5] border border-[#5B4436]/30 rounded-xl p-4">
                 <div className="flex items-start gap-3">
                   <i className="ri-information-line text-[#5B4436] text-xl"></i>
                   <div className="text-sm text-[#5B4436]">
@@ -243,7 +243,7 @@ export default function PWASettingsPage() {
                 </div>
                 <p className="text-sm text-[#5B4436]/80">Add to home screen like a native app</p>
               </div>
-              <div className="p-4 bg-[#F4F2F1]/50 rounded-xl">
+              <div className="p-4 bg-[#E6DFD5]/50 rounded-xl">
                 <div className="flex items-center gap-3 mb-2">
                   <i className="ri-refresh-line text-[#5B4436] text-xl"></i>
                   <span className="font-semibold text-[#5B4436]">Auto Updates</span>

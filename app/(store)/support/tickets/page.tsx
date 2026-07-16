@@ -55,7 +55,7 @@ export default function MyTicketsPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'open': return 'bg-[#5B4436]/10 text-[#5B4436]';
-      case 'in_progress': return 'bg-[#F4F2F1] text-[#5B4436]';
+      case 'in_progress': return 'bg-[#E6DFD5] text-[#5B4436]';
       case 'waiting_customer': return 'bg-[#5B4436]/10 text-[#5B4436]';
       case 'resolved': return 'bg-gray-100 text-gray-900';
       case 'closed': return 'bg-gray-100 text-gray-600';
@@ -85,7 +85,7 @@ export default function MyTicketsPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50 py-12">
+      <main className="min-h-screen bg-white py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>

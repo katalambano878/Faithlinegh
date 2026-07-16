@@ -14,7 +14,7 @@ export default function FreeShippingBar({ currentAmount, threshold = 200 }: Free
     <div className={`rounded-lg p-4 mb-4 ${
       isQualified 
         ? 'bg-gradient-to-r from-brand-brown to-brand-bag-dark text-white' 
-        : 'bg-gradient-to-r from-[#F4F2F1]/50 to-[#F3F3F3] border-2 border-[#5B4436]/30'
+        : 'bg-gradient-to-r from-[#E6DFD5]/50 to-[#F3F3F3] border-2 border-[#5B4436]/30'
     }`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">

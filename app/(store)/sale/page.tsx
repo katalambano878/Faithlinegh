@@ -97,7 +97,7 @@ export default function SalePage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-brand-cream/40 via-white to-white">
+    <main className="min-h-screen bg-white">
       <JsonLd
         data={[
           collectionPageSchema({

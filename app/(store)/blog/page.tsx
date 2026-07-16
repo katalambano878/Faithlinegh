@@ -80,7 +80,7 @@ export default function BlogPage() {
           ]),
         ]}
       />
-      <div className="bg-gradient-to-br from-gray-50 via-white to-[#F4F2F1]/40 py-16">
+      <div className="bg-gradient-to-br from-white via-white to-white/40 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-5xl font-bold text-gray-900 mb-6">Our Blog</h1>
@@ -109,7 +109,7 @@ export default function BlogPage() {
               </div>
               <div className="p-12 flex flex-col justify-center">
                 <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                  <span className="bg-[#F4F2F1] text-[#5B4436] px-3 py-1 rounded-full font-medium">
+                  <span className="bg-[#E6DFD5] text-[#5B4436] px-3 py-1 rounded-full font-medium">
                     {featuredPost.category}
                   </span>
                   <span>{featuredPost.date}</span>

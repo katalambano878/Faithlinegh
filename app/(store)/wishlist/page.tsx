@@ -32,7 +32,7 @@ export default function WishlistPage() {
   };
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <main className="min-h-screen bg-white">
       <PageHero title="My Wishlist" image="/wishlist.jpeg" />
 
       <section className="py-8 bg-white border-b border-gray-200">
@@ -82,7 +82,7 @@ export default function WishlistPage() {
                   <ProductCard {...product} slug={product.slug || product.id} />
                   <button
                     onClick={() => removeFromWishlist(product.id)}
-                    className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-md hover:bg-[#E8DFD4]/50 transition-colors z-10"
+                    className="absolute top-3 right-3 w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-md hover:bg-[#E6DFD5]/50 transition-colors z-10"
                   >
                     <i className="ri-close-line text-gray-700 text-xl"></i>
                   </button>

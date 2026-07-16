@@ -161,7 +161,7 @@ function AccountContent() {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50 py-8 lg:py-12 pb-24 lg:pb-12">
+      <div className="min-h-screen bg-white py-8 lg:py-12 pb-24 lg:pb-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
           {/* Header */}
@@ -244,7 +244,7 @@ function AccountContent() {
                     <p className="text-gray-500 mb-8">Update your personal details and contact info.</p>
 
                     {profileMessage.text && (
-                      <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${profileMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#E8DFD4]/50 text-[#5B4436] border border-[#5B4436]/20'}`}>
+                      <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${profileMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#E6DFD5]/50 text-[#5B4436] border border-[#5B4436]/20'}`}>
                         <i className={`text-xl mt-0.5 ${profileMessage.type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line'}`}></i>
                         <div>{profileMessage.text}</div>
                       </div>
@@ -316,7 +316,7 @@ function AccountContent() {
                       <p className="text-gray-500 mb-6">Ensure your account uses a strong, unique password.</p>
 
                       {passwordMessage.text && (
-                        <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${passwordMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#E8DFD4]/50 text-[#5B4436] border border-[#5B4436]/20'}`}>
+                        <div className={`mb-6 p-4 rounded-xl flex items-start gap-3 ${passwordMessage.type === 'success' ? 'bg-gray-50 text-gray-900 border border-gray-100' : 'bg-[#E6DFD5]/50 text-[#5B4436] border border-[#5B4436]/20'}`}>
                           <i className={`text-xl mt-0.5 ${passwordMessage.type === 'success' ? 'ri-checkbox-circle-line' : 'ri-error-warning-line'}`}></i>
                           <div>{passwordMessage.text}</div>
                         </div>
@@ -391,7 +391,7 @@ function AccountContent() {
                               </span>
                             )}
                             {option.status === 'unverified' && (
-                              <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 bg-[#F4F2F1] text-[#5B4436] rounded-full flex items-center gap-1">
+                              <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-1 bg-[#E6DFD5] text-[#5B4436] rounded-full flex items-center gap-1">
                                 <i className="ri-error-warning-fill"></i> <span className="hidden sm:inline">Verify</span>
                               </span>
                             )}

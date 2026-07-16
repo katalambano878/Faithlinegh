@@ -115,7 +115,7 @@ export default function ReturnsPortalPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12">
+    <main className="min-h-screen bg-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Returns Portal</h1>
           <p className="text-gray-600 mb-8">Start your return or exchange process</p>
@@ -177,7 +177,7 @@ export default function ReturnsPortalPage() {
                 </div>
 
                 {lookupError && (
-                  <div className="bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
+                  <div className="bg-[#E6DFD5] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
                     <i className="ri-error-warning-line mr-2"></i>
                     {lookupError}
                   </div>
@@ -360,7 +360,7 @@ export default function ReturnsPortalPage() {
               </div>
 
               {submitError && (
-                <div className="mb-6 bg-[#F4F2F1] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
+                <div className="mb-6 bg-[#E6DFD5] border border-[#5B4436]/30 rounded-lg p-4 text-sm text-[#5B4436]">
                   <i className="ri-error-warning-line mr-2"></i>
                   {submitError}
                 </div>

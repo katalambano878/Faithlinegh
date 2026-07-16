@@ -278,7 +278,7 @@ export default function ContactPage() {
                   )}
 
                   {submitStatus === 'error' && (
-                    <div className="bg-[#E8DFD4]/30 border border-[#5B4436]/20 text-[#5B4436] px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
+                    <div className="bg-[#E6DFD5]/30 border border-[#5B4436]/20 text-[#5B4436] px-4 py-3 rounded-xl flex items-center gap-2 text-sm">
                       <i className="ri-error-warning-line text-lg"></i>
                       Failed to send message. Please try again or contact us directly.
                     </div>

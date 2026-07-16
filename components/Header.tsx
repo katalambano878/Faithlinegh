@@ -7,6 +7,7 @@ import MiniCart from './MiniCart';
 import { useCart } from '@/context/CartContext';
 import { supabase } from '@/lib/supabase';
 import { useCMS } from '@/context/CMSContext';
+import MarqueeBanner from './MarqueeBanner';
 
 export default function Header() {
   const pathname = usePathname();
@@ -17,7 +18,7 @@ export default function Header() {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [user, setUser] = useState<any>(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const overlayHeader = isHome && !isScrolled;
+  const overlayHeader = false;
 
   const { cartCount, isCartOpen, setIsCartOpen } = useCart();
   const { getSetting } = useCMS();
@@ -79,6 +80,7 @@ export default function Header() {
     { label: 'New In', href: '/shop?sort=new' },
     { label: 'Shop', href: '/shop' },
     { label: 'Collections', href: '/categories' },
+    { label: 'Sale', href: '/sale' },
     { label: 'About Us', href: '/about' },
   ];
 
@@ -93,15 +95,10 @@ export default function Header() {
           isHome ? 'fixed top-0 left-0 right-0' : 'sticky top-0'
         }`}
       >
-        <header
-          className={`transition-all duration-300 ${
-            overlayHeader
-              ? 'bg-transparent shadow-none'
-              : 'bg-brand-brown shadow-[0_6px_24px_-14px_rgba(61,43,33,0.5)]'
-          }`}
-        >
-          <div className={`safe-area-top ${overlayHeader ? 'bg-transparent' : 'bg-brand-brown'}`} />
-          <div className={overlayHeader ? '' : 'border-b border-white/10'}>
+        <MarqueeBanner />
+        <header className="transition-all duration-300 bg-brand-cream shadow-[0_6px_24px_-14px_rgba(61,43,33,0.12)]">
+          <div className="safe-area-top bg-brand-cream" />
+          <div className="border-b border-brand-brown/10">
             <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div
                 className={`relative flex items-center justify-between gap-3 transition-all duration-300 ${
@@ -111,7 +108,7 @@ export default function Header() {
               {/* ── Left: hamburger + logo ── */}
               <div className="flex items-center gap-1.5 min-w-0">
                 <button
-                  className="lg:hidden -ml-1 w-10 h-10 flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+                  className="lg:hidden -ml-1 w-10 h-10 flex items-center justify-center rounded-full text-brand-brown hover:bg-brand-brown/10 transition-colors"
                   onClick={() => setIsMobileMenuOpen(true)}
                   aria-label="Open menu"
                 >
@@ -120,7 +117,7 @@ export default function Header() {
 
                 <Link href="/" className="group flex items-center shrink-0" aria-label="Go to homepage">
                   <img
-                    src="/logo-white.png"
+                    src="/logo.png"
                     alt={siteName}
                     className={`w-auto object-contain select-none transition-all duration-300 ${
                       overlayHeader ? 'h-7 sm:h-8' : isScrolled ? 'h-6 sm:h-7' : 'h-7 sm:h-8'
@@ -138,12 +135,12 @@ export default function Header() {
                         key={link.href}
                         href={link.href}
                         className={`group relative py-1 text-[11px] font-medium uppercase tracking-[0.18em] transition-colors duration-300 ${
-                          isActive ? 'text-white' : 'text-white/80 hover:text-white'
+                          isActive ? 'text-brand-brown' : 'text-brand-brown/70 hover:text-brand-brown'
                         }`}
                       >
                         {link.label}
                         <span
-                          className={`pointer-events-none absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-white transition-all duration-300 ${
+                          className={`pointer-events-none absolute -bottom-1.5 left-1/2 -translate-x-1/2 h-[2px] rounded-full bg-brand-brown transition-all duration-300 ${
                             isActive ? 'w-5 opacity-100' : 'w-0 opacity-0 group-hover:w-5 group-hover:opacity-100'
                           }`}
                         />
@@ -157,7 +154,7 @@ export default function Header() {
                 {/* Search */}
                 <button
                   onClick={() => setIsSearchOpen(true)}
-                  className="w-10 h-10 flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center rounded-full text-brand-brown hover:bg-brand-brown/10 transition-colors"
                   aria-label="Search"
                 >
                   <i className="ri-search-line text-[21px]"></i>
@@ -166,12 +163,12 @@ export default function Header() {
                 {/* Wishlist */}
                 <Link
                   href="/wishlist"
-                  className="relative w-10 h-10 hidden sm:flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+                  className="relative w-10 h-10 hidden sm:flex items-center justify-center rounded-full text-brand-brown hover:bg-brand-brown/10 transition-colors"
                   aria-label={`Wishlist, ${wishlistCount} items`}
                 >
                   <i className="ri-heart-line text-[21px]"></i>
                   {wishlistCount > 0 && (
-                    <span className="absolute top-1 right-1 min-w-[15px] h-[15px] px-[3px] bg-white text-brand-brown text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white/30">
+                    <span className="absolute top-1 right-1 min-w-[15px] h-[15px] px-[3px] bg-brand-brown text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-brand-cream">
                       {wishlistCount}
                     </span>
                   )}
@@ -180,7 +177,7 @@ export default function Header() {
                 {/* Account */}
                 <Link
                   href={user ? '/account' : '/auth/login'}
-                  className="w-10 h-10 hidden sm:flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+                  className="w-10 h-10 hidden sm:flex items-center justify-center rounded-full text-brand-brown hover:bg-brand-brown/10 transition-colors"
                   aria-label={user ? 'My account' : 'Login'}
                 >
                   <i className="ri-user-smile-line text-[21px]"></i>
@@ -189,7 +186,7 @@ export default function Header() {
                 {/* Cart */}
                 <div className="relative ml-0.5 sm:ml-1">
                   <button
-                    className="relative w-10 h-10 flex items-center justify-center rounded-full text-white hover:bg-white/10 transition-colors"
+                    className="relative w-10 h-10 flex items-center justify-center rounded-full text-brand-brown hover:bg-brand-brown/10 transition-colors"
                     onClick={() => setIsCartOpen(!isCartOpen)}
                     aria-label={`Shopping cart, ${cartCount} items`}
                     aria-expanded={isCartOpen}
@@ -197,7 +194,7 @@ export default function Header() {
                   >
                     <i className="ri-shopping-bag-3-line text-[19px]"></i>
                     {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-[3px] bg-white text-brand-brown text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white/30">
+                      <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-[3px] bg-brand-brown text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-brand-cream">
                         {cartCount}
                       </span>
                     )}

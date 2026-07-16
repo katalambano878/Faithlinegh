@@ -136,19 +136,19 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-[#F4F2F1] text-[#5B4436]',
+  pending: 'bg-[#E6DFD5] text-[#5B4436]',
   processing: 'bg-[#5B4436]/10 text-[#5B4436]',
   shipped: 'bg-[#5B4436]/10 text-[#5B4436]',
   dispatched_to_rider: 'bg-[#5B4436]/10 text-[#5B4436]',
   delivered: 'bg-gray-100 text-gray-900',
-  cancelled: 'bg-[#E8DFD4] text-[#5B4436]',
+  cancelled: 'bg-[#E6DFD5] text-[#5B4436]',
   open: 'bg-[#5B4436]/10 text-[#5B4436]',
-  in_progress: 'bg-[#F4F2F1] text-[#5B4436]',
+  in_progress: 'bg-[#E6DFD5] text-[#5B4436]',
   resolved: 'bg-gray-100 text-gray-900',
   approved: 'bg-gray-100 text-gray-900',
-  rejected: 'bg-[#E8DFD4] text-[#5B4436]',
+  rejected: 'bg-[#E6DFD5] text-[#5B4436]',
   paid: 'bg-gray-100 text-gray-900',
-  failed: 'bg-[#E8DFD4] text-[#5B4436]',
+  failed: 'bg-[#E6DFD5] text-[#5B4436]',
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -1020,7 +1020,7 @@ function TicketCard({ ticket }: { ticket: ChatTicket }) {
 function ReturnCard({ ret }: { ret: ChatReturn }) {
   return (
     <div className="bg-white rounded-xl border border-[#5B4436]/30 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 bg-[#F4F2F1]/50">
+      <div className="px-4 py-3 bg-[#E6DFD5]/50">
         <div className="flex items-center gap-2 mb-1">
           <i className="ri-arrow-go-back-line text-[#5B4436]" />
           <span className="text-xs font-bold text-[#5B4436]">Return Request Submitted</span>
@@ -1043,7 +1043,7 @@ function ReturnCard({ ret }: { ret: ChatReturn }) {
 function CouponCard({ coupon }: { coupon: ChatCoupon }) {
   return (
     <div className={`rounded-xl border shadow-sm overflow-hidden ${coupon.valid ? 'bg-white border-gray-100' : 'bg-white border-[#5B4436]/20'}`}>
-      <div className={`px-4 py-3 ${coupon.valid ? 'bg-gray-100/50' : 'bg-[#E8DFD4]/50'}`}>
+      <div className={`px-4 py-3 ${coupon.valid ? 'bg-gray-100/50' : 'bg-[#E6DFD5]/50'}`}>
         <div className="flex items-center gap-2 mb-1">
           <i className={`${coupon.valid ? 'ri-coupon-3-line text-gray-600' : 'ri-close-circle-line text-[#5B4436]'}`} />
           <span className={`text-xs font-bold ${coupon.valid ? 'text-gray-900' : 'text-[#5B4436]'}`}>

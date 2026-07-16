@@ -113,7 +113,7 @@ export default function HelpCenterPage() {
   return (
     <>
       <Header />
-      <main className="min-h-screen bg-gray-50">
+      <main className="min-h-screen bg-white">
         <div className="bg-gradient-to-br from-gray-900 to-gray-900 text-white py-16">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <h1 className="text-4xl font-bold mb-4">How can we help you?</h1>
@@ -265,7 +265,7 @@ export default function HelpCenterPage() {
               href="/order-tracking"
               className="bg-white rounded-xl shadow-sm p-6 hover:shadow-lg transition-all text-center"
             >
-              <div className="w-16 h-16 flex items-center justify-center bg-[#F4F2F1] rounded-full mx-auto mb-4">
+              <div className="w-16 h-16 flex items-center justify-center bg-[#E6DFD5] rounded-full mx-auto mb-4">
                 <i className="ri-map-pin-line text-3xl text-[#5B4436]"></i>
               </div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Track Order</h3>

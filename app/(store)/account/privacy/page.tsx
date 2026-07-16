@@ -96,7 +96,7 @@ export default function PrivacySettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
@@ -183,7 +183,7 @@ export default function PrivacySettingsPage() {
 
           <div className="border-t pt-6">
             <h2 className="text-lg font-bold mb-4 text-[#5B4436]">Danger Zone</h2>
-            <div className="bg-[#E8DFD4]/50 border border-[#5B4436]/30 rounded-lg p-4">
+            <div className="bg-[#E6DFD5]/50 border border-[#5B4436]/30 rounded-lg p-4">
               <h3 className="font-semibold text-[#5B4436] mb-2 flex items-center gap-2">
                 <i className="ri-delete-bin-line text-lg"></i>
                 Delete Account

@@ -114,7 +114,7 @@ function OrderSuccessContent() {
   const pointsEarned = Math.floor(order.total / 10); // Example logic: 1 point per 10 currency units
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#F3F3F3]">
+    <main className="min-h-screen bg-white">
       {showConfetti && (
         <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
           {[...Array(50)].map((_, i) => (
@@ -180,7 +180,7 @@ function OrderSuccessContent() {
               </Link>
             </div>
 
-            <div className="bg-gradient-to-r from-[#F4F2F1]/50 to-[#F3F3F3] rounded-xl p-6 border-2 border-[#5B4436]/30">
+            <div className="bg-gradient-to-r from-[#E6DFD5]/50 to-[#F3F3F3] rounded-xl p-6 border-2 border-[#5B4436]/30">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436] rounded-full">
@@ -221,7 +221,7 @@ function OrderSuccessContent() {
                         <p className="text-xs text-gray-500">{item.variant_name}</p>
                       )}
                       {item.metadata?.preorder_shipping && (
-                        <p className="text-xs text-[#5B4436] bg-[#F4F2F1]/50 inline-flex items-center gap-1 px-2 py-0.5 rounded mt-1 border border-[#5B4436]/30">
+                        <p className="text-xs text-[#5B4436] bg-[#E6DFD5]/50 inline-flex items-center gap-1 px-2 py-0.5 rounded mt-1 border border-[#5B4436]/30">
                           <i className="ri-time-line"></i> {item.metadata.preorder_shipping}
                         </p>
                       )}

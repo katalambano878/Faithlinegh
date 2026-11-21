@@ -21,13 +21,13 @@ import {
   type ChatOrderResult,
 } from '@/lib/chat-tools';
 import { searchSiteKnowledge, getSiteMapSummary } from '@/lib/site-knowledge';
+import { OPENROUTER_CHAT_URL, chatModel, getOpenRouterKey, openRouterHeaders } from '@/lib/openrouter';
 
 // ─── Env ────────────────────────────────────────────────────────────────────
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const groqKey = process.env.GROQ_API_KEY;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -83,8 +83,8 @@ function checkRateLimit(key: string): boolean {
 
 // ─── LLM Configuration ──────────────────────────────────────────────────────
 
-const LLM_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const LLM_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
+// The assistant runs on OpenRouter. Model id comes from AI_CHAT_MODEL.
+const LLM_API_URL = OPENROUTER_CHAT_URL;
 
 async function fetchWithRetry(url: string, options: RequestInit, maxRetries = 2): Promise<Response> {
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -319,6 +319,7 @@ CORE BEHAVIORS:
 - If a product is out of stock, say so and proactively suggest alternatives using get_recommendations.
 - For order tracking, always ask for both order number AND email if not provided.
 - Never make up information — if unsure, use the appropriate tool to look it up.
+- Sizes, colours, materials and measurements: state ONLY what a tool result gives you. Each product result has an "options" field listing the sizes/colours in stock; when it says none are listed, tell the customer the options are shown on the product page or can be confirmed on WhatsApp. Never guess a size range.
 - Keep responses concise (2-4 sentences max for simple questions).
 - When a customer says "find a product", "show me products", "what do you have", or any generic product request, IMMEDIATELY call get_recommendations to show actual products. Do NOT ask what they want or list generic categories — show real products with prices right away. Never make up prices or product ranges.
 
@@ -470,6 +471,7 @@ export async function POST(request: Request) {
   try {
     const body: RequestBody = await request.json();
     const { messages = [], newMessage, sessionId, pagePath, cartItems } = body;
+    const aiKey = getOpenRouterKey();
 
     const userText = (newMessage || '').trim();
     if (!userText) {
@@ -509,7 +511,7 @@ export async function POST(request: Request) {
 
     // Fetch relevant KB articles from Supabase for AI context
     let kbContext = '';
-    if (groqKey) {
+    if (aiKey) {
       try {
         const searchTerms = userText.toLowerCase().split(/\s+/).filter(w => w.length > 3).slice(0, 3);
         if (searchTerms.length > 0) {
@@ -535,8 +537,8 @@ export async function POST(request: Request) {
     }
 
     let result: any;
-    if (groqKey) {
-      result = await handleWithAI(supabase, messages, userText, groqKey, userId, userEmail, profile, pagePath, aiMemories, kbContext, cartItems);
+    if (aiKey) {
+      result = await handleWithAI(supabase, messages, userText, aiKey, userId, userEmail, profile, pagePath, aiMemories, kbContext, cartItems);
     } else {
       result = await handleWithoutAI(supabase, userText, profile);
     }
@@ -802,7 +804,18 @@ async function handleWithoutAI(supabase: any, userText: string, profile: ChatCus
   };
 }
 
-// ─── AI Handler with Function Calling (Groq) ───────────────────────────────
+/** The facts the assistant is allowed to state about a product. */
+function productFacts(p: ChatProduct) {
+  return {
+    name: p.name,
+    price: p.price,
+    inStock: p.inStock,
+    slug: p.slug,
+    options: p.options && p.options.length > 0 ? p.options : 'none listed — do not state sizes or colours',
+  };
+}
+
+// ─── AI Handler with Function Calling (OpenRouter) ───────────────────────────────
 
 async function handleWithAI(
   supabase: any,
@@ -863,20 +876,19 @@ async function handleWithAI(
   try {
     const res = await fetchWithRetry(LLM_API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      headers: openRouterHeaders(apiKey),
       body: JSON.stringify({
-        model: LLM_MODEL,
+        model: chatModel(),
         messages: llmMessages,
         tools: LLM_TOOLS,
         tool_choice: 'auto',
-        max_completion_tokens: 1024,
+        max_tokens: 1024,
         temperature: 0.6,
-        top_p: 1,
       }),
     });
 
     if (!res.ok) {
-      console.error('[Chat API] Groq error:', await res.text());
+      console.error('[Chat API] OpenRouter error:', res.status, await res.text());
       return await handleWithoutAI(supabase, userText, profile);
     }
 
@@ -915,19 +927,21 @@ async function handleWithAI(
 
       const followUpRes = await fetchWithRetry(LLM_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+        headers: openRouterHeaders(apiKey),
         body: JSON.stringify({
-          model: LLM_MODEL,
+          model: chatModel(),
           messages: llmMessages,
           tools: LLM_TOOLS,
           tool_choice: 'auto',
-          max_completion_tokens: 1024,
+          max_tokens: 1024,
           temperature: 0.6,
-          top_p: 1,
         }),
       });
 
-      if (!followUpRes.ok) break;
+      if (!followUpRes.ok) {
+        console.error('[Chat API] OpenRouter follow-up error:', followUpRes.status, await followUpRes.text());
+        break;
+      }
       data = await followUpRes.json();
       choice = data.choices?.[0];
       toolCalls = choice?.message?.tool_calls;
@@ -1006,7 +1020,7 @@ async function executeToolCall(
     case 'search_products': {
       const products = await searchProducts(supabase, args.query, 4);
       return {
-        data: products.map((p) => ({ name: p.name, price: p.price, inStock: p.inStock, slug: p.slug })),
+        data: products.map(productFacts),
         products,
         quickReplies: products.length > 0 ? ['Show me more', 'Add to cart'] : ['Try different search', 'What do you recommend?'],
       };
@@ -1015,7 +1029,7 @@ async function executeToolCall(
     case 'get_product_for_cart': {
       const product = await getProductForCart(supabase, args.slug_or_id);
       return {
-        data: product ? { name: product.name, price: product.price, inStock: product.inStock } : { error: 'Product not found' },
+        data: product ? productFacts(product) : { error: 'Product not found' },
         products: product ? [product] : undefined,
       };
     }
@@ -1109,7 +1123,7 @@ async function executeToolCall(
     case 'get_recommendations': {
       const products = await getRecommendations(supabase, args.context);
       return {
-        data: products.map((p) => ({ name: p.name, price: p.price, inStock: p.inStock, slug: p.slug })),
+        data: products.map(productFacts),
         products,
         quickReplies: ['Show me more', 'Search for something specific'],
       };

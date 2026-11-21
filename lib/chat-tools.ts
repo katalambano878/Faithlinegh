@@ -12,6 +12,8 @@ export type ChatProduct = {
   maxStock: number;
   moq: number;
   inStock: boolean;
+  /** In-stock size / colour options, when the product has variants. */
+  options?: string[];
 };
 
 export type ChatOrder = {
@@ -60,28 +62,88 @@ export type ChatCustomerProfile = {
 
 // ─── 1. Search Products (existing) ──────────────────────────────────────────
 
+// Words that carry no product meaning in a shopper's question.
+const SEARCH_STOP_WORDS = new Set([
+  'the', 'and', 'for', 'you', 'your', 'have', 'has', 'any', 'some', 'with', 'that', 'this',
+  'show', 'find', 'want', 'need', 'looking', 'please', 'stock', 'available', 'sell', 'buy',
+  'item', 'items', 'product', 'products', 'what', 'which', 'are', 'can', 'get', 'more',
+]);
+
+/** "dresses" → "dress", "bags" → "bag", "accessories" → "accessory". */
+function singularize(word: string): string {
+  if (word.length > 4 && word.endsWith('ies')) return `${word.slice(0, -3)}y`;
+  if (/(ss|sh|ch|x)es$/.test(word)) return word.slice(0, -2);
+  if (word.length > 3 && word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
+  return word;
+}
+
+/**
+ * Break a shopper's phrase into safe search terms. Shoppers say "bags" and
+ * "dresses"; products are named "Curves Tote Bag" and "Denim dress", so a
+ * whole-phrase match would wrongly report nothing in stock.
+ */
+export function productSearchTerms(query: string): string[] {
+  const words = (query || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !SEARCH_STOP_WORDS.has(w))
+    .map(singularize);
+  return Array.from(new Set(words)).slice(0, 5);
+}
+
 export async function searchProducts(
   supabase: any,
   query: string,
   limit = 4
 ): Promise<ChatProduct[]> {
-  const term = (query || '').trim();
-  if (!term) return [];
+  const terms = productSearchTerms(query);
+  if (terms.length === 0) return [];
+
+  // Categories that match a term ("bags" → Bags) widen the search to
+  // everything filed under them.
+  const { data: categories } = await supabase
+    .from('categories')
+    .select('id')
+    .or(terms.map((t) => `name.ilike.%${t}%`).join(','));
+  const categoryIds: string[] = (categories || []).map((c: any) => c.id);
+
+  const filters = terms.flatMap((t) => [`name.ilike.%${t}%`, `description.ilike.%${t}%`]);
+  if (categoryIds.length > 0) filters.push(`category_id.in.(${categoryIds.join(',')})`);
 
   const { data, error } = await supabase
     .from('products')
-    .select(`id, name, slug, price, quantity, metadata, product_images(url, position)`)
+    .select(`id, name, slug, price, quantity, metadata, description, category_id, product_images(url, position), product_variants(name, option2, quantity)`)
     .eq('status', 'active')
-    .or(`name.ilike.%${term}%,description.ilike.%${term}%`)
+    .or(filters.join(','))
     .order('name')
-    .limit(limit);
+    .limit(40);
 
   if (error) {
     console.error('[ChatTools] searchProducts error:', error);
     return [];
   }
 
-  return (data || []).map(mapProduct);
+  // Best matches first: name hits beat category hits beat description hits,
+  // and in-stock pieces come before sold-out ones.
+  const score = (p: any) => {
+    const name = String(p.name || '').toLowerCase();
+    const description = String(p.description || '').toLowerCase();
+    let points = 0;
+    for (const t of terms) {
+      if (name.includes(t)) points += 4;
+      else if (description.includes(t)) points += 1;
+    }
+    if (categoryIds.includes(p.category_id)) points += 2;
+    if (Number(p.quantity) > 0) points += 1;
+    return points;
+  };
+
+  return (data || [])
+    .map((p: any) => ({ p, points: score(p) }))
+    .sort((a: any, b: any) => b.points - a.points)
+    .slice(0, limit)
+    .map((entry: any) => mapProduct(entry.p));
 }
 
 // ─── 2. Get Product for Cart (existing) ─────────────────────────────────────
@@ -95,7 +157,7 @@ export async function getProductForCart(
 
   const q = supabase
     .from('products')
-    .select(`id, name, slug, price, quantity, metadata, product_images(url, position)`)
+    .select(`id, name, slug, price, quantity, metadata, product_images(url, position), product_variants(name, option2, quantity)`)
     .eq('status', 'active');
 
   const { data, error } = isId
@@ -315,17 +377,19 @@ export async function getRecommendations(
   supabase: any,
   context?: string
 ): Promise<ChatProduct[]> {
-  let query = supabase
-    .from('products')
-    .select(`id, name, slug, price, quantity, metadata, product_images(url, position)`)
-    .eq('status', 'active')
-    .gt('quantity', 0);
-
+  // A context like "dresses" or "something for work" narrows the picks to
+  // matching in-stock pieces. A vague one ("popular items") matches nothing
+  // and falls through to the best-rated list below.
   if (context?.trim()) {
-    query = query.or(`name.ilike.%${context.trim()}%,description.ilike.%${context.trim()}%`);
+    const matches = (await searchProducts(supabase, context, 8)).filter((p) => p.inStock);
+    if (matches.length > 0) return matches.slice(0, 4);
   }
 
-  const { data, error } = await query
+  const { data, error } = await supabase
+    .from('products')
+    .select(`id, name, slug, price, quantity, metadata, product_images(url, position), product_variants(name, option2, quantity)`)
+    .eq('status', 'active')
+    .gt('quantity', 0)
     .order('rating_avg', { ascending: false })
     .order('review_count', { ascending: false })
     .limit(4);
@@ -743,5 +807,16 @@ function mapProduct(p: any): ChatProduct {
     maxStock: qty,
     moq,
     inStock: qty >= moq,
+    options: variantOptions(p.product_variants),
   };
+}
+
+/** "M / Red" style labels for the variants a customer can actually buy. */
+function variantOptions(variants: any): string[] | undefined {
+  if (!Array.isArray(variants) || variants.length === 0) return undefined;
+  const labels = variants
+    .filter((v) => Number(v?.quantity) > 0)
+    .map((v) => Array.from(new Set([v?.name, v?.option2].map((part) => String(part || '').trim()).filter(Boolean))).join(' / '))
+    .filter(Boolean);
+  return labels.length > 0 ? Array.from(new Set(labels)).slice(0, 12) : undefined;
 }

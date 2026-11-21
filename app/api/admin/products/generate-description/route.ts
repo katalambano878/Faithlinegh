@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
-
-const groqKey = process.env.GROQ_API_KEY;
+import { OPENROUTER_CHAT_URL, getOpenRouterKey, openRouterHeaders, visionModel } from '@/lib/openrouter';
 
 function getAccessToken(request: Request): string | null {
   const authHeader = request.headers.get('authorization');
@@ -40,7 +39,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    if (!groqKey) {
+    const aiKey = getOpenRouterKey();
+    if (!aiKey) {
       return NextResponse.json({ error: 'AI service not configured' }, { status: 503 });
     }
 
@@ -53,14 +53,11 @@ export async function POST(request: Request) {
     const contextParts = [productName && `Product name: "${productName}"`, categoryName && `Category: "${categoryName}"`].filter(Boolean);
     const context = contextParts.length > 0 ? `\n\nContext: ${contextParts.join('. ')}.` : '';
 
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const res = await fetch(OPENROUTER_CHAT_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${groqKey}`,
-      },
+      headers: openRouterHeaders(aiKey),
       body: JSON.stringify({
-        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        model: visionModel(),
         messages: [
           {
             role: 'system',
@@ -92,7 +89,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       const err = await res.text();
-      console.error('Groq vision API error:', err);
+      console.error('OpenRouter vision API error:', res.status, err);
       return NextResponse.json({ error: 'Failed to generate description' }, { status: 502 });
     }
 

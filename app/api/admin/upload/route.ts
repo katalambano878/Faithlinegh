@@ -74,6 +74,7 @@ export async function POST(request: Request) {
     const { error } = await supabaseAdmin.storage.from(bucket).upload(path, file, {
       cacheControl: '3600',
       upsert: false,
+      contentType: file.type || undefined,
     });
 
     if (error) {

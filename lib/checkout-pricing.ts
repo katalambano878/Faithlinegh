@@ -124,7 +124,7 @@ export async function priceCart(
         .in('id', ids)
     : { data: [], error: null };
   if (error) throw new Error(`Could not load products: ${error.message}`);
-  const byId = new Map((products || []).map((p: any) => [p.id, { ...p, name: String(p.name || '').trim() }]));
+  const byId = new Map<string, any>((products || []).map((p: any) => [p.id, { ...p, name: String(p.name || '').trim() }]));
 
   const lines: PricedLine[] = [];
   const demand = new Map<string, number>(); // stock key → quantity requested

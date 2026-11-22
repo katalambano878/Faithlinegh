@@ -30,3 +30,6 @@ yarn-error.log*
 
 # Vercel
 .vercel
+migration-artifacts/dumps/
+migration-artifacts/storage/
+.env.staging

@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Small self-contained server for the Docker image (Coolify on big-vps)
+  output: 'standalone',
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
@@ -15,6 +17,16 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'faithlinegh.com',
+        pathname: '/storage/v1/object/public/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.faithlinegh.com',
         pathname: '/storage/v1/object/public/**',
       },
       {

@@ -1,5 +1,5 @@
+import { supabaseAdmin as dbAdmin } from '@/lib/supabase-admin';
 import { MetadataRoute } from 'next';
-import { createClient } from '@supabase/supabase-js';
 import { SITE_URL } from '@/lib/seo';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -83,7 +83,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let categoryPages: MetadataRoute.Sitemap = [];
 
   try {
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = dbAdmin;
 
     // Fetch active products
     const { data: products } = await supabase

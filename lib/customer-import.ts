@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+type SupabaseClient = any;
 import { phoneDedupKey } from './phone';
 import {
     ParsedWhatsAppContact,

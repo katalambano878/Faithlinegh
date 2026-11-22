@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.env*
+!.env.example
+migration-artifacts
+npm-debug.log*
+.claude
+tsconfig.tsbuildinfo

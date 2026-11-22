@@ -1,10 +1,8 @@
-import { createClient } from '@supabase/supabase-js';
+/**
+ * Browser/shared data client. Faithline runs on its own Postgres: this talks
+ * to the app's /rest/v1, /auth/v1 and /storage/v1 routes (same origin),
+ * with the same calls the Supabase client used.
+ */
+import { createAppClient } from './app-client';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Missing Supabase environment variables');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase: any = createAppClient();

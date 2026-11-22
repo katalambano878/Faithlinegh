@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { sanitizePermissions } from '@/lib/admin-permissions';
 
 function getAccessToken(request: Request): string | null {
@@ -35,9 +35,9 @@ function getAccessToken(request: Request): string | null {
  * Returns current admin/staff user and profile using the caller session token.
  */
 export async function GET(request: Request) {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  if (!process.env.DATABASE_URL) {
     return NextResponse.json(
-      { error: 'Server misconfiguration: missing Supabase env vars' },
+      { error: 'Server misconfiguration: missing DATABASE_URL' },
       { status: 503 }
     );
   }
@@ -47,16 +47,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      auth: { autoRefreshToken: false, persistSession: false },
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    }
-  );
+  const supabase = supabaseAdmin;
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const { data: { user }, error: userError } = await supabase.auth.getUser(token);
   if (userError || !user) {
     return NextResponse.json({ error: 'Invalid or expired session' }, { status: 401 });
   }

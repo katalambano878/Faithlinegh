@@ -1,9 +1,45 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { jwtVerify } from 'jose';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+/** Login token from the app's cookies (bare JWT or a stored session JSON). */
+function extractToken(request: NextRequest): string | undefined {
+    let token =
+        request.cookies.get('app-access-token')?.value ||
+        request.cookies.get('sb-access-token')?.value;
+    if (!token) {
+        for (const [name, cookie] of request.cookies) {
+            if ((name.startsWith('sb-') || name.startsWith('app-')) && (name.endsWith('-auth-token') || name.includes('auth'))) {
+                try {
+                    const parsed = JSON.parse(cookie.value);
+                    if (Array.isArray(parsed) && parsed[0]) token = parsed[0];
+                    else if (typeof parsed === 'object' && parsed?.access_token) token = parsed.access_token;
+                    else if (typeof parsed === 'string') token = parsed;
+                } catch {
+                    token = cookie.value;
+                }
+                if (token) break;
+            }
+        }
+    }
+    return token;
+}
+
+/** Checks the token's signature and that it belongs to an admin or staff member. */
+async function verifyAdmin(token: string): Promise<{ ok: boolean; expired?: boolean; userId?: string; role?: string }> {
+    const secret = process.env.AUTH_JWT_SECRET || process.env.JWT_SECRET || process.env.SUPABASE_JWT_SECRET;
+    if (!secret) return { ok: false };
+    try {
+        const { payload } = await jwtVerify(token, new TextEncoder().encode(secret));
+        if (payload.typ === 'refresh') return { ok: false };
+        const userId = typeof payload.sub === 'string' ? payload.sub : undefined;
+        const role = ((payload.app_metadata || {}) as { role?: string }).role;
+        if (!userId || (role !== 'admin' && role !== 'staff')) return { ok: false };
+        return { ok: true, userId, role };
+    } catch (err: any) {
+        return { ok: false, expired: err?.code === 'ERR_JWT_EXPIRED' };
+    }
+}
 
 // ============================================================
 // Maintenance mode helper — cached for 15s to keep latency low
@@ -11,18 +47,15 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 let cachedMaintenance: { value: boolean; at: number } | null = null;
 const MAINTENANCE_CACHE_TTL_MS = 15_000;
 
-async function isMaintenanceModeEnabled(): Promise<boolean> {
+async function isMaintenanceModeEnabled(origin: string): Promise<boolean> {
     const now = Date.now();
     if (cachedMaintenance && now - cachedMaintenance.at < MAINTENANCE_CACHE_TTL_MS) {
         return cachedMaintenance.value;
     }
     try {
-        const url = `${supabaseUrl}/rest/v1/store_settings?key=eq.maintenance_mode&select=value&limit=1`;
-        const res = await fetch(url, {
-            headers: {
-                apikey: supabaseAnonKey,
-                Authorization: `Bearer ${supabaseAnonKey}`,
-            },
+        // The app serves its own REST API; store_settings is publicly readable
+        const res = await fetch(`${origin}/rest/v1/store_settings?key=eq.maintenance_mode&select=value&limit=1`, {
+            headers: { apikey: 'anon' },
             cache: 'no-store',
         });
         const data: Array<{ value: unknown }> = await res.json();
@@ -61,88 +94,23 @@ export async function middleware(request: NextRequest) {
             return response;
         }
 
-        let token: string | undefined;
-        token = request.cookies.get('sb-access-token')?.value;
-
-        if (!token) {
-            const projectRef = supabaseUrl?.split('//')[1]?.split('.')[0];
-            token = request.cookies.get(`sb-${projectRef}-auth-token`)?.value;
-        }
-
-        if (!token) {
-            for (const [name, cookie] of request.cookies) {
-                if (name.startsWith('sb-') && (name.endsWith('-auth-token') || name.includes('auth'))) {
-                    try {
-                        const parsed = JSON.parse(cookie.value);
-                        if (Array.isArray(parsed) && parsed[0]) {
-                            token = parsed[0];
-                        } else if (typeof parsed === 'object' && parsed.access_token) {
-                            token = parsed.access_token;
-                        } else if (typeof parsed === 'string') {
-                            token = parsed;
-                        }
-                    } catch {
-                        token = cookie.value;
-                    }
-                    if (token) break;
-                }
-            }
-        }
-
+        const token = extractToken(request);
         if (!token) {
             const loginUrl = new URL('/admin/login', request.url);
             loginUrl.searchParams.set('redirect', pathname);
             return NextResponse.redirect(loginUrl);
         }
 
-        if (supabaseAnonKey) {
-            try {
-                const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-                    auth: { autoRefreshToken: false, persistSession: false },
-                    global: { headers: { Authorization: `Bearer ${token}` } },
-                });
-
-                const { data: { user }, error } = await supabase.auth.getUser();
-
-                if (error || !user) {
-                    const loginUrl = new URL('/admin/login', request.url);
-                    loginUrl.searchParams.set('redirect', pathname);
-                    loginUrl.searchParams.set('error', 'session_expired');
-                    return NextResponse.redirect(loginUrl);
-                }
-
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', user.id)
-                    .single();
-
-                const role = profile?.role ? String(profile.role) : '';
-                if (role !== 'admin' && role !== 'staff') {
-                    const loginUrl = new URL('/admin/login', request.url);
-                    loginUrl.searchParams.set('error', 'unauthorized');
-                    return NextResponse.redirect(loginUrl);
-                }
-
-                const { data: roleConfig } = await supabase
-                    .from('roles')
-                    .select('enabled')
-                    .eq('id', role)
-                    .single();
-
-                if (roleConfig && !roleConfig.enabled) {
-                    const loginUrl = new URL('/admin/login', request.url);
-                    loginUrl.searchParams.set('error', 'role_disabled');
-                    return NextResponse.redirect(loginUrl);
-                }
-
-                response.headers.set('x-user-id', user.id);
-                response.headers.set('x-user-role', role);
-
-            } catch (err) {
-                console.error('[Middleware] Auth check error:', err);
-            }
+        const verified = await verifyAdmin(token);
+        if (!verified.ok) {
+            const loginUrl = new URL('/admin/login', request.url);
+            loginUrl.searchParams.set('redirect', pathname);
+            loginUrl.searchParams.set('error', verified.expired ? 'session_expired' : 'unauthorized');
+            return NextResponse.redirect(loginUrl);
         }
+        // Disabled roles are refused by /api/admin/me, which the admin layout calls first
+        if (verified.userId) response.headers.set('x-user-id', verified.userId);
+        if (verified.role) response.headers.set('x-user-role', verified.role);
 
         return response;
     }
@@ -150,6 +118,16 @@ export async function middleware(request: NextRequest) {
     // ============================================================
     // API + static + maintenance page itself: no maintenance gating
     // ============================================================
+    // Public photos: cache for a day (never no-store, or every visit re-downloads them)
+    if (pathname.startsWith('/storage/v1/object/public/')) {
+        response.headers.set('Cache-Control', 'public, max-age=86400, immutable');
+        return response;
+    }
+    if (pathname.startsWith('/rest/') || pathname.startsWith('/auth/v1') || pathname.startsWith('/storage/')) {
+        response.headers.set('Cache-Control', 'no-store');
+        return response;
+    }
+
     if (
         pathname.startsWith('/api/') ||
         pathname.startsWith('/_next/') ||
@@ -168,7 +146,7 @@ export async function middleware(request: NextRequest) {
     // Admins/staff who logged in carry an `admin_session=1` cookie
     // (set client-side by the admin layout) and bypass the gate.
     // ============================================================
-    const inMaintenance = await isMaintenanceModeEnabled();
+    const inMaintenance = await isMaintenanceModeEnabled(request.nextUrl.origin);
     if (inMaintenance) {
         const isAdmin = request.cookies.get('admin_session')?.value === '1';
         if (!isAdmin) {

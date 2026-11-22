@@ -73,7 +73,7 @@ export default function NotificationsPage() {
             // Confirm before sending
             const smsCount = recipients.filter(r => r.phone).length;
             const emailCount = recipients.filter(r => r.email).length;
-            const summary = [];
+            const summary: string[] = [];
             if (form.channels.sms) summary.push(`${smsCount} SMS (deduplicated)`);
             if (form.channels.email) summary.push(`${emailCount} emails`);
 
@@ -130,7 +130,7 @@ export default function NotificationsPage() {
                 if (errorMatch) totalErrors += parseInt(errorMatch[1]);
             }
 
-            const resultParts = [];
+            const resultParts: string[] = [];
             if (totalEmail > 0) resultParts.push(`${totalEmail} emails`);
             if (totalSms > 0) resultParts.push(`${totalSms} SMS`);
             const errorNote = totalErrors > 0 ? ` (${totalErrors} failed)` : '';

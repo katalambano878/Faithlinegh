@@ -1,5 +1,5 @@
+import { supabaseAdmin as dbAdmin } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import {
   searchProducts,
   getProductForCart,
@@ -25,9 +25,6 @@ import { OPENROUTER_CHAT_URL, chatModel, getOpenRouterKey, openRouterHeaders } f
 
 // ─── Env ────────────────────────────────────────────────────────────────────
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -449,11 +446,7 @@ async function detectAuth(request: Request): Promise<{ userId: string | null; em
     const accessToken = typeof tokenData === 'string' ? tokenData : tokenData?.[0] || tokenData?.access_token;
     if (!accessToken) return { userId: null, email: null };
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { headers: { Authorization: `Bearer ${accessToken}` } },
-    });
-
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await dbAdmin.auth.getUser(accessToken);
     if (user) {
       return { userId: user.id, email: user.email || null };
     }
@@ -486,9 +479,7 @@ export async function POST(request: Request) {
 
     const { userId, email: userEmail } = await detectAuth(request);
 
-    const supabase = supabaseServiceKey
-      ? createClient(supabaseUrl, supabaseServiceKey)
-      : createClient(supabaseUrl, supabaseKey);
+    const supabase = dbAdmin;
 
     let profile: ChatCustomerProfile | null = null;
     if (userId) {
@@ -598,7 +589,7 @@ async function persistConversation(
   const sentiment = negCount > posCount ? 'negative' : posCount > negCount ? 'positive' : 'neutral';
 
   // Category detection
-  let category = null;
+  let category: string | null = null;
   if (/order|track|delivery|ship/i.test(lower)) category = 'order';
   else if (/product|buy|price|stock|available/i.test(lower)) category = 'product';
   else if (/return|refund|exchange/i.test(lower)) category = 'return';
@@ -608,7 +599,7 @@ async function persistConversation(
   else if (/shipping|deliver/i.test(lower)) category = 'shipping';
 
   // Intent detection
-  let intent = null;
+  let intent: string | null = null;
   if (result.products?.length > 0) intent = 'product_search';
   else if (result.orderCard) intent = 'order_tracking';
   else if (result.ticketCard) intent = 'support_ticket';

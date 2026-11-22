@@ -63,7 +63,7 @@ export async function requireScreen(
   screenKey: string,
   opts: { adminOnly?: boolean } = {}
 ): Promise<{ member: TeamMember; error?: undefined } | { error: NextResponse; member?: undefined }> {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!process.env.DATABASE_URL) {
     return { error: NextResponse.json({ error: 'Server misconfiguration' }, { status: 503 }) };
   }
   const member = await getTeamMember(request);

@@ -35,7 +35,7 @@ async function setSalesActive(active: boolean) {
 }
 
 export async function POST(request: Request) {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: 'Server misconfiguration' }, { status: 503 });
   }
   const user = await getAdminOrStaffUser(request);

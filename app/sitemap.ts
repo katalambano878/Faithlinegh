@@ -2,8 +2,6 @@ import { supabaseAdmin as dbAdmin } from '@/lib/supabase-admin';
 import { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;

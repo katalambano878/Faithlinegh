@@ -36,7 +36,7 @@ type ProductRow = {
 
 async function getProduct(slug: string): Promise<ProductRow | null> {
   try {
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return null;
+    if (!process.env.DATABASE_URL) return null;
     const { data } = await supabaseAdmin
       .from('products')
       .select(
@@ -141,7 +141,7 @@ export default async function ProductDetailPage({
     if (moved) permanentRedirect(`/product/${moved}`);
     // Links by product id are still handled by the page itself
     const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-    if (!isId && process.env.SUPABASE_SERVICE_ROLE_KEY) notFound();
+    if (!isId && process.env.DATABASE_URL) notFound();
   }
 
   let schemas: unknown[] = [];

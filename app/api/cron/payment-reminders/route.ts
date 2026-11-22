@@ -2,8 +2,6 @@ import { supabaseAdmin as dbAdmin } from '@/lib/supabase-admin';
 import { NextResponse } from 'next/server';
 import { sendPaymentLink } from '@/lib/notifications';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 // This endpoint is called by a cron job to send payment reminders
 // for orders that haven't been paid within 15 minutes

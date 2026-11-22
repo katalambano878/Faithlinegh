@@ -199,10 +199,15 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [selectedColors, setSelectedColors] = useState<{ name: string; hex: string }[]>(() => {
         const colors = new Map<string, string>();
         existingVariants.forEach((v: any) => {
-            if (v.color) {
-                const preset = colorPresets.find(c => c.name.toLowerCase() === v.color.toLowerCase());
-                colors.set(v.color, preset?.hex || '#888888');
-            }
+            if (!v.color || colors.has(v.color)) return;
+            // The shade saved with the variant wins; the preset list only covers
+            // standard names, so falling back to it would turn custom colours grey
+            // and the next save would store that grey over the real colour.
+            const saved = typeof v.metadata?.color_hex === 'string' && /^#[0-9a-f]{6}$/i.test(v.metadata.color_hex)
+                ? v.metadata.color_hex
+                : null;
+            const preset = colorPresets.find(c => c.name.toLowerCase() === v.color.toLowerCase());
+            colors.set(v.color, saved || preset?.hex || '#888888');
         });
         return Array.from(colors.entries()).map(([name, hex]) => ({ name, hex }));
     });

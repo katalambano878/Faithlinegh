@@ -32,7 +32,7 @@ export default function FAQsPage() {
     {
       category: 'orders',
       question: 'How do I track my order?',
-      answer: 'After your order ships, you\'ll receive a tracking number via email and SMS. Visit our Order Tracking page and enter your order number and email address to see real-time updates on your delivery status.'
+      answer: 'Visit our Order Tracking page and enter your order number (or tracking code) and email address to see your order status.'
     },
     {
       category: 'orders',
@@ -42,27 +42,27 @@ export default function FAQsPage() {
     {
       category: 'shipping',
       question: 'What are your delivery times?',
-      answer: 'Delivery times depend on your location. We offer nationwide delivery across Ghana. Final delivery timelines are shown at checkout and in your order updates.'
+      answer: 'Store pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.'
     },
     {
       category: 'shipping',
       question: 'How much does shipping cost?',
-      answer: 'Shipping costs vary by destination and delivery option. You will see the exact shipping fee at checkout before payment.'
+      answer: 'Store pickup is free. For delivery, the fee depends on your area: you pay for your items at checkout, and our team contacts you with the delivery fee before we send your order.'
     },
     {
       category: 'shipping',
       question: 'Where do you deliver?',
-      answer: 'We offer nationwide delivery across Ghana.'
+      answer: 'We deliver to your door in Accra, and anywhere else in Ghana through your nearest bus station (VIP, STC) or courier office. You can also collect from our store for free.'
     },
     {
       category: 'shipping',
       question: 'What if nobody is home for delivery?',
-      answer: 'Our delivery partner will attempt delivery twice. If unsuccessful, the package will be held at the nearest collection point for 5 days. You\'ll receive SMS and email notifications with collection instructions.'
+      answer: 'Our team contacts you to arrange another time. Make sure the phone number you gave at checkout is reachable.'
     },
     {
-      category: 'returns',
+      category: 'shipping',
       question: 'How fast is delivery?',
-      answer: 'Delivery speed depends on your location. We dispatch nationwide across Ghana and share estimated timing during checkout and after order confirmation.'
+      answer: 'Pickup orders are ready within 24 hours and delivery orders arrive within 48 hours.'
     },
     {
       category: 'returns',
@@ -72,12 +72,12 @@ export default function FAQsPage() {
     {
       category: 'returns',
       question: 'Who pays for return shipping?',
-      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, customers pay return shipping at our standard flat rate. Free shipping on returns for defective items.'
+      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, customers pay return shipping at our standard flat rate.'
     },
     {
       category: 'returns',
       question: 'Can I exchange an item instead of returning it?',
-      answer: 'Yes! If you need a different variant or specification, select "Exchange" when initiating your return. We\'ll send the replacement as soon as we receive your original item. Exchange shipping is FREE.'
+      answer: 'Yes! If you need a different variant or specification, select "Exchange" when initiating your return. We\'ll send the replacement as soon as we receive your original item.'
     },
     {
       category: 'payment',

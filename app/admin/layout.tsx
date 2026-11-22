@@ -249,142 +249,78 @@ export default function AdminLayout({
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">Loading Admin...</div>;
   }
 
-  const menuItems = [
+  type MenuItem = { title: string; icon: string; path: string; exact?: boolean; badge?: string; moduleId?: string; permissionKey?: string; adminOnly?: boolean };
+  const menuGroups: { heading: string; items: MenuItem[] }[] = [
     {
-      title: 'Dashboard',
-      icon: 'ri-dashboard-line',
-      path: '/admin',
-      exact: true,
-      permissionKey: 'dashboard'
+      heading: 'Daily',
+      items: [
+        { title: 'Dashboard', icon: 'ri-dashboard-line', path: '/admin', exact: true, permissionKey: 'dashboard' },
+        { title: 'Orders', icon: 'ri-shopping-bag-line', path: '/admin/orders', badge: '', permissionKey: 'orders' },
+        { title: 'Buy SMS', icon: 'ri-message-3-line', path: '/admin/sms-credit', permissionKey: 'sms_credit' },
+        { title: 'POS System', icon: 'ri-store-3-line', path: '/admin/pos', permissionKey: 'pos' },
+        { title: 'Live shoppers', icon: 'ri-pulse-line', path: '/admin/live', permissionKey: 'live' },
+        { title: 'End of Day', icon: 'ri-calendar-check-line', path: '/admin/end-of-day', permissionKey: 'end_of_day' },
+      ],
     },
     {
-      title: 'Orders',
-      icon: 'ri-shopping-bag-line',
-      path: '/admin/orders',
-      badge: '',
-      permissionKey: 'orders'
+      heading: 'Catalogue',
+      items: [
+        { title: 'Products', icon: 'ri-box-3-line', path: '/admin/products', permissionKey: 'products' },
+        { title: 'Sales', icon: 'ri-price-tag-3-line', path: '/admin/sales', permissionKey: 'products' },
+        { title: 'Categories', icon: 'ri-folder-line', path: '/admin/categories', permissionKey: 'categories' },
+        { title: 'Inventory', icon: 'ri-stack-line', path: '/admin/inventory', permissionKey: 'inventory' },
+        { title: 'Reviews', icon: 'ri-chat-smile-2-line', path: '/admin/reviews', permissionKey: 'reviews' },
+      ],
     },
     {
-      title: 'POS System',
-      icon: 'ri-store-3-line',
-      path: '/admin/pos',
-      permissionKey: 'pos'
+      heading: 'Money & reports',
+      items: [
+        { title: 'Products sold', icon: 'ri-shopping-basket-line', path: '/admin/sold', permissionKey: 'sold' },
+        { title: 'Expenses', icon: 'ri-file-list-2-line', path: '/admin/expenses', permissionKey: 'expenses' },
+        { title: 'Profit margins', icon: 'ri-scales-3-line', path: '/admin/profit', adminOnly: true },
+        { title: 'Analytics', icon: 'ri-bar-chart-line', path: '/admin/analytics', permissionKey: 'analytics' },
+      ],
     },
     {
-      title: 'Products',
-      icon: 'ri-box-3-line',
-      path: '/admin/products',
-      permissionKey: 'products'
+      heading: 'Customers & marketing',
+      items: [
+        { title: 'Customers', icon: 'ri-group-line', path: '/admin/customers', permissionKey: 'customers' },
+        { title: 'Coupons', icon: 'ri-coupon-2-line', path: '/admin/coupons', permissionKey: 'coupons' },
+        { title: 'Customer Insights', icon: 'ri-user-search-line', path: '/admin/customer-insights', moduleId: 'customer-insights', permissionKey: 'customer_insights' },
+        { title: 'Notifications', icon: 'ri-notification-3-line', path: '/admin/notifications', moduleId: 'notifications', permissionKey: 'notifications' },
+        { title: 'Support Hub', icon: 'ri-customer-service-2-line', path: '/admin/support', permissionKey: 'support' },
+        { title: 'Blog', icon: 'ri-article-line', path: '/admin/blog', moduleId: 'blog', permissionKey: 'blog' },
+      ],
     },
     {
-      title: 'Sales',
-      icon: 'ri-price-tag-3-line',
-      path: '/admin/sales',
-      permissionKey: 'products'
+      heading: 'Delivery',
+      items: [
+        { title: 'Delivery Hub', icon: 'ri-truck-line', path: '/admin/delivery', permissionKey: 'delivery' },
+      ],
     },
     {
-      title: 'Categories',
-      icon: 'ri-folder-line',
-      path: '/admin/categories',
-      permissionKey: 'categories'
-    },
-    {
-      title: 'Customers',
-      icon: 'ri-group-line',
-      path: '/admin/customers',
-      permissionKey: 'customers'
-    },
-    {
-      title: 'Reviews',
-      icon: 'ri-chat-smile-2-line',
-      path: '/admin/reviews',
-      permissionKey: 'reviews'
-    },
-    {
-      title: 'Inventory',
-      icon: 'ri-stack-line',
-      path: '/admin/inventory',
-      permissionKey: 'inventory'
-    },
-    {
-      title: 'Analytics',
-      icon: 'ri-bar-chart-line',
-      path: '/admin/analytics',
-      permissionKey: 'analytics'
-    },
-    {
-      title: 'Coupons',
-      icon: 'ri-coupon-2-line',
-      path: '/admin/coupons',
-      permissionKey: 'coupons'
-    },
-    {
-      title: 'Support Hub',
-      icon: 'ri-customer-service-2-line',
-      path: '/admin/support',
-      permissionKey: 'support'
-    },
-    {
-      title: 'Customer Insights',
-      icon: 'ri-user-search-line',
-      path: '/admin/customer-insights',
-      moduleId: 'customer-insights',
-      permissionKey: 'customer_insights'
-    },
-    {
-      title: 'Notifications',
-      icon: 'ri-notification-3-line',
-      path: '/admin/notifications',
-      moduleId: 'notifications',
-      permissionKey: 'notifications'
-    },
-    {
-      title: 'SMS Debugger',
-      icon: 'ri-message-2-line',
-      path: '/admin/test-sms',
-      permissionKey: 'sms_debugger'
-    },
-    {
-      title: 'Blog',
-      icon: 'ri-article-line',
-      path: '/admin/blog',
-      moduleId: 'blog',
-      permissionKey: 'blog'
-    },
-    {
-      title: 'Delivery Hub',
-      icon: 'ri-truck-line',
-      path: '/admin/delivery',
-      permissionKey: 'delivery'
-    },
-    {
-      title: 'Modules',
-      icon: 'ri-puzzle-line',
-      path: '/admin/modules',
-      permissionKey: 'modules'
-    },
-    {
-      title: 'Staff',
-      icon: 'ri-team-line',
-      path: '/admin/staff',
-      permissionKey: 'staff'
-    },
-    {
-      title: 'Roles',
-      icon: 'ri-shield-user-line',
-      path: '/admin/roles',
-      permissionKey: 'roles'
+      heading: 'Settings',
+      items: [
+        { title: 'Staff', icon: 'ri-team-line', path: '/admin/staff', permissionKey: 'staff' },
+        { title: 'Roles', icon: 'ri-shield-user-line', path: '/admin/roles', permissionKey: 'roles' },
+        { title: 'Modules', icon: 'ri-puzzle-line', path: '/admin/modules', permissionKey: 'modules' },
+        { title: 'SMS Debugger', icon: 'ri-message-2-line', path: '/admin/test-sms', permissionKey: 'sms_debugger' },
+      ],
     },
   ];
 
-  const visibleMenuItems = menuItems.filter(item => {
+  const canSee = (item: MenuItem) => {
     if (item.moduleId && !enabledModules.includes(item.moduleId)) return false;
     if (userRole === 'admin') return true;
+    if (item.adminOnly) return false;
     if (item.permissionKey && Object.keys(rolePermissions).length > 0) {
       return rolePermissions[item.permissionKey] === true;
     }
     return true;
-  });
+  };
+  const visibleMenuGroups = menuGroups
+    .map(group => ({ ...group, items: group.items.filter(canSee) }))
+    .filter(group => group.items.length > 0);
 
   // Special layout for Login Page
   if (pathname === '/admin/login') {
@@ -424,35 +360,43 @@ export default function AdminLayout({
       >
         <div className="h-full px-4 py-6 overflow-y-auto">
           <Link href="/admin" className="flex items-center gap-2 mb-8 px-2 cursor-pointer">
-            <img src="/logo.png" alt="Faithlinegh" className="h-10 w-auto object-contain" />
-            <span className="text-xs font-bold uppercase tracking-wider text-gray-500">Admin</span>
+            <img src="/logo.png" alt="Faithlinegh" className="h-8 w-auto max-w-[150px] object-contain" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500 shrink-0">Admin</span>
           </Link>
 
-          <nav className="space-y-1">
-            {visibleMenuItems.map((item) => {
-              const isActive = item.exact ? pathname === item.path : pathname.startsWith(item.path);
-              return (
-                <Link
-                  key={item.path}
-                  href={item.path}
-                  onClick={() => window.innerWidth < 1024 && setIsSidebarOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-lg transition-colors cursor-pointer ${isActive
-                    ? 'bg-gray-50 text-gray-900 font-semibold'
-                    : 'text-gray-700 hover:bg-gray-50'
-                    }`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <i className={`${item.icon} text-xl w-5 h-5 flex items-center justify-center`}></i>
-                    <span>{item.title}</span>
-                  </div>
-                  {item.badge && (
-                    <span className="bg-red-100 text-brand-brown text-xs font-bold px-2 py-1 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
+          <nav aria-label="Admin" className="space-y-6">
+            {visibleMenuGroups.map((group) => (
+              <div key={group.heading}>
+                <p className="px-4 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">{group.heading}</p>
+                <div className="space-y-0.5">
+                  {group.items.map((item) => {
+                    const isActive = item.exact ? pathname === item.path : pathname.startsWith(item.path);
+                    return (
+                      <Link
+                        key={item.path}
+                        href={item.path}
+                        aria-current={isActive ? 'page' : undefined}
+                        onClick={() => window.innerWidth < 1024 && setIsSidebarOpen(false)}
+                        className={`flex items-center justify-between px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${isActive
+                          ? 'bg-gray-50 text-gray-900 font-semibold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <i className={`${item.icon} text-xl w-5 h-5 flex items-center justify-center`}></i>
+                          <span>{item.title}</span>
+                        </div>
+                        {item.badge && (
+                          <span className="bg-red-100 text-brand-brown text-xs font-bold px-2 py-1 rounded-full">
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
           <div className="mt-8 pt-8 border-t border-gray-200 space-y-1">

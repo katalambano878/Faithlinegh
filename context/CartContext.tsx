@@ -10,6 +10,8 @@ export type CartItem = {
     image: string;
     quantity: number;
     variant?: string;
+    /** product_variants.id of the chosen option (lets checkout price and stock it exactly) */
+    variantId?: string | null;
     slug: string;
     maxStock: number;
     moq?: number; // Minimum Order Quantity
@@ -96,23 +98,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 (item) => item.id === newItem.id && item.variant === newItem.variant
             );
 
+            const minQty = newItem.moq || 1;
             if (existingItemIndex > -1) {
                 const newCart = [...prevCart];
                 const existingItem = newCart[existingItemIndex];
                 // Ensure we don't exceed max stock
                 const newQuantity = Math.min(
                     existingItem.quantity + newItem.quantity,
-                    existingItem.maxStock
+                    newItem.maxStock || existingItem.maxStock
                 );
                 newCart[existingItemIndex] = {
                     ...existingItem,
                     quantity: newQuantity,
                     // Refresh bundle tiers in case the admin updated them
                     bundlePricing: newItem.bundlePricing ?? existingItem.bundlePricing,
+                    variantId: newItem.variantId ?? existingItem.variantId,
+                    maxStock: newItem.maxStock || existingItem.maxStock,
                 };
                 return newCart;
             } else {
-                return [...prevCart, newItem];
+                const cap = newItem.maxStock > 0 ? newItem.maxStock : newItem.quantity;
+                return [...prevCart, { ...newItem, quantity: Math.min(Math.max(newItem.quantity, minQty), cap) }];
             }
         });
 

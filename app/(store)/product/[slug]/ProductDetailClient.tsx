@@ -158,8 +158,10 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         setSelectedSize('');
         setManualImage(false);
         setNudge(false);
+        const vStock = (v: any) => v.stock ?? v.quantity ?? 0;
+        const perVariantStock = transformedProduct.variants.some((v: any) => vStock(v) > 0);
         const firstInStockColor = (transformedProduct.colors as string[]).find((color) =>
-          transformedProduct.variants.some((v: any) => v.color === color && ((v.stock ?? v.quantity ?? 0) > 0 || (transformedProduct.stockCount ?? 0) > 0))
+          transformedProduct.variants.some((v: any) => v.color === color && (perVariantStock ? vStock(v) > 0 : (transformedProduct.stockCount ?? 0) > 0))
         );
         const initialColor = firstInStockColor || '';
         setSelectedColor(initialColor);
@@ -229,7 +231,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const needsColorSelection = hasColors && !selectedColor;
 
   // Determine the active price: variant price if selected, otherwise base price
-  const activePrice = selectedVariant?.price ?? product?.price ?? 0;
+  // A variant saved without its own price (0/blank) sells at the product price
+  const activePrice = Number(selectedVariant?.price) > 0 ? Number(selectedVariant.price) : (product?.price ?? 0);
   const activeStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
 
   // Bundle pricing (e.g. 1 for ₵90, 3 for ₵255, 5 for ₵410)
@@ -261,6 +264,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
       image: selectedVariant?.image_url || product.images[0],
       quantity: quantity,
       variant: variantLabel,
+      variantId: selectedVariant?.id ?? null,
       slug: product.slug,
       maxStock: activeStock,
       moq: product.moq || 1,
@@ -301,7 +305,10 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const priceVaries = hasVariants && !selectedVariant && minVariantPrice !== maxVariantPrice;
 
   const variantStock = (v: any) => v.stock ?? v.quantity ?? 0;
-  const isVariantOut = (v: any) => variantStock(v) === 0 && (product.stockCount ?? 0) === 0;
+  // When any variant carries stock, stock is tracked per variant and a 0 means sold out.
+  // Otherwise (legacy products) only the product-level stock counts.
+  const variantsTrackStock = (product.variants || []).some((v: any) => variantStock(v) > 0);
+  const isVariantOut = (v: any) => variantsTrackStock ? variantStock(v) === 0 : (product.stockCount ?? 0) === 0;
   const colorVariants = (color: string) => product.variants.filter((v: any) => v.color === color);
   const isColorOut = (color: string) => colorVariants(color).every(isVariantOut);
   const colorImage = (color: string) => colorVariants(color).find((v: any) => v.image_url)?.image_url as string | undefined;
@@ -354,6 +361,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const pickVariant = (variant: any) => {
     setSelectedVariant(variant);
     setSelectedSize(variant.name);
+    const stockForVariant = variantStock(variant);
+    if (variantsTrackStock && stockForVariant > 0) setQuantity(q => Math.min(q, Math.max(stockForVariant, product.moq || 1)));
     setManualImage(false);
     setNudge(false);
   };

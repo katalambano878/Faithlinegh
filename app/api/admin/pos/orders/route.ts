@@ -89,6 +89,7 @@ export async function POST(request: Request) {
       metadata,
       items,
       mark_paid,
+      customer_name,
     } = body;
 
     if (!order_number || total == null || !Array.isArray(items) || items.length === 0) {
@@ -130,6 +131,7 @@ export async function POST(request: Request) {
       order_id: order.id,
       product_id: item.product_id,
       product_name: item.product_name,
+      variant_id: typeof item.variant_id === 'string' && item.variant_id ? item.variant_id : null,
       variant_name: item.variant_name || null,
       quantity: item.quantity,
       unit_price: Number(item.unit_price) || 0,
@@ -145,10 +147,11 @@ export async function POST(request: Request) {
 
     if (mark_paid && (payment_status === 'paid' || payment_method === 'cash' || payment_method === 'card')) {
       try {
-        await supabaseAdmin.rpc('mark_order_paid', {
+        const { error: paidError } = await supabaseAdmin.rpc('mark_order_paid', {
           order_ref: order_number,
           moolre_ref: `POS-${(payment_method || 'cash').toUpperCase()}-${Date.now()}`,
         });
+        if (paidError) console.error('mark_order_paid error:', paidError.message);
         const fulfilledStatus = shipping_method === 'pickup' ? 'delivered' : 'processing';
         await supabaseAdmin
           .from('orders')
@@ -157,6 +160,23 @@ export async function POST(request: Request) {
       } catch (e) {
         console.error('mark_order_paid error:', e);
       }
+    }
+
+    // Customer record (walk-ins without email are keyed by phone)
+    const realEmail = email && email !== 'pos-walkin@store.local' ? String(email) : null;
+    const upsertEmail = realEmail || (phone ? `${String(phone).replace(/[^0-9]/g, '')}@pos.local` : null);
+    if (upsertEmail) {
+      const addr = shipping_address || {};
+      const { error: custError } = await supabaseAdmin.rpc('upsert_customer_from_order', {
+        p_email: upsertEmail,
+        p_phone: phone || null,
+        p_full_name: customer_name || null,
+        p_first_name: addr.firstName || null,
+        p_last_name: addr.lastName || null,
+        p_user_id: null,
+        p_address: addr,
+      });
+      if (custError) console.error('POS customer upsert error:', custError.message);
     }
 
     return NextResponse.json({ order });

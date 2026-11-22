@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import CartCountdown from '@/components/CartCountdown';
 import CouponInput from '@/components/CouponInput';
 import { useCart } from '@/context/CartContext';
 import PageHero from '@/components/PageHero';
@@ -44,16 +43,14 @@ export default function CartPage() {
   const savings = 0;
 
   const couponDiscount = computeCouponDiscount(appliedCoupon, subtotal);
-  const shipping = subtotal >= 200 ? 0 : 15;
-  const total = Math.max(subtotal - couponDiscount + shipping, 0);
+  // Delivery is priced per order after checkout (pickup is free), so it isn't added here
+  const total = Math.max(subtotal - couponDiscount, 0);
 
   return (
     <div className="min-h-screen bg-white">
       <PageHero title="Shopping Cart" />
       <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        <CartCountdown />
-        {/* <FreeShippingBar currentAmount={subtotal} threshold={200} /> */}
 
         {cartItems.length === 0 && savedItems.length === 0 ? (
           <section className="py-20">
@@ -103,8 +100,6 @@ export default function CartPage() {
 
                             <div className="text-sm text-gray-600 mb-3 space-y-1">
                               {item.variant && <p>Variant: {item.variant}</p>}
-                              {/* Stock status assuming always available if in cart for now */}
-                              <p className="text-gray-700 font-medium">In Stock</p>
                             </div>
 
                             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -126,13 +121,11 @@ export default function CartPage() {
                                         <i className="ri-subtract-line"></i>
                                       )}
                                     </button>
-                                    <input
-                                      type="number"
+                                    <QuantityInput
                                       value={item.quantity}
-                                      onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || (item.moq || 1), item.variant)}
-                                      className="w-12 h-10 text-center border-x-2 border-gray-300 focus:outline-none font-semibold"
                                       min={item.moq || 1}
                                       max={item.maxStock}
+                                      onCommit={(q) => updateQuantity(item.id, q, item.variant)}
                                     />
                                     <button
                                       onClick={() => updateQuantity(item.id, item.quantity + 1, item.variant)}
@@ -213,16 +206,10 @@ export default function CartPage() {
                         </div>
                       )}
 
-                      <div className="flex justify-between text-gray-700">
-                        <span>Shipping</span>
-                        <span className="font-semibold">{shipping === 0 ? 'FREE' : `₵${shipping.toFixed(2)}`}</span>
+                      <div className="flex justify-between text-gray-700 gap-4">
+                        <span>Delivery</span>
+                        <span className="text-sm text-right">{appliedCoupon?.type === 'free_shipping' ? 'Free' : 'Pickup is free. Delivery fee confirmed after you order'}</span>
                       </div>
-
-                      {shipping > 0 && (
-                        <p className="text-sm text-[#5B4436]">
-                          {/* Shipping threshold text removed */}
-                        </p>
-                      )}
                     </div>
 
                     <div className="border-t border-gray-200 pt-4 mb-6">
@@ -260,11 +247,7 @@ export default function CartPage() {
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <i className="ri-truck-line text-gray-900 mr-2"></i>
-                        <span>Estimated delivery shown at checkout</span>
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <i className="ri-customer-service-line text-gray-900 mr-2"></i>
-                        <span>24/7 support</span>
+                        <span>Delivered within 48 hours, or collect from the store</span>
                       </div>
                     </div>
                   </div>
@@ -275,5 +258,32 @@ export default function CartPage() {
         )}
       </div>
     </div>
+  );
+}
+
+/** Lets the shopper type a number freely; the cart updates when they leave the box or press Enter. */
+function QuantityInput({ value, min, max, onCommit }: { value: number; min: number; max?: number; onCommit: (q: number) => void }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => { setDraft(String(value)); }, [value]);
+  const commit = () => {
+    let q = parseInt(draft, 10);
+    if (Number.isNaN(q) || q < min) q = min;
+    if (max && max > 0 && q > max) q = max;
+    setDraft(String(q));
+    if (q !== value) onCommit(q);
+  };
+  return (
+    <input
+      type="number"
+      inputMode="numeric"
+      aria-label="Quantity"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
+      className="w-12 h-10 text-center border-x-2 border-gray-300 focus:outline-none font-semibold"
+      min={min}
+      max={max}
+    />
   );
 }

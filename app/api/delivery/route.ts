@@ -97,6 +97,8 @@ export async function GET(req: NextRequest) {
                 .from('orders')
                 .select('id, order_number, email, phone, shipping_address, shipping_method, total, status, created_at')
                 .in('status', ['processing', 'shipped', 'dispatched_to_rider'])
+                // Store pickups never go to a rider
+                .or('shipping_method.is.null,shipping_method.neq.pickup')
                 .order('created_at', { ascending: true });
 
             if (excludeIds.length > 0) {

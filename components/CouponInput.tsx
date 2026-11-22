@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import {
   AppliedCoupon,
   computeCouponDiscount,
@@ -16,7 +15,7 @@ interface CouponInputProps {
   onRemove: () => void;
 }
 
-/** Coupon code entry validated against the live coupons table. */
+/** Coupon code entry, checked by the server against the live coupons table. */
 export default function CouponInput({ subtotal, appliedCoupon, onApply, onRemove }: CouponInputProps) {
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
@@ -29,54 +28,17 @@ export default function CouponInput({ subtotal, appliedCoupon, onApply, onRemove
     setError('');
 
     try {
-      const { data: coupon, error: fetchError } = await supabase
-        .from('coupons')
-        .select('code, description, type, value, minimum_purchase, maximum_discount, usage_limit, usage_count, start_date, end_date, is_active')
-        .ilike('code', trimmed)
-        .maybeSingle();
-
-      if (fetchError) throw fetchError;
-
-      if (!coupon) {
-        setError('Invalid coupon code');
+      const res = await fetch('/api/storefront/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: trimmed, subtotal }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.coupon) {
+        setError(json.error || 'That coupon code isn’t valid.');
         return;
       }
-      if (!coupon.is_active) {
-        setError('This coupon is no longer active');
-        return;
-      }
-      const now = new Date();
-      if (coupon.start_date && new Date(coupon.start_date) > now) {
-        setError('This coupon is not active yet');
-        return;
-      }
-      if (coupon.end_date && new Date(coupon.end_date) < now) {
-        setError('This coupon has expired');
-        return;
-      }
-      if (coupon.usage_limit != null && (coupon.usage_count || 0) >= coupon.usage_limit) {
-        setError('This coupon has reached its usage limit');
-        return;
-      }
-      const minPurchase = Number(coupon.minimum_purchase) || 0;
-      if (minPurchase > 0 && subtotal < minPurchase) {
-        setError(`Minimum purchase of ₵${minPurchase.toFixed(2)} required (add ₵${(minPurchase - subtotal).toFixed(2)} more)`);
-        return;
-      }
-
-      const applied: AppliedCoupon = {
-        code: coupon.code,
-        description: coupon.description || '',
-        type: coupon.type,
-        value: Number(coupon.value) || 0,
-        minPurchase,
-        maxDiscount: coupon.maximum_discount != null ? Number(coupon.maximum_discount) : null,
-      };
-
-      if (applied.type !== 'free_shipping' && computeCouponDiscount(applied, subtotal) <= 0) {
-        setError('This coupon gives no discount on your current order');
-        return;
-      }
+      const applied: AppliedCoupon = json.coupon;
 
       saveStoredCoupon(applied);
       onApply(applied);

@@ -80,6 +80,9 @@ export async function GET(
       return NextResponse.json({ error: error?.message || 'Product not found' }, { status: 404 });
     }
 
+    if (Array.isArray(data.product_variants)) {
+      data.product_variants.sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
     return NextResponse.json({ product: data });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Failed to fetch product' }, { status: 500 });
@@ -88,7 +91,7 @@ export async function GET(
 
 /**
  * PUT /api/admin/products/[id]
- * Updates a product + replaces its variants using the service role (bypasses RLS).
+ * Updates a product and syncs its variants in place using the service role (bypasses RLS).
  * Handles duplicate slug by appending a numeric suffix.
  */
 export async function PUT(
@@ -124,6 +127,18 @@ export async function PUT(
     }
     productData.slug = slugCandidate;
 
+    // Keep metadata keys this form doesn't edit (merge, don't replace)
+    const { data: current } = await supabaseAdmin
+      .from('products').select('metadata').eq('id', productId).single();
+    if (productData.metadata && typeof productData.metadata === 'object') {
+      productData.metadata = { ...(current?.metadata || {}), ...productData.metadata };
+    }
+    if (productData.price !== undefined) {
+      const cmp = Number(productData.compare_at_price);
+      productData.on_sale = cmp > 0 && cmp > Number(productData.price);
+    }
+    productData.updated_at = new Date().toISOString();
+
     const { error: updateError } = await supabaseAdmin
       .from('products')
       .update(productData)
@@ -133,30 +148,62 @@ export async function PUT(
       return NextResponse.json({ error: updateError.message }, { status: 500 });
     }
 
-    // Replace variants
-    await supabaseAdmin.from('product_variants').delete().eq('product_id', productId);
+    // Variants: update rows in place (keeps their ids, so carts, orders and
+    // WhatsApp drafts that point at them stay valid), add new ones, remove
+    // the ones taken out of the form.
+    const { data: existingRows, error: existingError } = await supabaseAdmin
+      .from('product_variants').select('id, name, option2, metadata').eq('product_id', productId);
+    if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+    const existing = existingRows || [];
+    const keyOf = (color: string | null | undefined, size: string | null | undefined) =>
+      `${(color || '').trim().toLowerCase()}|||${(size || '').trim().toLowerCase()}`;
+    const byId = new Map(existing.map((r: any) => [r.id, r]));
+    const byKey = new Map(existing.map((r: any) => {
+      const size = r.name && r.name !== r.option2 ? r.name : '';
+      return [keyOf(r.option2, size), r];
+    }));
+    const kept = new Set<string>();
+    const inserts: any[] = [];
 
-    if (variants.length > 0) {
-      const variantInserts = variants.map((v: any, idx: number) => ({
-        product_id: productId,
-        name: v.name || v.color || 'Default',
+    for (let idx = 0; idx < variants.length; idx++) {
+      const v = variants[idx];
+      const color = v.color?.trim() || null;
+      const size = (v.name || '').trim() || null;
+      const match: any = (v.id && byId.get(v.id)) || byKey.get(keyOf(color, size));
+      const row = {
+        name: size || color || 'Default',
         sku: v.sku || null,
         price: parseFloat(v.price) || 0,
-        quantity: parseInt(v.stock) || 0,
-        option1: v.name || null,
-        option2: v.color?.trim() || null,
+        quantity: Math.max(0, parseInt(v.stock) || 0),
+        option1: size,
+        option2: color,
         image_url: v.image_url?.trim() || null,
         sort_order: v.sort_order ?? idx,
-        metadata: v.colorHex ? { color_hex: v.colorHex } : {},
-      }));
-      // Insert in chunks of 100 to avoid payload limits
-      const CHUNK = 100;
-      for (let i = 0; i < variantInserts.length; i += CHUNK) {
-        const chunk = variantInserts.slice(i, i + CHUNK);
-        const { error: varError } = await supabaseAdmin.from('product_variants').insert(chunk);
-        if (varError) {
-          return NextResponse.json({ error: varError.message }, { status: 500 });
-        }
+        metadata: { ...((match?.metadata as object) || {}), ...(v.colorHex ? { color_hex: v.colorHex } : {}) },
+      };
+      if (match && !kept.has(match.id)) {
+        kept.add(match.id);
+        const { error } = await supabaseAdmin.from('product_variants')
+          .update({ ...row, updated_at: new Date().toISOString() }).eq('id', match.id);
+        if (error) return NextResponse.json({ error: `Could not save ${row.name}: ${error.message}` }, { status: 500 });
+      } else {
+        inserts.push({ product_id: productId, ...row });
+      }
+    }
+
+    for (let i = 0; i < inserts.length; i += 100) {
+      const { error } = await supabaseAdmin.from('product_variants').insert(inserts.slice(i, i + 100));
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    const removed = existing.filter((r: any) => !kept.has(r.id)).map((r: any) => r.id);
+    if (removed.length) {
+      await supabaseAdmin.from('cart_items').delete().in('variant_id', removed);
+      const { error } = await supabaseAdmin.from('product_variants').delete().in('id', removed);
+      if (error) {
+        // An old order still points at it: keep the row but take it off sale
+        await supabaseAdmin.from('product_variants').update({ quantity: 0 }).in('id', removed);
+        console.warn('[admin products] variant kept for order history:', error.message);
       }
     }
 

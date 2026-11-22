@@ -135,6 +135,10 @@ export async function POST(request: Request) {
       slugCandidate = `${slug}-${attempt}`;
     }
     productData.slug = slugCandidate;
+    {
+      const cmp = Number(productData.compare_at_price);
+      productData.on_sale = cmp > 0 && cmp > Number(productData.price);
+    }
 
     const { data: newProduct, error: insertError } = await supabaseAdmin
       .from('products')
@@ -153,7 +157,7 @@ export async function POST(request: Request) {
         name: v.name || v.color || 'Default',
         sku: v.sku || null,
         price: parseFloat(v.price) || 0,
-        quantity: parseInt(v.stock) || 0,
+        quantity: Math.max(0, parseInt(v.stock) || 0),
         option1: v.name || null,
         option2: v.color?.trim() || null,
         image_url: v.image_url?.trim() || null,

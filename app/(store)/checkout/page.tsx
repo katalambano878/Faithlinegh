@@ -64,6 +64,18 @@ export default function CheckoutPage() {
   const [summaryOpen, setSummaryOpen] = useState(false);
   const [couponOpen, setCouponOpen] = useState(false);
   const [formError, setFormError] = useState('');
+  const [pendingOrder, setPendingOrder] = useState<{ orderNumber: string; total: number } | null>(null);
+
+  // An order placed in the last day but not yet paid (customer left Moolre)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('fl_pending_order');
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      if (p?.orderNumber && Date.now() - (p.at || 0) < 24 * 60 * 60 * 1000) setPendingOrder({ orderNumber: p.orderNumber, total: Number(p.total) || 0 });
+      else localStorage.removeItem('fl_pending_order');
+    } catch { /* ignore */ }
+  }, []);
 
   const [contact, setContact] = useState({ phone: '', fullName: '', email: '' });
   const [address, setAddress] = useState({ region: OTHER_REGIONS[0], area: '', street: '', gps: '' });
@@ -162,174 +174,62 @@ export default function CheckoutPage() {
       return;
     }
 
-    const phone = normalizeGhanaPhone(contact.phone) as string;
-    const nameParts = contact.fullName.trim().split(/\s+/);
-    const firstName = nameParts[0];
-    const lastName = nameParts.slice(1).join(' ');
-    const email = contact.email.trim();
-    const region = deliveryMethod === 'doorstep' ? 'Greater Accra' : deliveryMethod === 'outside_accra' ? address.region : '';
-    const shippingData = {
-      firstName,
-      lastName,
-      email,
-      phone,
-      address: needsAddress ? address.street.trim() : 'Store pickup',
-      city: needsAddress ? address.area.trim() : '',
-      region,
-      gpsAddress: needsAddress ? address.gps.trim() : '',
-      country: 'Ghana',
-    };
-
     try {
-      const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      // Tracking number: FL-XXXXXX (6-char alphanumeric; older orders use SLI-)
-      const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-      const trackingNumber = `FL-${trackingId}`;
-
-      // 1. Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          order_number: orderNumber,
-          user_id: user?.id || null,
-          email,
-          phone,
-          status: 'pending',
-          payment_status: 'pending',
-          currency: 'GHS',
-          subtotal,
-          tax_total: tax,
-          shipping_total: shippingCost,
-          discount_total: bundleSavings + couponDiscount,
-          total,
-          shipping_method: deliveryMethod,
-          payment_method: 'moolre',
-          shipping_address: shippingData,
-          billing_address: shippingData,
-          metadata: {
-            guest_checkout: !user,
-            first_name: firstName,
-            last_name: lastName,
-            tracking_number: trackingNumber,
-            payment_channel: paymentChannel,
-            delivery_fee_pending: !feeKnown,
-            ...(appliedCoupon ? {
-              coupon_code: appliedCoupon.code,
-              coupon_discount: couponDiscount,
-            } : {})
-          }
-        }])
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // 2. Order items (resolve legacy slug ids to UUIDs)
-      const isValidUUID = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
-      const orderItems = [];
-      const productIds = cart.map(item => item.id).filter(id => isValidUUID(id));
-      const { data: productsData } = productIds.length > 0
-        ? await supabase.from('products').select('id, metadata').in('id', productIds)
-        : { data: [] };
-      const productMetaMap = new Map((productsData || []).map((p: any) => [p.id, p.metadata]));
-
-      for (const item of cart) {
-        let productId = item.id;
-        if (!isValidUUID(productId)) {
-          const { data: product } = await supabase
-            .from('products')
-            .select('id, metadata')
-            .or(`slug.eq.${productId},id.eq.${productId}`)
-            .single();
-          if (product) {
-            productId = product.id;
-            productMetaMap.set(product.id, product.metadata);
-          } else {
-            throw new Error(`We couldn't find ${item.name}. Remove it from your bag and try again.`);
-          }
-        }
-        const prodMeta = productMetaMap.get(productId);
-        orderItems.push({
-          order_id: order.id,
-          product_id: productId,
-          product_name: item.name,
-          variant_name: item.variant,
-          quantity: item.quantity,
-          unit_price: item.price,
-          total_price: item.price * item.quantity,
-          metadata: {
-            image: item.image,
-            slug: item.slug,
-            preorder_shipping: prodMeta?.preorder_shipping || null
-          }
-        });
-      }
-
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) throw itemsError;
-
-      // Count the coupon usage (best-effort, server verifies against the order)
-      if (appliedCoupon && couponDiscount > 0) {
-        fetch('/api/storefront/coupons/redeem', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: appliedCoupon.code, orderNumber })
-        }).catch(err => console.error('Coupon redeem error:', err));
-      }
-
-      // Stock is reduced in mark_order_paid once payment is confirmed.
-
-      // 3. Customer record (guests and account holders)
-      const fullName = contact.fullName.trim();
-      await supabase.rpc('upsert_customer_from_order', {
-        p_email: email,
-        p_phone: phone,
-        p_full_name: fullName,
-        p_first_name: firstName,
-        p_last_name: lastName,
-        p_user_id: user?.id || null,
-        p_address: shippingData
-      });
-
-      if (user?.id && saveAddress && needsAddress) {
-        try {
-          await supabase.from('addresses').insert({
-            user_id: user.id,
-            type: 'shipping',
-            label: 'Home',
-            full_name: fullName,
-            phone,
-            address_line1: shippingData.address,
-            city: shippingData.city,
-            state: shippingData.region,
-            country: 'Ghana',
-          });
-        } catch (addrErr) {
-          console.warn('Could not save address:', addrErr);
-        }
-      }
-
-      // 4. Hand off to Moolre (Mobile Money or card)
-      const paymentRes = await fetch('/api/payment/moolre', {
+      // The server prices the bag from the database and saves the order;
+      // we only send what the customer chose.
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('/api/storefront/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderNumber, amount: total, customerEmail: email })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
+        },
+        body: JSON.stringify({
+          items: cart.map(item => ({
+            productId: item.id,
+            variantId: item.variantId ?? null,
+            variantLabel: item.variant ?? null,
+            quantity: item.quantity,
+          })),
+          contact,
+          delivery: { method: deliveryMethod, region: address.region, area: address.area, street: address.street, gps: address.gps },
+          paymentChannel,
+          couponCode: appliedCoupon?.code ?? null,
+          saveAddress,
+        }),
       });
-      const paymentResult = await paymentRes.json();
-      if (!paymentResult.success) {
-        // The order is saved; send the shopper to its pay page to retry there
-        clearCart();
-        clearStoredCoupon();
-        router.push(`/pay/${encodeURIComponent(orderNumber)}`);
+      const result = await res.json().catch(() => ({}));
+      if (!res.ok || !result.orderNumber) {
+        if (result.fieldErrors) setErrors(result.fieldErrors);
+        setFormError(result.error || 'We couldn’t place your order. Please try again.');
+        setIsLoading(false);
         return;
       }
 
+      const orderNumber: string = result.orderNumber;
+      // Lets the customer get back to this order if they leave the payment page
+      try {
+        localStorage.setItem('fl_pending_order', JSON.stringify({ orderNumber, accessToken: result.accessToken, total: result.total, at: Date.now() }));
+      } catch { /* storage unavailable */ }
       clearCart();
       clearStoredCoupon();
+
+      // Hand off to Moolre (Mobile Money or card)
+      const paymentRes = await fetch('/api/payment/moolre', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderNumber }),
+      });
+      const paymentResult = await paymentRes.json().catch(() => ({}));
+      if (!paymentResult.success || !paymentResult.url) {
+        // The order is saved; its pay page lets the customer try again
+        router.push(`/pay/${encodeURIComponent(orderNumber)}`);
+        return;
+      }
       window.location.href = paymentResult.url;
     } catch (err: any) {
       console.error('Checkout error:', err);
-      setFormError(err?.message ? `We couldn't place your order: ${err.message}` : 'We couldn’t place your order. Please try again.');
+      setFormError('We couldn’t place your order. Check your connection and try again.');
       setIsLoading(false);
     }
   };
@@ -340,7 +240,16 @@ export default function CheckoutPage() {
         <div className="max-w-sm text-center flex flex-col items-center gap-3">
           <i className="ri-shopping-bag-3-line text-5xl text-[#C9BEB1]"></i>
           <h1 className="font-serif font-medium text-3xl">Your bag is empty</h1>
-          <p className="text-[#4E423A]">Add something you love, then come back to check out.</p>
+          {pendingOrder ? (
+            <>
+              <p className="text-[#4E423A]">You have an order waiting for payment ({pendingOrder.orderNumber}).</p>
+              <Link href={`/pay/${encodeURIComponent(pendingOrder.orderNumber)}`} className="mt-1 h-12 px-6 inline-flex items-center bg-[#5B4436] hover:bg-[#47362C] text-white rounded-[14px] font-semibold transition-colors">
+                Finish paying ₵{pendingOrder.total.toFixed(2)}
+              </Link>
+            </>
+          ) : (
+            <p className="text-[#4E423A]">Add something you love, then come back to check out.</p>
+          )}
           <Link href="/shop" className="mt-3 h-12 px-6 inline-flex items-center bg-[#5B4436] hover:bg-[#47362C] text-white rounded-[14px] font-semibold transition-colors">
             Start shopping
           </Link>

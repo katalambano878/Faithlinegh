@@ -37,7 +37,8 @@ export async function POST(request: Request) {
         // 'order_created' requires a valid order to exist (verified below)
         // 'contact' is public but rate-limited
         // ============================================================
-        const adminOnlyTypes = ['campaign', 'order_updated', 'order_status', 'payment_link'];
+        // order_created is sent by the POS (admin); storefront confirmations come from the payment callback
+        const adminOnlyTypes = ['campaign', 'order_created', 'order_updated', 'order_status', 'payment_link'];
         const requiresAdminAuth = adminOnlyTypes.includes(type);
 
         if (requiresAdminAuth) {
@@ -56,11 +57,13 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Missing order identifier' }, { status: 400 });
             }
 
-            const orderRef = payload.order_number || payload.id;
+            const orderRef = String(payload.order_number || payload.id);
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderRef);
+            // The message is built from the saved order, never from the request body
             const { data: order, error: orderError } = await supabaseAdmin
                 .from('orders')
-                .select('id, order_number, created_at')
-                .or(`order_number.eq.${orderRef},id.eq.${orderRef}`)
+                .select('*')
+                .eq(isUUID ? 'id' : 'order_number', orderRef)
                 .single();
 
             if (orderError || !order) {
@@ -73,15 +76,21 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: 'Order confirmation can only be sent for recent orders' }, { status: 400 });
             }
 
-            await sendOrderConfirmation(payload);
+            await sendOrderConfirmation(order);
             return NextResponse.json({ success: true, message: 'Order confirmation sent' });
         }
 
         if (type === 'order_updated') {
-            const { order, status } = payload;
-            if (!order || !status) {
+            const { order: sent, status } = payload;
+            if (!sent?.id || !status) {
                 return NextResponse.json({ error: 'Missing order or status' }, { status: 400 });
             }
+            const { data: order } = await supabaseAdmin
+                .from('orders')
+                .select('id, order_number, email, phone, shipping_address, shipping_method, metadata, total, status')
+                .eq('id', String(sent.id))
+                .single();
+            if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
             await sendOrderStatusUpdate(order, status);
             return NextResponse.json({ success: true, message: 'Status update sent' });
         }
@@ -97,7 +106,7 @@ export async function POST(request: Request) {
             // Fetch full order data
             const { data: fullOrder } = await supabaseAdmin
                 .from('orders')
-                .select('id, order_number, email, phone, shipping_address, metadata')
+                .select('id, order_number, email, phone, shipping_address, shipping_method, metadata')
                 .eq('order_number', orderNumber)
                 .single();
 
@@ -160,10 +169,19 @@ export async function POST(request: Request) {
         }
 
         if (type === 'payment_link') {
-            if (!payload.id || !payload.order_number) {
+            if (!payload.id) {
                 return NextResponse.json({ error: 'Missing order details' }, { status: 400 });
             }
-            await sendPaymentLink(payload);
+            const { data: order } = await supabaseAdmin
+                .from('orders')
+                .select('id, order_number, email, phone, shipping_address, metadata, total, payment_status, status')
+                .eq('id', String(payload.id))
+                .single();
+            if (!order) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+            if (order.payment_status === 'paid') {
+                return NextResponse.json({ error: 'This order is already paid' }, { status: 409 });
+            }
+            await sendPaymentLink(order);
             return NextResponse.json({ success: true, message: 'Payment link sent' });
         }
 

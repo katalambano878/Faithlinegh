@@ -30,7 +30,7 @@ export async function POST(req: Request) {
         }
 
         const body = await req.json();
-        const { orderId, customerEmail } = body;
+        const { orderId } = body;
 
         if (!orderId || typeof orderId !== 'string') {
             return NextResponse.json({ success: false, message: 'Missing or invalid orderId' }, { status: 400 });
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
         const query = supabaseAdmin
             .from('orders')
-            .select('id, order_number, total, email, payment_status, metadata');
+            .select('id, order_number, total, email, status, payment_status, metadata');
 
         const { data: order, error: orderError } = isUUID
             ? await query.eq('id', orderId).single()
@@ -59,6 +59,9 @@ export async function POST(req: Request) {
         if (order.payment_status === 'paid') {
             return NextResponse.json({ success: false, message: 'Order is already paid' }, { status: 400 });
         }
+        if (['cancelled', 'refunded'].includes(String(order.status))) {
+            return NextResponse.json({ success: false, message: 'This order was cancelled. Please place a new order.' }, { status: 400 });
+        }
 
         const amount = Number(order.total);
         if (!amount || amount <= 0) {
@@ -66,7 +69,8 @@ export async function POST(req: Request) {
         }
 
         const orderRef = order.order_number || orderId;
-        const email = customerEmail || order.email;
+        // The email on the order is the one Moolre gets; the request can't change it
+        const email = order.email;
 
         if (!email) {
             return NextResponse.json({ success: false, message: 'Customer email is required' }, { status: 400 });
@@ -80,17 +84,11 @@ export async function POST(req: Request) {
 
         // Save the attempt reference on the order so verify/callback can find it
         try {
-            await supabaseAdmin
-                .from('orders')
-                .update({
-                    payment_method: 'moolre',
-                    metadata: {
-                        ...(order.metadata || {}),
-                        moolre_externalref: externalref,
-                        moolre_init_at: new Date().toISOString(),
-                    },
-                })
-                .eq('order_number', orderRef);
+            await supabaseAdmin.from('orders').update({ payment_method: 'moolre' }).eq('id', order.id);
+            await supabaseAdmin.rpc('merge_order_metadata', {
+                p_order_id: order.id,
+                p_patch: { moolre_externalref: externalref, moolre_init_at: new Date().toISOString() },
+            });
         } catch (metaErr) {
             console.warn('[Moolre] Could not save reference to order:', metaErr);
         }
@@ -102,7 +100,7 @@ export async function POST(req: Request) {
             email,
             externalref,
             callback: `${baseUrl}/api/payment/moolre/callback`,
-            redirect: `${baseUrl}/order-success?order=${orderRef}&payment_success=true`,
+            redirect: `${baseUrl}/order-success?order=${encodeURIComponent(orderRef)}&payment_success=true${order.metadata?.access_token ? `&t=${order.metadata.access_token}` : ''}`,
             metadata: {
                 order_number: orderRef,
                 order_id: order.id,
@@ -114,22 +112,10 @@ export async function POST(req: Request) {
 
         if (result.success && result.url) {
             // Persist Moolre's own reference too
-            try {
-                const { data: cur } = await supabaseAdmin
-                    .from('orders')
-                    .select('metadata')
-                    .eq('order_number', orderRef)
-                    .single();
-                await supabaseAdmin
-                    .from('orders')
-                    .update({
-                        metadata: {
-                            ...(cur?.metadata || {}),
-                            moolre_reference: result.reference,
-                        },
-                    })
-                    .eq('order_number', orderRef);
-            } catch { /* non-fatal */ }
+            await supabaseAdmin.rpc('merge_order_metadata', {
+                p_order_id: order.id,
+                p_patch: { moolre_reference: result.reference },
+            }).then(({ error }) => { if (error) console.warn('[Moolre] could not save reference:', error.message); });
 
             return NextResponse.json({
                 success: true,

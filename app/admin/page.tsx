@@ -1,137 +1,74 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { adminRequest } from '@/lib/admin-request';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard() {
-  const [dateRange, setDateRange] = useState('7days'); // logic not implemented for this demo, just UI
+  const [dateRange, setDateRange] = useState<'7days' | '30days'>('7days');
   const [loading, setLoading] = useState(true);
 
-  // Real Stats
-  const [stats, setStats] = useState([
-    {
-      title: 'Total Revenue',
-      value: '₵ 0.00',
-      change: '0%', // Placeholder trend
-      trend: 'up',
-      icon: 'ri-money-dollar-circle-line',
-      color: 'gray'
-    },
-    {
-      title: 'Orders',
-      value: '0',
-      change: '0%',
-      trend: 'up',
-      icon: 'ri-shopping-bag-line',
-      color: 'blue'
-    },
-    {
-      title: 'Customers', // This is total active users for us currently
-      value: '0',
-      change: '0%',
-      trend: 'up',
-      icon: 'ri-group-line',
-      color: 'purple'
-    },
-    {
-      title: 'Avg Order Value',
-      value: '₵ 0.00',
-      change: '0%',
-      trend: 'up',
-      icon: 'ri-line-chart-line',
-      color: 'amber'
-    }
-  ]);
+  type Stat = { title: string; value: string; hint: string; icon: string; color: string; href?: string };
+  const [stats, setStats] = useState<Stat[]>([]);
+  const [allOrders, setAllOrders] = useState<any[]>([]);
 
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
-  const [chartData, setChartData] = useState<any[]>([]);
+  // Revenue per day from confirmed (paid, not cancelled) orders, for the chosen range
+  const chartData = useMemo(() => {
+    const days = dateRange === '30days' ? 30 : 7;
+    const keys = Array.from({ length: days }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (days - 1 - i));
+      return d.toISOString().split('T')[0];
+    });
+    const totals: Record<string, number> = Object.fromEntries(keys.map(k => [k, 0]));
+    for (const o of allOrders) {
+      if (o.payment_status !== 'paid' || o.status === 'cancelled' || o.status === 'refunded') continue;
+      const k = new Date(o.created_at).toISOString().split('T')[0];
+      if (k in totals) totals[k] += Number(o.total) || 0;
+    }
+    return keys.map(k => ({
+      date: new Date(k).toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }),
+      revenue: totals[k],
+    }));
+  }, [allOrders, dateRange]);
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        // 1. Fetch ALL Orders for count & customers
+        // 1. All orders, split into confirmed (paid) and abandoned (never paid)
         const { data: allOrdersData, error: ordersError } = await supabase
           .from('orders')
-          .select('total, status, payment_status, created_at, email');
+          .select('total, status, payment_status, created_at, email, phone, metadata');
 
         if (ordersError) throw ordersError;
+        const orders = allOrdersData || [];
+        setAllOrders(orders);
 
-        // Only count PAID orders for revenue & avg order value
-        const paidOrders = allOrdersData?.filter(o => o.payment_status === 'paid') || [];
-        const totalRevenue = paidOrders.reduce((sum, order) => sum + (order.total || 0), 0);
-        const totalOrders = allOrdersData?.length || 0;
-        const paidOrderCount = paidOrders.length;
-        const avgOrderValue = paidOrderCount > 0 ? totalRevenue / paidOrderCount : 0;
+        const closed = (o: any) => o.status === 'cancelled' || o.status === 'refunded';
+        const isPos = (o: any) => o.metadata?.pos_sale === true || o.metadata?.pos_sale === 'true';
+        // Confirmed: paid and not cancelled or refunded afterwards. Only these count as money made.
+        const confirmed = orders.filter(o => o.payment_status === 'paid' && !closed(o));
+        // Abandoned: placed but never paid (cancelled ones are left out of both)
+        const abandoned = orders.filter(o => o.payment_status !== 'paid' && !closed(o));
 
-        // 2. Fetch Customers Count (approximation using orders unique emails if we don't have user metrics access)
-        // Since we can't query auth.users directly from client, we'll estimate active customers via orders or just keep it 0 if we can't.
-        // Actually, best to just show "Orders" or "Recent Signups" if we had a public profiles table.
-        // We'll use unique emails from orders as a proxy for "Customers"
-        const uniqueCustomers = new Set(allOrdersData?.map(o => o.email)).size;
-
-
-        // Process Chart Data (Last 7 Days) - only count PAID orders as revenue
-        const last7Days = Array.from({ length: 7 }, (_, i) => {
-          const d = new Date();
-          d.setDate(d.getDate() - (6 - i));
-          return d.toISOString().split('T')[0];
-        });
-
-        const chartMap = last7Days.reduce((acc: any, date) => {
-          acc[date] = 0;
-          return acc;
-        }, {});
-
-        paidOrders.forEach(order => {
-          const date = new Date(order.created_at).toISOString().split('T')[0];
-          if (chartMap[date] !== undefined) {
-            chartMap[date] += (order.total || 0);
-          }
-        });
-
-        const processedChartData = Object.keys(chartMap).map(date => ({
-          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          revenue: chartMap[date]
-        }));
-        setChartData(processedChartData);
+        const revenue = confirmed.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+        const unpaidValue = abandoned.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+        const posCount = confirmed.filter(isPos).length;
+        const avgOrderValue = confirmed.length > 0 ? revenue / confirmed.length : 0;
+        const payingCustomers = new Set(confirmed.map(o => (o.email || o.phone || '').toLowerCase()).filter(Boolean)).size;
+        const cedi = (n: number) => `₵ ${n.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         setStats([
-          {
-            title: 'Total Revenue',
-            value: `₵ ${totalRevenue.toFixed(2)}`,
-            change: '+0%', // Dynamic change requires date filtering logic which is complex
-            trend: 'up',
-            icon: 'ri-money-dollar-circle-line',
-            color: 'gray'
-          },
-          {
-            title: 'Orders',
-            value: totalOrders.toString(),
-            change: '+0%',
-            trend: 'up',
-            icon: 'ri-shopping-bag-line',
-            color: 'blue'
-          },
-          {
-            title: 'Customers (Active)',
-            value: uniqueCustomers.toString(), // Proxy
-            change: '+0%',
-            trend: 'up',
-            icon: 'ri-group-line',
-            color: 'purple'
-          },
-          {
-            title: 'Avg Order Value',
-            value: `₵ ${avgOrderValue.toFixed(2)}`,
-            change: '+0%',
-            trend: 'up',
-            icon: 'ri-line-chart-line',
-            color: 'amber'
-          }
+          { title: 'Revenue (paid orders)', value: cedi(revenue), hint: 'Money from confirmed orders only', icon: 'ri-money-dollar-circle-line', color: 'gray', href: '/admin/sold' },
+          { title: 'Confirmed orders', value: String(confirmed.length), hint: `${confirmed.length - posCount} website · ${posCount} in store`, icon: 'ri-shopping-bag-line', color: 'blue', href: '/admin/orders' },
+          { title: 'Abandoned (not paid)', value: String(abandoned.length), hint: `${cedi(unpaidValue)} not collected, not counted above`, icon: 'ri-shopping-cart-2-line', color: 'amber', href: '/admin/orders' },
+          { title: 'Paying customers', value: String(payingCustomers), hint: 'People with at least one paid order', icon: 'ri-group-line', color: 'purple', href: '/admin/customers' },
+          { title: 'Avg order value', value: cedi(avgOrderValue), hint: 'Paid orders only', icon: 'ri-line-chart-line', color: 'amber' },
         ]);
 
         // 3. Fetch Recent Orders (only paid orders)
@@ -177,19 +114,20 @@ export default function AdminDashboard() {
           })));
         }
 
-        // 5. Fetch Top Products (Approximation: High Price or just Random for now, 
-        // real top selling requires aggregation on order_items which is complex for client-side)
-        // real top selling requires aggregation on order_items which is complex for client-side)
-        const { data: productData } = await supabase.from('products').select('*, product_images(url)').limit(4);
-        if (productData) {
-          setTopProducts(productData.map((p: any) => ({
-            id: p.slug, // Use slug for link
-            name: p.name,
-            image: p.product_images?.[0]?.url || 'https://via.placeholder.com/200',
-            sales: 0, // Mocked for now
-            revenue: 0, // Mocked for now
-            stock: p.quantity
-          })));
+        // 5. Best sellers from paid orders
+        try {
+          const sold = await adminRequest<{ products: any[] }>('/api/admin/sold?period=all');
+          const top = (sold.products || []).filter((p: any) => p.productId).slice(0, 4);
+          const { data: productData } = top.length
+            ? await supabase.from('products').select('id, name, quantity, product_images(url, position)').in('id', top.map((p: any) => p.productId))
+            : { data: [] as any[] };
+          setTopProducts(top.map((t: any) => {
+            const p: any = (productData || []).find((x: any) => x.id === t.productId) || {};
+            const imgs = [...(p.product_images || [])].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+            return { id: t.productId, name: t.name, image: imgs[0]?.url || '', sales: t.unitsSold, revenue: t.revenue, stock: p.quantity ?? 0 };
+          }));
+        } catch (err) {
+          console.error('Best sellers failed:', err);
         }
 
       } catch (error) {
@@ -244,21 +182,23 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
-            <div key={stat.title} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 flex items-center justify-center bg-${stat.color}-100 text-${stat.color}-700 rounded-lg`}>
-                  <i className={`${stat.icon} text-2xl`}></i>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 mb-8">
+          {stats.map((stat) => {
+            const body = (
+              <>
+                <div className={`w-11 h-11 mb-4 flex items-center justify-center bg-${stat.color}-100 text-${stat.color}-700 rounded-lg`}>
+                  <i className={`${stat.icon} text-2xl`} aria-hidden="true"></i>
                 </div>
-                <span className={`text-sm font-semibold text-gray-900`}>
-                  {stat.change}
-                </span>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-1">{stat.value}</h3>
-              <p className="text-gray-600 text-sm">{stat.title}</p>
-            </div>
-          ))}
+                <h3 className="text-2xl font-bold text-gray-900 mb-1 tabular-nums">{stat.value}</h3>
+                <p className="text-gray-900 text-sm font-medium">{stat.title}</p>
+                <p className="text-gray-500 text-xs mt-1">{stat.hint}</p>
+              </>
+            );
+            const cls = 'block bg-white rounded-xl shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow';
+            return stat.href
+              ? <Link key={stat.title} href={stat.href} className={cls}>{body}</Link>
+              : <div key={stat.title} className={cls}>{body}</div>;
+          })}
         </div>
 
         {/* Revenue Chart & Quick Actions */}
@@ -269,7 +209,7 @@ export default function AdminDashboard() {
               <select
                 className="bg-gray-50 border border-gray-200 text-gray-700 text-sm rounded-lg focus:ring-gray-600 focus:border-gray-600 block p-2"
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value)}
+                onChange={(e) => setDateRange(e.target.value as '7days' | '30days')}
               >
                 <option value="7days">Last 7 Days</option>
                 <option value="30days">Last 30 Days</option>
@@ -411,7 +351,7 @@ export default function AdminDashboard() {
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 overflow-hidden">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Products</h2>
+            <h2 className="text-xl font-bold text-gray-900">Best sellers</h2>
             <Link href="/admin/products" className="text-gray-900 hover:text-gray-800 font-medium text-sm whitespace-nowrap cursor-pointer">
               View All <i className="ri-arrow-right-line ml-1"></i>
             </Link>
@@ -423,7 +363,8 @@ export default function AdminDashboard() {
                 <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-3">
                   <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{product.name}</h3>
+                <h3 className="font-semibold text-gray-900 mb-1 line-clamp-2">{product.name}</h3>
+                <p className="text-sm text-gray-600">{product.sales} sold · ₵ {Number(product.revenue || 0).toFixed(2)}</p>
                 <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
                   <span className="text-sm text-gray-600">Stock: {product.stock}</span>
                   <Link href={`/admin/products/${product.id}`} className="text-gray-900 hover:text-gray-800 text-sm font-medium whitespace-nowrap cursor-pointer">

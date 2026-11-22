@@ -35,6 +35,7 @@ interface CartItem extends Product {
     cartQuantity: number;
     discount: number;
     variant?: string;
+    variantId?: string;
 }
 
 // Unique key for a cart line (same product can appear once per variant)
@@ -491,6 +492,7 @@ export default function POSPage() {
                 cartQuantity: 1,
                 discount: 0,
                 variant: variantLabel,
+                variantId: variant?.id,
             }];
         });
     }, []);
@@ -730,6 +732,7 @@ export default function POSPage() {
             const orderItemsPayload = cart.map(item => ({
                 product_id: item.id,
                 product_name: item.name,
+                variant_id: item.variantId || null,
                 variant_name: item.variant || null,
                 quantity: item.cartQuantity,
                 unit_price: item.price,
@@ -771,6 +774,7 @@ export default function POSPage() {
                     },
                     items: orderItemsPayload,
                     mark_paid: isCashOrCard,
+                    customer_name: customerName || null,
                 }),
             });
 
@@ -779,26 +783,9 @@ export default function POSPage() {
             const order = apiData.order;
             if (!order) throw new Error('No order returned');
 
-            // Upsert Customer
-            const hasRealEmail = customerEmail && customerEmail !== 'pos-walkin@store.local';
-            const upsertEmail = hasRealEmail ? customerEmail
-                : customerPhone ? `${customerPhone.replace(/[^0-9]/g, '')}@pos.local` : null;
-
-            if (upsertEmail) {
-                try {
-                    await supabase.rpc('upsert_customer_from_order', {
-                        p_email: upsertEmail, p_phone: customerPhone || null,
-                        p_full_name: customerName || null,
-                        p_first_name: addressData.firstName || null,
-                        p_last_name: addressData.lastName || null,
-                        p_user_id: null, p_address: addressData
-                    });
-                    supabase.from('customers').select('id, full_name, email, phone').order('full_name').limit(200)
-                        .then(({ data }) => { if (data) setCustomers(data); });
-                } catch (custErr) {
-                    console.error('Customer upsert error:', custErr);
-                }
-            }
+            // The order API also saves the customer record; refresh the picker list
+            supabase.from('customers').select('id, full_name, email, phone').order('full_name').limit(200)
+                .then(({ data }) => { if (data) setCustomers(data); });
 
             if (isCashOrCard) {
                 const receiptData = {

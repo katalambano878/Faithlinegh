@@ -1,4 +1,4 @@
-import { generateMoolreLink, moolreConfigured } from './moolre';
+import { createStorefrontOrder } from './create-order';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -113,7 +113,7 @@ export async function searchProducts(
 
   const { data, error } = await supabase
     .from('products')
-    .select(`id, name, slug, price, quantity, metadata, description, category_id, product_images(url, position), product_variants(name, option2, quantity)`)
+    .select(`id, name, slug, price, quantity, moq, metadata, description, category_id, product_images(url, position), product_variants(id, name, option2, quantity)`)
     .eq('status', 'active')
     .or(filters.join(','))
     .order('name')
@@ -157,7 +157,7 @@ export async function getProductForCart(
 
   const q = supabase
     .from('products')
-    .select(`id, name, slug, price, quantity, metadata, product_images(url, position), product_variants(name, option2, quantity)`)
+    .select(`id, name, slug, price, quantity, moq, metadata, product_images(url, position), product_variants(id, name, option2, quantity)`)
     .eq('status', 'active');
 
   const { data, error } = isId
@@ -334,7 +334,7 @@ export async function initiateReturn(
 
   const { data: order } = await supabase
     .from('orders')
-    .select('id, order_number, status, created_at, user_id')
+    .select('id, order_number, status, created_at, updated_at, user_id')
     .eq('id', orderId)
     .single();
 
@@ -342,9 +342,10 @@ export async function initiateReturn(
   if (order.user_id !== userId) return null;
   if (order.status !== 'delivered') return null;
 
-  const deliveredDate = new Date(order.created_at);
+  // Last status change is when it was marked delivered
+  const deliveredDate = new Date(order.updated_at || order.created_at);
   const daysSinceDelivery = (Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24);
-  if (daysSinceDelivery > 30) return null;
+  if (daysSinceDelivery > 7) return null;
 
   const { data: ret, error } = await supabase
     .from('return_requests')
@@ -387,7 +388,7 @@ export async function getRecommendations(
 
   const { data, error } = await supabase
     .from('products')
-    .select(`id, name, slug, price, quantity, metadata, product_images(url, position), product_variants(name, option2, quantity)`)
+    .select(`id, name, slug, price, quantity, moq, metadata, product_images(url, position), product_variants(id, name, option2, quantity)`)
     .eq('status', 'active')
     .gt('quantity', 0)
     .order('rating_avg', { ascending: false })
@@ -401,13 +402,13 @@ export async function getRecommendations(
 // ─── 9. Get Store Info (static) ─────────────────────────────────────────────
 
 const STORE_INFO: Record<string, string> = {
-  shipping: `Faithlinegh offers nationwide delivery across Ghana. Delivery timelines and shipping fees are calculated by destination at checkout.`,
-  returns: `We accept eligible returns within 30 days of delivery for unused items in original condition. To start a return, use your account or ask me to create a support ticket. Refunds are processed after inspection.`,
-  payment: `We support secure checkout options, including Mobile Money for eligible local orders. Available payment methods are shown at checkout.`,
-  contact: `You can reach us through:\n- This chat (24/7)\n- Phone/WhatsApp: 0541770961\n- Instagram & TikTok: faithline.gh\n- Support ticket: I can create one for you right now`,
-  about: `Faithlinegh is a Ghanaian fashion store offering quality, affordable bags, basics and dresses for women. We curate stylish everyday pieces and deliver nationwide across Ghana.`,
-  delivery_times: `Delivery timelines vary by destination. Estimated timing is shown at checkout and in your order updates.`,
-  hours: `Our online store is open 24/7. Customer support is available Monday-Saturday, 9 AM - 6 PM GMT.`,
+  shipping: `Three ways to get your order: free store pickup (ready within 24 hours), doorstep delivery in Accra, or delivery anywhere else in Ghana (both within 48 hours). The delivery fee depends on where you are; the team contacts you with it after you order. Pickup is free.`,
+  returns: `Items can be returned within 7 days. If something arrives damaged or wrong, contact us within 48 hours with photos. See the returns page for details, or I can create a support ticket for you.`,
+  payment: `Payment is online through Moolre, with Mobile Money or card. There is no cash on delivery.`,
+  contact: `You can reach us through:\n- This chat\n- Phone/WhatsApp: 0541770961\n- Instagram & TikTok: faithline.gh\n- Support ticket: I can create one for you right now`,
+  about: `Faithlinegh is a Ghanaian fashion store offering quality, affordable bags, basics and dresses for women, with store pickup and delivery across Ghana.`,
+  delivery_times: `Pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.`,
+  hours: `The online store is open all the time. Customer support is available Monday-Saturday, 9 AM - 6 PM GMT.`,
 };
 
 export function getStoreInfo(topic: string): string {
@@ -461,30 +462,19 @@ export type ChatOrderResult = {
 interface ChatOrderItem {
   productId: string;
   quantity: number;
+  /** "Colour / Size", "Size" or "Colour", exactly as listed in the product's options */
+  option?: string | null;
 }
 
 interface ChatShippingInfo {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  region: string;
+  area?: string;
+  street?: string;
+  region?: string;
+  gps?: string;
 }
-
-const DELIVERY_COSTS: Record<string, number> = {
-  standard: 20,
-  express: 40,
-  pickup: 0,
-};
-
-const MAX_ITEMS_PER_ORDER = 20;
-const MAX_QUANTITY_PER_ITEM = 100;
-const MAX_FIELD_LENGTH = 200;
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_RE = /^[0-9+\-() ]{7,20}$/;
 
 const orderRateMap = new Map<string, { count: number; resetAt: number }>();
 const ORDER_RATE_LIMIT = 3;
@@ -502,301 +492,61 @@ function checkOrderRateLimit(key: string): boolean {
   return true;
 }
 
-function sanitize(input: string): string {
-  return input
-    .replace(/[<>]/g, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+=/gi, '')
-    .trim()
-    .slice(0, MAX_FIELD_LENGTH);
-}
-
+/** Places a chat order through the same path as website checkout, then hands back the pay link. */
 export async function createChatOrder(
-  supabaseAdmin: any,
+  _supabaseAdmin: any,
   params: {
     items: ChatOrderItem[];
     shipping: ChatShippingInfo;
     deliveryMethod: string;
-    paymentMethod: string;
+    paymentChannel?: string;
+    couponCode?: string | null;
     userId?: string | null;
   }
 ): Promise<ChatOrderResult> {
-  const { items, shipping, deliveryMethod, paymentMethod, userId } = params;
-
+  const { items, shipping, deliveryMethod, paymentChannel, couponCode, userId } = params;
   if (!items || items.length === 0) {
     return { success: false, message: 'No items provided. Please add products to your cart first.' };
   }
-
-  if (items.length > MAX_ITEMS_PER_ORDER) {
-    return { success: false, message: `Too many items. Maximum ${MAX_ITEMS_PER_ORDER} items per order.` };
-  }
-
-  if (!shipping.firstName || !shipping.lastName || !shipping.email || !shipping.phone || !shipping.address || !shipping.city || !shipping.region) {
-    return { success: false, message: 'Missing shipping information. Please provide all required fields: first name, last name, email, phone, address, city, and region.' };
-  }
-
-  if (!EMAIL_RE.test(shipping.email)) {
-    return { success: false, message: 'Please provide a valid email address.' };
-  }
-
-  if (!PHONE_RE.test(shipping.phone)) {
-    return { success: false, message: 'Please provide a valid phone number.' };
-  }
-
-  for (const item of items) {
-    if (!UUID_RE.test(item.productId)) {
-      return { success: false, message: 'Invalid product reference. Please try again.' };
-    }
-    if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_QUANTITY_PER_ITEM) {
-      return { success: false, message: `Invalid quantity. Must be between 1 and ${MAX_QUANTITY_PER_ITEM}.` };
-    }
-  }
-
-  if (!['standard', 'express', 'pickup'].includes(deliveryMethod)) {
-    return { success: false, message: 'Invalid delivery method.' };
-  }
-  if (!['moolre', 'cod'].includes(paymentMethod)) {
-    return { success: false, message: 'Invalid payment method.' };
-  }
-
-  // Rate-limit order creation per email to prevent spam/abuse
-  const rateLimitKey = shipping.email.toLowerCase().trim();
-  if (!checkOrderRateLimit(rateLimitKey)) {
+  const rateKey = String(shipping?.email || shipping?.phone || '').toLowerCase().trim();
+  if (rateKey && !checkOrderRateLimit(rateKey)) {
     return { success: false, message: 'Too many orders placed recently. Please wait a few minutes before trying again.' };
   }
 
-  // Sanitize all string inputs
-  const sanitizedShipping: ChatShippingInfo = {
-    firstName: sanitize(shipping.firstName),
-    lastName: sanitize(shipping.lastName),
-    email: shipping.email.toLowerCase().trim().slice(0, MAX_FIELD_LENGTH),
-    phone: shipping.phone.replace(/[^0-9+\-() ]/g, '').slice(0, 20),
-    address: sanitize(shipping.address),
-    city: sanitize(shipping.city),
-    region: sanitize(shipping.region),
-  };
+  const result = await createStorefrontOrder({
+    items: items.map(i => ({ productId: String(i.productId), quantity: Number(i.quantity), variantLabel: i.option || null })),
+    contact: { fullName: shipping?.fullName, email: shipping?.email, phone: shipping?.phone },
+    delivery: { method: deliveryMethod, area: shipping?.area, street: shipping?.street, region: shipping?.region, gps: shipping?.gps },
+    paymentChannel,
+    couponCode,
+    userId,
+    source: 'chat',
+  });
 
-  const shippingCost = DELIVERY_COSTS[deliveryMethod];
-
-  try {
-    // Validate and fetch all products
-    const productIds = items.map(i => i.productId);
-    const { data: products, error: prodError } = await supabaseAdmin
-      .from('products')
-      .select('id, name, slug, price, quantity, metadata, product_images(url, position)')
-      .in('id', productIds)
-      .eq('status', 'active');
-
-    if (prodError || !products || products.length === 0) {
-      return { success: false, message: 'Could not find the requested products. They may no longer be available.' };
-    }
-
-    const productMap = new Map<string, any>(products.map((p: any) => [p.id, p]));
-
-    // Validate stock
-    for (const item of items) {
-      const product = productMap.get(item.productId);
-      if (!product) {
-        return { success: false, message: `Product not found: ${item.productId}` };
-      }
-      if (product.quantity < item.quantity) {
-        return { success: false, message: `Sorry, "${product.name}" only has ${product.quantity} units in stock, but you requested ${item.quantity}.` };
-      }
-    }
-
-    // Calculate totals
-    let subtotal = 0;
-    for (const item of items) {
-      const product = productMap.get(item.productId)!;
-      subtotal += Number(product.price) * item.quantity;
-    }
-    const total = subtotal + shippingCost;
-
-    // Generate order number and tracking number
-    const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-    const trackingChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    const trackingId = Array.from({ length: 6 }, () => trackingChars[Math.floor(Math.random() * trackingChars.length)]).join('');
-    const trackingNumber = `FL-${trackingId}`;
-
-    const shippingData = {
-      firstName: sanitizedShipping.firstName,
-      lastName: sanitizedShipping.lastName,
-      email: sanitizedShipping.email,
-      phone: sanitizedShipping.phone,
-      address: sanitizedShipping.address,
-      city: sanitizedShipping.city,
-      region: sanitizedShipping.region,
-      country: 'Ghana',
-    };
-
-    // Insert order
-    const { data: order, error: orderError } = await supabaseAdmin
-      .from('orders')
-      .insert([{
-        order_number: orderNumber,
-        user_id: userId || null,
-        email: sanitizedShipping.email,
-        phone: sanitizedShipping.phone,
-        status: 'pending',
-        payment_status: 'pending',
-        currency: 'GHS',
-        subtotal,
-        tax_total: 0,
-        shipping_total: shippingCost,
-        discount_total: 0,
-        total,
-        shipping_method: deliveryMethod,
-        payment_method: paymentMethod,
-        shipping_address: shippingData,
-        billing_address: shippingData,
-        metadata: {
-          guest_checkout: !userId,
-          first_name: sanitizedShipping.firstName,
-          last_name: sanitizedShipping.lastName,
-          tracking_number: trackingNumber,
-          source: 'chat',
-        },
-      }])
-      .select()
-      .single();
-
-    if (orderError || !order) {
-      console.error('[ChatTools] createChatOrder order insert error:', orderError);
-      return { success: false, message: 'Failed to create order. Please try again or use the checkout page.' };
-    }
-
-    // Insert order items
-    const orderItems = items.map(item => {
-      const product = productMap.get(item.productId)!;
-      return {
-        order_id: order.id,
-        product_id: product.id,
-        product_name: product.name,
-        quantity: item.quantity,
-        unit_price: Number(product.price),
-        total_price: Number(product.price) * item.quantity,
-        metadata: {
-          image: product.product_images?.[0]?.url || '',
-          slug: product.slug,
-          preorder_shipping: product.metadata?.preorder_shipping || null,
-        },
-      };
-    });
-
-    const { error: itemsError } = await supabaseAdmin
-      .from('order_items')
-      .insert(orderItems);
-
-    if (itemsError) {
-      console.error('[ChatTools] createChatOrder items insert error:', itemsError);
-      return { success: false, message: 'Failed to add items to order. Please try again.' };
-    }
-
-    // Upsert customer record
-    try {
-      await supabaseAdmin.rpc('upsert_customer_from_order', {
-        p_email: sanitizedShipping.email,
-        p_phone: sanitizedShipping.phone,
-        p_full_name: `${sanitizedShipping.firstName} ${sanitizedShipping.lastName}`.trim(),
-        p_first_name: sanitizedShipping.firstName,
-        p_last_name: sanitizedShipping.lastName,
-        p_user_id: userId || null,
-        p_address: shippingData,
-      });
-    } catch (e) {
-      console.error('[ChatTools] upsert customer error:', e);
-    }
-
-    // Handle payment
-    if (paymentMethod === 'moolre') {
-      try {
-        const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/+$/, '');
-
-        if (!moolreConfigured()) {
-          return {
-            success: true,
-            orderNumber,
-            total,
-            message: `Order ${orderNumber} created (₵${total.toFixed(2)}), but payment gateway is not configured. Please complete payment through the website.`,
-          };
-        }
-
-        const externalref = `${orderNumber}-R${Date.now()}`;
-
-        // Save the attempt reference so verify/callback can find it later
-        try {
-          await supabaseAdmin
-            .from('orders')
-            .update({
-              payment_method: 'moolre',
-              metadata: {
-                ...(order.metadata || {}),
-                moolre_externalref: externalref,
-                moolre_init_at: new Date().toISOString(),
-              },
-            })
-            .eq('id', order.id);
-        } catch {}
-
-        const result = await generateMoolreLink({
-          amount: total,
-          email: sanitizedShipping.email,
-          externalref,
-          callback: `${baseUrl}/api/payment/moolre/callback`,
-          redirect: `${baseUrl}/order-success?order=${orderNumber}&payment_success=true`,
-          metadata: {
-            order_number: orderNumber,
-            order_id: order.id,
-            customer_email: sanitizedShipping.email,
-            source: 'chat',
-          },
-        });
-
-        if (result.success && result.url) {
-          return {
-            success: true,
-            orderNumber,
-            total,
-            paymentUrl: result.url,
-            message: `Order ${orderNumber} created successfully! Total: ₵${total.toFixed(2)} (including ₵${shippingCost.toFixed(2)} delivery). Please complete your payment using the link below.`,
-          };
-        } else {
-          return {
-            success: true,
-            orderNumber,
-            total,
-            message: `Order ${orderNumber} created (₵${total.toFixed(2)}), but we couldn't generate a payment link. Please visit your order page to complete payment.`,
-          };
-        }
-      } catch (payErr: any) {
-        console.error('[ChatTools] Moolre payment error:', payErr);
-        return {
-          success: true,
-          orderNumber,
-          total,
-          message: `Order ${orderNumber} created (₵${total.toFixed(2)}), but payment initiation failed. Please visit the website to complete payment.`,
-        };
-      }
-    }
-
-    // COD or other payment methods
-    return {
-      success: true,
-      orderNumber,
-      total,
-      message: `Order ${orderNumber} placed successfully! Total: ₵${total.toFixed(2)} (including ₵${shippingCost.toFixed(2)} delivery). Payment: Cash on Delivery. Your order will be delivered to ${sanitizedShipping.address}, ${sanitizedShipping.city}.`,
-    };
-  } catch (err: any) {
-    console.error('[ChatTools] createChatOrder error:', err);
-    return { success: false, message: 'Something went wrong creating your order. Please try using the checkout page instead.' };
+  if (!result.ok) {
+    const detail = result.fieldErrors ? Object.values(result.fieldErrors).join(' ') : result.error;
+    return { success: false, message: `The order wasn’t placed: ${detail}` };
   }
+
+  const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://faithlinegh.com').replace(/\/+$/, '');
+  const paymentUrl = `${baseUrl}/pay/${encodeURIComponent(result.orderNumber)}`;
+  const fee = deliveryMethod === 'pickup'
+    ? 'Store pickup is free.'
+    : result.deliveryFeePending ? 'The delivery fee is not included; the team will contact the customer with it.' : 'Delivery is free with the coupon.';
+  return {
+    success: true,
+    orderNumber: result.orderNumber,
+    total: result.total,
+    paymentUrl,
+    message: `Order ${result.orderNumber} created. Total to pay now: ₵${result.total.toFixed(2)}. ${fee} The customer pays with Mobile Money or card using the payment link.`,
+  };
 }
 
 // ─── Helper ─────────────────────────────────────────────────────────────────
 
 function mapProduct(p: any): ChatProduct {
   const qty = Number(p.quantity) ?? 0;
-  const moq = Number(p.metadata?.moq) || 1;
+  const moq = Number(p.moq) || Number(p.metadata?.moq) || 1;
   return {
     id: p.id,
     name: p.name,
@@ -816,7 +566,7 @@ function variantOptions(variants: any): string[] | undefined {
   if (!Array.isArray(variants) || variants.length === 0) return undefined;
   const labels = variants
     .filter((v) => Number(v?.quantity) > 0)
-    .map((v) => Array.from(new Set([v?.name, v?.option2].map((part) => String(part || '').trim()).filter(Boolean))).join(' / '))
+    .map((v) => Array.from(new Set([v?.option2, v?.name].map((part) => String(part || '').trim()).filter(Boolean))).join(' / '))
     .filter(Boolean);
   return labels.length > 0 ? Array.from(new Set(labels)).slice(0, 12) : undefined;
 }

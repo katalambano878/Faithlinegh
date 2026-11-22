@@ -60,7 +60,7 @@ interface RequestBody {
   newMessage?: string;
   sessionId?: string;
   pagePath?: string;
-  cartItems?: { id: string; name: string; price: number; quantity: number; slug: string }[];
+  cartItems?: { id: string; name: string; price: number; quantity: number; slug: string; option?: string | null }[];
 }
 
 // ─── Rate Limiting (in-memory) ──────────────────────────────────────────────
@@ -190,7 +190,7 @@ const LLM_TOOLS = [
     type: 'function' as const,
     function: {
       name: 'initiate_return',
-      description: 'Start a return request for a delivered order. Only for logged-in users with a delivered order within 30 days. Ask for the order ID and reason before calling.',
+      description: 'Start a return request for a delivered order. Only for logged-in users with an order delivered within the last 7 days. Ask for the order ID and reason before calling.',
       parameters: {
         type: 'object',
         properties: {
@@ -253,48 +253,50 @@ const LLM_TOOLS = [
     type: 'function' as const,
     function: {
       name: 'create_order',
-      description: 'Create an order and initiate payment. Use this when the customer has items in their cart AND has provided all required shipping information (firstName, lastName, email, phone, address, city, region) AND has confirmed they want to proceed with checkout. The cart items are provided automatically from the customer\'s current cart - pass them in the items parameter.',
+      description: 'Create an order and get its payment link. Use only when the customer has items in their cart, has given their full name, email, phone and delivery choice (plus area and street for delivery), and has confirmed the summary. Pass the cart items exactly as given in the cart context, including each item\'s option.',
       parameters: {
         type: 'object',
         properties: {
           items: {
             type: 'array',
-            description: 'Cart items to order. Use the product IDs and quantities from the cart context provided in the conversation.',
+            description: 'Cart items: product IDs, quantities and options from the cart context.',
             items: {
               type: 'object',
               properties: {
                 productId: { type: 'string', description: 'Product UUID' },
                 quantity: { type: 'number', description: 'Quantity to order' },
+                option: { type: 'string', description: 'Size / colour exactly as in the cart context, e.g. "Black / M". Omit when the item has none.' },
               },
               required: ['productId', 'quantity'],
             },
           },
           shipping: {
             type: 'object',
-            description: 'Shipping details collected from the customer',
+            description: 'Customer details collected in the chat',
             properties: {
-              firstName: { type: 'string' },
-              lastName: { type: 'string' },
+              fullName: { type: 'string' },
               email: { type: 'string' },
-              phone: { type: 'string' },
-              address: { type: 'string' },
-              city: { type: 'string' },
-              region: { type: 'string' },
+              phone: { type: 'string', description: 'Ghana phone number, e.g. 024 123 4567' },
+              area: { type: 'string', description: 'Area or town (delivery only)' },
+              street: { type: 'string', description: 'Street, house number or landmark (delivery only)' },
+              region: { type: 'string', description: 'Region (delivery outside Accra only)' },
+              gps: { type: 'string', description: 'Ghana Post GPS address, optional' },
             },
-            required: ['firstName', 'lastName', 'email', 'phone', 'address', 'city', 'region'],
+            required: ['fullName', 'email', 'phone'],
           },
           delivery_method: {
             type: 'string',
-            enum: ['standard', 'express', 'pickup'],
-            description: 'Delivery method. Standard: ₵20, Express: ₵40, Pickup: Free',
+            enum: ['pickup', 'doorstep', 'outside_accra'],
+            description: 'pickup = free store pickup (ready within 24 hours); doorstep = delivery in Accra; outside_accra = delivery elsewhere in Ghana. Delivery arrives within 48 hours; the fee is confirmed by the team after the order.',
           },
-          payment_method: {
+          payment_channel: {
             type: 'string',
-            enum: ['moolre', 'cod'],
-            description: 'Payment method. moolre = online payment (mobile money, card, bank transfer), cod = Cash on Delivery (Accra only)',
+            enum: ['momo', 'card'],
+            description: 'How the customer will pay on the Moolre payment page: Mobile Money or card.',
           },
+          coupon_code: { type: 'string', description: 'Coupon code, only if the customer gave one' },
         },
-        required: ['items', 'shipping', 'delivery_method', 'payment_method'],
+        required: ['items', 'shipping', 'delivery_method'],
       },
     },
   },
@@ -344,9 +346,9 @@ WHEN CREATING SUPPORT TICKETS:
 - Always include a clear subject and description based on the full conversation context.
 
 STORE POLICIES (quick reference):
-- Delivery: Nationwide delivery across Ghana (timing depends on destination)
-- Returns: Within 30 days of delivery, unused items in original packaging
-- Payment: mobile money, card payment, Cash on Delivery (Accra only)
+- Delivery: free store pickup (ready within 24 hours), doorstep delivery in Accra, or delivery anywhere else in Ghana (within 48 hours). The delivery fee depends on the location and the team contacts the customer with it after the order. Never quote a delivery fee.
+- Returns: within 7 days; damaged or wrong items must be reported within 48 hours with photos
+- Payment: online through Moolre with Mobile Money or card. There is NO cash on delivery.
 - Support hours: Mon-Sat, 9 AM - 6 PM GMT
 
 CAPABILITIES (what you CAN do):
@@ -356,7 +358,7 @@ CAPABILITIES (what you CAN do):
 - Show recent orders (logged-in users)
 - Validate coupon/discount codes
 - Create support tickets (for issues that need human help)
-- Initiate returns (logged-in users, delivered orders within 30 days)
+- Initiate returns (logged-in users, delivered orders within 7 days)
 - Answer questions about shipping, returns, payment, and store info
 - Look up ANY information about the website, business, policies, FAQs, and more using the get_website_info tool
 - **Place orders and initiate payments** using the create_order tool
@@ -367,21 +369,17 @@ When a customer asks about ANYTHING related to the business (policies, how to do
 CHECKOUT & ORDER PLACEMENT:
 You can help customers place orders directly in this chat. Here is how:
 1. The customer's current cart contents are provided in the conversation context (if they have items).
-2. When the customer says they want to checkout, buy, or place an order, collect their shipping info step by step:
-   - Full name (first and last)
-   - Email address
-   - Phone number
-   - Delivery address, city, and region
-3. Ask them to choose a delivery method:
-   - **Standard** — ₵20 (1-3 business days in Accra, 3-7 days outside)
-   - **Express** — ₵40 (same-day/next-day in Accra)
-   - **Pickup** — Free (collect from our location)
-4. Ask them to choose a payment method:
-   - **Online payment** (card or bank transfer via checkout) — default
-   - **Cash on Delivery** — Accra only
-5. Summarize the order (items, subtotal, delivery fee, total) and ask the customer to confirm.
-6. Once confirmed, call the create_order tool with the cart items (product IDs and quantities from the cart context), shipping info, delivery method, and payment method.
-7. The tool will return a payment link (for online payment) — present it to the customer. For COD, just confirm the order is placed.
+2. Every cart item that has a size or colour shows it as "option". If an item that needs a size or colour has none, ask the customer to choose it on the product page first.
+3. When the customer wants to check out, collect step by step: full name, email address and phone number.
+4. Ask how they want to receive it:
+   - **Store pickup** — free, ready within 24 hours
+   - **Doorstep delivery in Accra** — within 48 hours
+   - **Delivery outside Accra** — within 48 hours (ask for the region)
+   For delivery, also ask for the area/town and a street, house number or landmark (Ghana Post GPS is optional). Tell them the team will contact them with the delivery fee; never quote one.
+5. Ask whether they will pay with Mobile Money or card (both on the secure Moolre page). There is no cash on delivery.
+6. Summarize the items, the subtotal, and the delivery choice, then ask the customer to confirm. The final total comes from the create_order tool (it applies bundle deals and coupons).
+7. Once confirmed, call create_order with the cart items (product IDs, quantities and options), the details, delivery method and payment channel.
+8. Present the payment link the tool returns, with the total it gives.
 IMPORTANT: Do NOT ask the customer to list their cart items — you already have them. Just reference what is in their cart and proceed. If the cart is empty, tell them to add products first.
 
 LIMITATIONS (what you CANNOT do directly):
@@ -828,7 +826,7 @@ async function handleWithAI(
   pagePath?: string,
   aiMemories?: any[],
   kbContext?: string,
-  cartItems?: { id: string; name: string; price: number; quantity: number; slug: string }[],
+  cartItems?: { id: string; name: string; price: number; quantity: number; slug: string; option?: string | null }[],
 ) {
   let systemPrompt = buildSystemPrompt(profile, pagePath);
 
@@ -851,9 +849,9 @@ async function handleWithAI(
     const cartTotal = cartItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
     systemPrompt += `\n\nCUSTOMER'S CURRENT CART (${cartItems.length} item${cartItems.length > 1 ? 's' : ''}, subtotal ₵${cartTotal.toFixed(2)}):`;
     for (const item of cartItems) {
-      systemPrompt += `\n- ${item.name} × ${item.quantity} = ₵${(item.price * item.quantity).toFixed(2)} (ID: ${item.id})`;
+      systemPrompt += `\n- ${item.name}${item.option ? ` (option: ${item.option})` : ''} × ${item.quantity} = ₵${(item.price * item.quantity).toFixed(2)} (ID: ${item.id})`;
     }
-    systemPrompt += `\nWhen the customer wants to checkout, use these product IDs and quantities for the create_order tool.`;
+    systemPrompt += `\nWhen the customer wants to checkout, use these product IDs, quantities and options for the create_order tool.`;
   }
 
   const truncatedHistory = messages.slice(-18);
@@ -1005,7 +1003,7 @@ async function executeToolCall(
   userId: string | null,
   userEmail: string | null,
   profile: ChatCustomerProfile | null,
-  cartItems?: { id: string; name: string; price: number; quantity: number; slug: string }[],
+  cartItems?: { id: string; name: string; price: number; quantity: number; slug: string; option?: string | null }[],
 ): Promise<{
   data: any;
   products?: ChatProduct[];
@@ -1111,7 +1109,7 @@ async function executeToolCall(
         description: args.description || args.reason,
       });
       if (!ret) {
-        return { data: { error: 'Could not create return request. The order may not be eligible (must be delivered within 30 days).' }, quickReplies: ['Check eligibility', 'Contact support'] };
+        return { data: { error: 'Could not create return request. The order may not be eligible (it must have been delivered within the last 7 days).' }, quickReplies: ['Check eligibility', 'Contact support'] };
       }
       return {
         data: { id: ret.id, status: ret.status, order_number: ret.order_number },
@@ -1170,8 +1168,9 @@ async function executeToolCall(
       const orderResult = await createChatOrder(supabase, {
         items: args.items || [],
         shipping: args.shipping || {},
-        deliveryMethod: args.delivery_method || 'standard',
-        paymentMethod: args.payment_method || 'moolre',
+        deliveryMethod: args.delivery_method,
+        paymentChannel: args.payment_channel,
+        couponCode: args.coupon_code || null,
         userId,
       });
 

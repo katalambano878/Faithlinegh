@@ -63,30 +63,28 @@ export async function POST(req: Request) {
         }
 
         if (!status.confirmed) {
-            console.log('[Moolre Callback] Payment not successful for', merchantOrderRef);
+            console.log('[Moolre Callback] Payment not confirmed for', merchantOrderRef, '| failed:', status.failed);
 
-            const { data: failedOrder } = await supabaseAdmin
+            const { data: notPaidOrder } = await supabaseAdmin
                 .from('orders')
-                .select('metadata, payment_status')
+                .select('id, payment_status')
                 .eq('order_number', merchantOrderRef)
                 .single();
 
-            if (failedOrder && failedOrder.payment_status !== 'paid') {
-                await supabaseAdmin
-                    .from('orders')
-                    .update({
-                        payment_status: 'failed',
-                        metadata: {
-                            ...(failedOrder?.metadata || {}),
-                            moolre_externalref: externalref,
-                            failure_reason: body?.message || 'Payment not successful',
-                            failed_at: new Date().toISOString(),
-                        },
-                    })
-                    .eq('order_number', merchantOrderRef);
+            if (notPaidOrder && notPaidOrder.payment_status !== 'paid') {
+                // Only a real failure marks the order failed; pending stays pending
+                if (status.failed) {
+                    await supabaseAdmin.from('orders').update({ payment_status: 'failed' }).eq('id', notPaidOrder.id);
+                }
+                await supabaseAdmin.rpc('merge_order_metadata', {
+                    p_order_id: notPaidOrder.id,
+                    p_patch: status.failed
+                        ? { moolre_externalref: externalref, failure_reason: 'Payment failed at Moolre', failed_at: new Date().toISOString() }
+                        : { moolre_externalref: externalref, last_payment_check: new Date().toISOString() },
+                });
             }
 
-            return NextResponse.json({ success: false, message: 'Payment not successful' });
+            return NextResponse.json({ success: false, message: status.failed ? 'Payment failed' : 'Payment not completed yet' });
         }
 
         console.log('[Moolre Callback] Payment SUCCESS for Order', merchantOrderRef);

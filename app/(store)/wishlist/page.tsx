@@ -6,29 +6,46 @@ import PageHero from '@/components/PageHero';
 import { useWishlist } from '@/context/WishlistContext';
 import ProductCard from '@/components/ProductCard';
 import { usePageTitle } from '@/hooks/usePageTitle';
+import { supabase } from '@/lib/supabase';
 
 export default function WishlistPage() {
   usePageTitle('Wishlist');
   const { wishlist: wishlistItems, removeFromWishlist } = useWishlist();
   const { addToCart } = useCart();
 
-  const addAllToCart = () => {
-    const inStockItems = wishlistItems.filter(item => item.inStock);
-    inStockItems.forEach(item => {
-      // Convert WishlistItem to CartItem if necessary, or assume compatibility
+  const addAllToCart = async () => {
+    const ids = wishlistItems.filter(item => item.inStock).map(item => item.id);
+    if (ids.length === 0) return;
+    // Current stock, minimum order and options come from the store, not the saved wishlist
+    const { data } = await supabase
+      .from('products')
+      .select('id, name, slug, price, quantity, moq, status, product_variants(id)')
+      .in('id', ids);
+    const added: string[] = [];
+    const needsChoice: string[] = [];
+    for (const item of wishlistItems.filter(i => ids.includes(i.id))) {
+      const p: any = (data || []).find((d: any) => d.id === item.id);
+      if (!p || p.status !== 'active' || Number(p.quantity) <= 0) continue;
+      if ((p.product_variants || []).length > 0) { needsChoice.push(p.name); continue; }
+      const moq = Math.max(1, Number(p.moq) || 1);
+      if (Number(p.quantity) < moq) continue;
       addToCart({
-        id: item.id,
-        name: item.name,
-        price: item.price,
+        id: p.id,
+        name: p.name,
+        price: Number(p.price) || item.price,
         image: item.image,
-        quantity: 1,
-        slug: item.slug || item.id, // Fallback
-        maxStock: 99 // Default
+        quantity: moq,
+        slug: p.slug || item.slug || item.id,
+        maxStock: Number(p.quantity),
+        moq,
       });
-    });
-    if (inStockItems.length > 0) {
-      alert(`Added ${inStockItems.length} items to cart`);
+      added.push(p.name);
     }
+    const parts: string[] = [];
+    if (added.length) parts.push(`Added ${added.length} ${added.length === 1 ? 'item' : 'items'} to your bag.`);
+    if (needsChoice.length) parts.push(`Choose a size or colour for: ${needsChoice.join(', ')}.`);
+    if (!parts.length) parts.push('None of these items are available right now.');
+    alert(parts.join(' '));
   };
 
   return (

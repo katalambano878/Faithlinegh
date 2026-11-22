@@ -28,6 +28,33 @@ interface Order {
   }[];
 }
 
+type SourceFilter = 'all' | 'website' | 'pos' | 'pickup' | 'doorstep' | 'outside_accra';
+const SOURCE_TABS: { key: SourceFilter; label: string; icon: string }[] = [
+  { key: 'all', label: 'All', icon: 'ri-list-check' },
+  { key: 'website', label: 'Website', icon: 'ri-global-line' },
+  { key: 'pos', label: 'POS', icon: 'ri-store-2-line' },
+  { key: 'pickup', label: 'Store Pickup', icon: 'ri-store-3-line' },
+  { key: 'doorstep', label: 'Doorstep Delivery', icon: 'ri-truck-line' },
+  { key: 'outside_accra', label: 'Outside Accra', icon: 'ri-map-pin-line' },
+];
+
+/** How the order reaches the customer. Older orders used other method names, so fall back to the region. */
+function deliveryKind(order: { shipping_method?: string; shipping_address?: any }): 'pickup' | 'doorstep' | 'outside_accra' {
+  const method = String(order.shipping_method || '').toLowerCase();
+  if (method === 'pickup') return 'pickup';
+  if (method === 'outside_accra') return 'outside_accra';
+  const region = String(order.shipping_address?.region || order.shipping_address?.state || '').trim().toLowerCase();
+  return region && region !== 'greater accra' ? 'outside_accra' : 'doorstep';
+}
+
+function matchesSource(order: { shipping_method?: string; shipping_address?: any; metadata?: any }, filter: SourceFilter): boolean {
+  const isPos = order.metadata?.pos_sale === true || order.metadata?.pos_sale === 'true';
+  if (filter === 'all') return true;
+  if (filter === 'pos') return isPos;
+  if (filter === 'website') return !isPos;
+  return deliveryKind(order) === filter;
+}
+
 interface OrderStats {
   label: string;
   count: number;
@@ -37,6 +64,7 @@ interface OrderStats {
 export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('date');
@@ -198,22 +226,24 @@ export default function AdminOrdersPage() {
     if (newStatus) {
       try {
         // Update each selected order via API
-        await Promise.all(
+        const results = await Promise.all(
           selectedOrders.map(id =>
             fetch(`/api/admin/orders/${id}`, {
               method: 'PATCH',
               credentials: 'include',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ status: newStatus }),
-            })
+            }).then(r => ({ id, ok: r.ok })).catch(() => ({ id, ok: false }))
           )
         );
+        const okIds = results.filter(r => r.ok).map(r => r.id);
+        const failedCount = results.length - okIds.length;
 
         // Send Notifications with auth token
         const { data: { session } } = await supabase.auth.getSession();
         const authToken = session?.access_token;
         
-        const updatedOrders = orders.filter(o => selectedOrders.includes(o.id));
+        const updatedOrders = orders.filter(o => okIds.includes(o.id));
         updatedOrders.forEach(order => {
           fetch('/api/notifications', {
             method: 'POST',
@@ -230,7 +260,9 @@ export default function AdminOrdersPage() {
 
         await fetchOrders();
         setSelectedOrders([]);
-        alert(`${selectedOrders.length} orders updated to ${newStatus}`);
+        alert(failedCount
+          ? `${okIds.length} orders updated. ${failedCount} could not be updated, please try those again.`
+          : `${okIds.length} orders updated to ${newStatus.replace(/_/g, ' ')}`);
       } catch (error) {
         console.error('Error updating orders:', error);
         alert('Failed to update orders');
@@ -274,21 +306,28 @@ export default function AdminOrdersPage() {
   const handleResendPaymentLink = async (order: Order) => {
     setSendingPaymentLink(order.id);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
       const response = await fetch('/api/notifications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { Authorization: `Bearer ${session.access_token}` }),
+        },
         body: JSON.stringify({
           type: 'payment_link',
-          payload: order
+          payload: { id: order.id }
         })
       });
       
-      if (!response.ok) throw new Error('Failed to send');
+      if (!response.ok) {
+        const j = await response.json().catch(() => ({}));
+        throw new Error(j.error || 'Failed to send');
+      }
       
       alert(`Payment link sent to ${order.phone || order.email}`);
     } catch (error) {
       console.error('Error sending payment link:', error);
-      alert('Failed to send payment link');
+      alert(`Failed to send payment link: ${(error as Error).message}`);
     } finally {
       setSendingPaymentLink(null);
     }
@@ -309,7 +348,7 @@ export default function AdminOrdersPage() {
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     const matchesProduct = productFilter === 'all' || 
       order.order_items?.some((item: any) => item.product_name === productFilter);
-    return matchesViewTab && matchesSearch && matchesStatus && matchesProduct;
+    return matchesViewTab && matchesSearch && matchesStatus && matchesProduct && matchesSource(order, sourceFilter);
   });
 
   return (
@@ -361,6 +400,25 @@ export default function AdminOrdersPage() {
           <i className="ri-shopping-cart-2-line mr-2"></i>
           Abandoned Carts ({abandonedCount})
         </button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Filter orders by channel and delivery">
+        <span className="text-sm font-medium text-gray-500 mr-1">Show:</span>
+        {SOURCE_TABS.map(({ key, label, icon }) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={sourceFilter === key}
+            onClick={() => { setSourceFilter(key); setSelectedOrders([]); }}
+            className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition-colors cursor-pointer ${
+              sourceFilter === key
+                ? 'bg-gray-900 border-gray-900 text-white'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+            }`}
+          >
+            <i className={`${icon} mr-1.5`} aria-hidden="true" />{label}
+          </button>
+        ))}
       </div>
 
       {orderViewTab === 'confirmed' && (

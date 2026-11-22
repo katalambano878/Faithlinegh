@@ -48,6 +48,7 @@ const ORDER_SELECT = `
     id,
     product_id,
     product_name,
+    variant_id,
     variant_name,
     sku,
     quantity,
@@ -92,6 +93,14 @@ export async function GET(
   }
 }
 
+const ORDER_STATUSES = ['pending', 'awaiting_payment', 'processing', 'shipped', 'dispatched_to_rider', 'delivered', 'cancelled', 'refunded'];
+
+/**
+ * Admin order update. Only status, notes and the courier reference can be
+ * changed here; other order details (tracking code, payment, prices) stay
+ * as recorded. Metadata is merged, never replaced. Cancelling or refunding
+ * a paid order puts its stock back.
+ */
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -103,15 +112,50 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { status, notes, metadata } = body;
+    const { data: current, error: fetchError } = await supabaseAdmin
+      .from('orders').select('id, status, order_number, payment_status').eq('id', id).single();
+    if (fetchError || !current) return NextResponse.json({ error: 'Order not found' }, { status: 404 });
 
-    const { error } = await supabaseAdmin
-      .from('orders')
-      .update({ status, notes, metadata })
-      .eq('id', id);
+    const update: Record<string, any> = {};
+    if (body.status !== undefined) {
+      if (!ORDER_STATUSES.includes(body.status)) {
+        return NextResponse.json({ error: 'Unknown order status' }, { status: 400 });
+      }
+      update.status = body.status;
+    }
+    if (body.notes !== undefined) update.notes = body.notes == null ? null : String(body.notes).slice(0, 5000);
 
-    if (error) throw error;
-    return NextResponse.json({ success: true });
+    if (Object.keys(update).length) {
+      update.updated_at = new Date().toISOString();
+      const { error } = await supabaseAdmin.from('orders').update(update).eq('id', id);
+      if (error) throw error;
+    }
+
+    if (body.courier_reference !== undefined) {
+      const { error } = await supabaseAdmin.rpc('merge_order_metadata', {
+        p_order_id: id,
+        p_patch: { courier_reference: String(body.courier_reference || '').trim().slice(0, 120) },
+      });
+      if (error) throw error;
+    }
+
+    let restocked = false;
+    if (update.status && ['cancelled', 'refunded'].includes(update.status) && !['cancelled', 'refunded'].includes(current.status)) {
+      const { data, error } = await supabaseAdmin.rpc('restock_order', { p_order_id: id });
+      if (error) console.error('[admin orders] restock failed:', error.message);
+      restocked = data === true;
+    }
+
+    // Re-opening a paid order that was cancelled or refunded: take its stock out again
+    let restockedOut = false;
+    if (update.status && !['cancelled', 'refunded'].includes(update.status)
+        && ['cancelled', 'refunded'].includes(current.status) && current.payment_status === 'paid') {
+      const { error } = await supabaseAdmin.rpc('mark_order_paid', { order_ref: current.order_number, moolre_ref: null });
+      if (error) console.error('[admin orders] re-deduct failed:', error.message);
+      else restockedOut = true;
+    }
+
+    return NextResponse.json({ success: true, restocked, restockedOut });
   } catch (e: any) {
     return NextResponse.json({ error: e.message }, { status: 500 });
   }

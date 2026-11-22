@@ -16,12 +16,29 @@ interface FraudAnalysis {
   reasons: string[];
 }
 
+const DELIVERY_LABELS: Record<string, string> = {
+  pickup: 'Store pickup',
+  doorstep: 'Doorstep delivery (Accra)',
+  outside_accra: 'Delivery outside Accra',
+};
+function deliveryLabel(method?: string | null, region?: string | null) {
+  const r = String(region || '').trim();
+  if (method && method !== 'pickup' && method !== 'outside_accra' && r && r.toLowerCase() !== 'greater accra') return `Delivery outside Accra (${r})`;
+  return (method && DELIVERY_LABELS[method]) || (method ? method.replace(/_/g, ' ') : 'Not set');
+}
+function deliveryFeeText(order: any) {
+  if (order?.shipping_method === 'pickup') return 'Free';
+  if (order?.metadata?.delivery_fee_pending || !(Number(order?.shipping_total) > 0)) return 'To be confirmed';
+  return `₵ ${Number(order.shipping_total).toFixed(2)}`;
+}
+
 export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [courierRef, setCourierRef] = useState('');
   const [adminNotes, setAdminNotes] = useState('');
   const [statusUpdating, setStatusUpdating] = useState(false);
 
@@ -58,6 +75,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
       const data = json.order;
       setOrder(data);
       setTrackingNumber(data.metadata?.tracking_number || '');
+      setCourierRef(data.metadata?.courier_reference || '');
       setAdminNotes(data.notes || '');
     } catch (err: any) {
       console.error('Error fetching order:', err);
@@ -68,9 +86,29 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
   };
 
   const handleUpdateStatus = async (newStatus?: string) => {
+    const statusToUpdate = newStatus || order.status;
+    const changing = statusToUpdate !== order.status;
+    const paid = order.payment_status === 'paid';
+    if (changing && (statusToUpdate === 'cancelled' || statusToUpdate === 'refunded')) {
+      const what = statusToUpdate === 'cancelled' ? 'Cancel' : 'Mark as refunded';
+      const stockNote = paid ? ' Its items go back into stock.' : '';
+      if (!confirm(`${what} order ${order.order_number}?${stockNote} The customer gets a text and an email.${statusToUpdate === 'refunded' ? ' This does not send the money back; refund them in Moolre first.' : ''}`)) {
+        setShowStatusMenu(false);
+        return;
+      }
+    } else if (changing && !paid && ['processing', 'shipped', 'dispatched_to_rider', 'delivered'].includes(statusToUpdate)) {
+      if (!confirm(`Order ${order.order_number} is not paid yet. Move it to "${statusLabel(statusToUpdate)}" anyway?`)) {
+        setShowStatusMenu(false);
+        return;
+      }
+    } else if (changing && ['cancelled', 'refunded'].includes(order.status) && paid) {
+      if (!confirm(`Re-open order ${order.order_number}? Its items come out of stock again.`)) {
+        setShowStatusMenu(false);
+        return;
+      }
+    }
     try {
       setStatusUpdating(true);
-      const statusToUpdate = newStatus || order.status;
 
       const res = await fetch(`/api/admin/orders/${order.id}`, {
         method: 'PATCH',
@@ -79,7 +117,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
         body: JSON.stringify({
           status: statusToUpdate,
           notes: adminNotes,
-          metadata: { ...order.metadata, tracking_number: trackingNumber },
+          courier_reference: courierRef,
         }),
       });
       const json = await res.json();
@@ -92,15 +130,15 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
         ...order,
         status: statusToUpdate,
         notes: adminNotes,
-        metadata: { ...order.metadata, tracking_number: trackingNumber }
+        metadata: { ...order.metadata, courier_reference: courierRef }
       });
 
       // Send Notification (Email + SMS)
       // Only send if status changed OR tracking number was added/changed
       const statusChanged = statusToUpdate !== order.status;
-      const trackingChanged = trackingNumber !== order.metadata?.tracking_number;
+      const trackingChanged = courierRef !== (order.metadata?.courier_reference || '');
 
-      if (statusChanged || (trackingChanged && trackingNumber)) {
+      if (statusChanged || (trackingChanged && courierRef)) {
         // Get auth token for notification API
         const { data: { session } } = await supabase.auth.getSession();
         const authToken = session?.access_token;
@@ -126,7 +164,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
         }).catch(err => console.error('Notification error:', err));
       }
 
-      alert('Order updated successfully');
+      alert(json.restocked ? 'Order updated. Its items are back in stock.' : json.restockedOut ? 'Order re-opened. Its items came out of stock again.' : 'Order updated successfully');
       setShowStatusMenu(false);
     } catch (err) {
       console.error('Error updating order:', err);
@@ -236,10 +274,19 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
     }
   };
 
-  const statusOptions = ['pending', 'processing', 'shipped', 'dispatched_to_rider', 'delivered', 'cancelled'];
+  const isPickupOrder = order?.shipping_method === 'pickup';
+  // Pickup orders never go to a rider; refunds only apply to paid orders
+  const statusOptions = [
+    'pending', 'processing', 'shipped',
+    ...(isPickupOrder ? [] : ['dispatched_to_rider']),
+    'delivered', 'cancelled',
+    ...(order?.payment_status === 'paid' ? ['refunded'] : []),
+  ];
   const statusLabel = (s: string) => {
-    if (s === 'shipped') return 'Packaged';
+    if (s === 'shipped') return isPickupOrder ? 'Ready to collect' : 'Packaged';
     if (s === 'dispatched_to_rider') return 'Dispatched To Rider';
+    if (s === 'delivered') return isPickupOrder ? 'Collected' : 'Delivered';
+    if (s === 'awaiting_payment') return 'Awaiting payment';
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
   const statusColors: any = {
@@ -249,6 +296,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
     'dispatched_to_rider': 'bg-brand-cream text-brand-brown border-brand-brown/20',
     'delivered': 'bg-gray-100 text-gray-900 border-gray-200',
     'cancelled': 'bg-red-100 text-brand-brown border-brand-brown/20',
+    'refunded': 'bg-gray-100 text-gray-700 border-gray-200',
     'awaiting_payment': 'bg-gray-100 text-gray-700 border-gray-200'
   };
 
@@ -347,13 +395,14 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
           {/* Order Summary */}
           <div className="flex justify-between mb-6">
             <div>
-              <p><span className="font-semibold">Shipping Method:</span> {order?.shipping_method || 'Standard'}</p>
+              <p><span className="font-semibold">Delivery:</span> {deliveryLabel(order?.shipping_method, order?.shipping_address?.region)}</p>
               <p><span className="font-semibold">Payment:</span> {order?.payment_method} ({order?.payment_status})</p>
               {trackingNumber && <p><span className="font-semibold">Tracking #:</span> {trackingNumber}</p>}
+              {courierRef && <p><span className="font-semibold">Courier ref:</span> {courierRef}</p>}
             </div>
             <div className="text-right">
               <p>Subtotal: ₵ {order?.subtotal?.toFixed(2)}</p>
-              <p>Shipping: ₵ {order?.shipping_total?.toFixed(2)}</p>
+              <p>Delivery: {deliveryFeeText(order)}</p>
               <p className="font-bold text-lg border-t border-gray-400 pt-1 mt-1">Total: ₵ {order?.total?.toFixed(2)}</p>
             </div>
           </div>
@@ -436,8 +485,8 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   <span>₵ {order.subtotal?.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-700">
-                  <span>Shipping</span>
-                  <span>₵ {order.shipping_total?.toFixed(2)}</span>
+                  <span>{order.shipping_method === 'pickup' ? 'Store pickup' : 'Delivery'}</span>
+                  <span className={order.metadata?.delivery_fee_pending ? 'text-amber-700 font-medium' : ''}>{deliveryFeeText(order)}</span>
                 </div>
                 <div className="flex justify-between text-gray-700">
                   <span>Tax</span>
@@ -513,13 +562,16 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               </div>
 
               <div className="mt-4">
-                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                  Tracking Number
+                <p className="text-sm text-gray-600 mb-3">Customer tracking code: <span className="font-mono font-semibold text-gray-900 whitespace-nowrap">{trackingNumber || '—'}</span></p>
+                <label htmlFor="courier-ref" className="block text-sm font-semibold text-gray-900 mb-2">
+                  Courier or waybill reference
                 </label>
                 <input
+                  id="courier-ref"
                   type="text"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
+                  value={courierRef}
+                  onChange={(e) => setCourierRef(e.target.value)}
+                  placeholder="Optional, e.g. the rider's waybill number"
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                 />
               </div>
@@ -548,8 +600,14 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Shipping Address</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Delivery</h2>
               <div className="text-gray-700 space-y-1">
+                <p className="font-semibold text-gray-900">{deliveryLabel(order.shipping_method, order.shipping_address?.region)}</p>
+                {order.metadata?.delivery_fee_pending && (
+                  <p className="text-sm text-amber-700 font-medium">Delivery fee still to agree with the customer</p>
+                )}
+                {order.shipping_method !== 'pickup' && (
+                  <>
                 {/* Support both old field names (address_line1) and new (address) */}
                 <p>{shippingAddress.address || shippingAddress.address_line1}</p>
                 {(shippingAddress.address_line2) && <p>{shippingAddress.address_line2}</p>}
@@ -558,7 +616,10 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                   {(shippingAddress.region || shippingAddress.state) && `, ${shippingAddress.region || shippingAddress.state}`}
                 </p>
                 {shippingAddress.postal_code && <p>{shippingAddress.postal_code}</p>}
+                {shippingAddress.gpsAddress && <p>GPS: <span className="font-mono">{shippingAddress.gpsAddress}</span></p>}
                 {shippingAddress.country && <p className="font-semibold">{shippingAddress.country}</p>}
+                  </>
+                )}
               </div>
             </div>
 
@@ -567,7 +628,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
               <div className="space-y-3">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Method</span>
-                  <span className="font-semibold text-gray-900 capitalize">{order.payment_method}</span>
+                  <span className="font-semibold text-gray-900 capitalize">{order.payment_method}{order.metadata?.payment_channel ? ` · ${order.metadata.payment_channel === 'card' ? 'Card' : 'Mobile Money'}` : ''}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Status</span>

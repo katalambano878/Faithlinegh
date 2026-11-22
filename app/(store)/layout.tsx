@@ -22,6 +22,7 @@ const NetworkStatusMonitor = dynamic(() => import('@/components/NetworkStatusMon
 const UpdatePrompt = dynamic(() => import('@/components/UpdatePrompt'), { ssr: false });
 const LiveSalesNotification = dynamic(() => import('@/components/LiveSalesNotification'), { ssr: false });
 const ChatWidget = dynamic(() => import('@/components/ChatWidget'), { ssr: false });
+const LiveShopperPing = dynamic(() => import('@/components/LiveShopperPing'), { ssr: false });
 
 // Feature flag: control chat widget via env
 const CHAT_ENABLED =
@@ -97,6 +98,7 @@ export default function StoreLayout({
         <NetworkStatusMonitor />
         <UpdatePrompt />
         <LiveSalesNotification />
+        <LiveShopperPing />
 
         {shouldShowChat && <ChatWidget />}
       </div>

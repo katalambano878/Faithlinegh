@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 
 const money = (n: number) => `₵${Number(n || 0).toFixed(2)}`;
 const HOUR = 60 * 60 * 1000;
@@ -18,10 +19,39 @@ function deliveryPromise(order: any) {
     : { title: 'Delivered', window: 'Within 48 hours', by: byLabel };
 }
 
+/** The order's private token: from the Moolre return link, or saved at checkout in this browser. */
+function orderToken(orderNumber: string, fromUrl: string | null): string | null {
+  if (fromUrl) return fromUrl;
+  try {
+    const p = JSON.parse(localStorage.getItem('fl_pending_order') || 'null');
+    return p?.orderNumber === orderNumber && p?.accessToken ? String(p.accessToken) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadOrder(orderNumber: string, token: string | null) {
+  const { data: { session } } = await supabase.auth.getSession().catch(() => ({ data: { session: null } } as any));
+  const res = await fetch(
+    `/api/storefront/orders/${encodeURIComponent(orderNumber)}${token ? `?t=${encodeURIComponent(token)}` : ''}`,
+    { headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}, cache: 'no-store' }
+  );
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Order not found');
+  if (json.order?.payment_status === 'paid') {
+    try {
+      const p = JSON.parse(localStorage.getItem('fl_pending_order') || 'null');
+      if (p?.orderNumber === orderNumber) localStorage.removeItem('fl_pending_order');
+    } catch { /* storage unavailable */ }
+  }
+  return json.order;
+}
+
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
   const paymentSuccess = searchParams.get('payment_success');
+  const tokenParam = searchParams.get('t');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [verifying, setVerifying] = useState(false);
@@ -34,10 +64,7 @@ function OrderSuccessContent() {
       }
 
       try {
-        const res = await fetch(`/api/storefront/orders/${encodeURIComponent(orderNumber)}`);
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Order not found');
-        const orderData = json.order;
+        const orderData = await loadOrder(orderNumber, orderToken(orderNumber, tokenParam));
         setOrder(orderData);
 
         // Back from Moolre but the webhook has not marked it paid yet: check again
@@ -51,17 +78,13 @@ function OrderSuccessContent() {
       }
     }
     fetchOrder();
-  }, [orderNumber, paymentSuccess]);
+  }, [orderNumber, paymentSuccess, tokenParam]);
 
   // Called when the shopper returns from Moolre with payment_success=true
   const verifyPayment = async (orderNum: string) => {
     setVerifying(true);
 
-    const refreshOrder = async () => {
-      const r = await fetch(`/api/storefront/orders/${encodeURIComponent(orderNum)}`);
-      const j = await r.json();
-      return j.order;
-    };
+    const refreshOrder = () => loadOrder(orderNum, orderToken(orderNum, tokenParam));
 
     // Give the webhook up to ~30s to fire
     const delays = [3000, 3000, 4000, 5000, 5000, 5000, 5000];
@@ -152,7 +175,7 @@ function OrderSuccessContent() {
             <span className="w-14 h-14 rounded-full bg-[#E3F0E7] text-[#1F5A37] flex items-center justify-center"><i className="ri-check-line text-3xl"></i></span>
             <h1 className="font-serif font-medium text-[36px] lg:text-[48px] leading-[1.05] tracking-[-0.01em]">Thank you{firstName ? `, ${firstName}` : ''}</h1>
             <p className="text-base lg:text-[17px] text-[#4E423A] max-w-[56ch]">
-              Your payment of <strong className="text-[#2B211B]">{money(order.total)}</strong> is confirmed. Updates go to {order.phone}{order.email ? ` and ${order.email}` : ''}.
+              Your payment of <strong className="text-[#2B211B]">{money(order.total)}</strong> is confirmed. {order.phone ? <>Updates go to {order.phone}{order.email ? ` and ${order.email}` : ''}.</> : 'We’ll text you updates.'}
             </p>
             <span className="text-sm text-[#4E423A]">Order number <strong className="text-[#2B211B] tabular-nums">{order.order_number}</strong></span>
           </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import type { CartItem } from '@/context/CartContext';
 import MarkdownMessage from '@/components/MarkdownMessage';
@@ -18,6 +18,7 @@ type ChatProduct = {
   maxStock: number;
   moq: number;
   inStock: boolean;
+  options?: string[];
 };
 
 type ChatOrder = {
@@ -171,6 +172,7 @@ export default function ChatWidget() {
   const inputRef = useRef<HTMLInputElement>(null);
   const { cart, addToCart, clearCart, setIsCartOpen } = useCart();
   const pathname = usePathname();
+  const router = useRouter();
 
   // Voice chat state
   const [isRecording, setIsRecording] = useState(false);
@@ -241,7 +243,7 @@ export default function ChatWidget() {
 
     try {
       const cartPayload = cart.length > 0
-        ? cart.map(c => ({ id: c.id, name: c.name, price: c.price, quantity: c.quantity, slug: c.slug }))
+        ? cart.map(c => ({ id: c.id, name: c.name, price: c.price, quantity: c.quantity, slug: c.slug, option: c.variant || null }))
         : undefined;
 
       const res = await fetch('/api/chat', {
@@ -289,6 +291,11 @@ export default function ChatWidget() {
   }, [input, loading, messages, open, pathname, cart, clearCart]);
 
   const handleAddToCart = useCallback((product: ChatProduct) => {
+    // Products with sizes or colours: the shopper picks one on the product page
+    if (product.options && product.options.length > 0) {
+      router.push(`/product/${product.slug}`);
+      return;
+    }
     const item: CartItem = {
       id: product.id,
       name: product.name,
@@ -301,7 +308,7 @@ export default function ChatWidget() {
     };
     addToCart(item);
     setIsCartOpen(true);
-  }, [addToCart, setIsCartOpen]);
+  }, [addToCart, setIsCartOpen, router]);
 
   const handleQuickReply = useCallback((text: string) => {
     send(text);
@@ -355,7 +362,7 @@ export default function ChatWidget() {
       setVoiceProcessing(null);
 
       const voiceCartPayload = cart.length > 0
-        ? cart.map(c => ({ id: c.id, name: c.name, price: c.price, quantity: c.quantity, slug: c.slug }))
+        ? cart.map(c => ({ id: c.id, name: c.name, price: c.price, quantity: c.quantity, slug: c.slug, option: c.variant || null }))
         : undefined;
 
       const chatRes = await fetch('/api/chat', {

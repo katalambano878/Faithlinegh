@@ -255,8 +255,11 @@ function OrderTrackingContent() {
   const statusBadge = getStatusBadge();
   const trackingNumber = order.metadata?.tracking_number || '';
   const shippingAddress = order.shipping_address || {};
-  const estimatedDelivery = new Date(new Date(order.created_at).getTime() + 7 * 24 * 60 * 60 * 1000)
-    .toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  // Same promise as checkout: delivery within 48 hours, pickup ready within 24 hours
+  const isPickup = order.shipping_method === 'pickup';
+  const estimatedDelivery = new Date(new Date(order.created_at).getTime() + (isPickup ? 24 : 48) * 60 * 60 * 1000)
+    .toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  const isUnpaid = order.payment_status !== 'paid' && !['cancelled', 'refunded'].includes(order.status);
 
   return (
     <main className="min-h-screen bg-white py-12 px-4">
@@ -281,7 +284,14 @@ function OrderTrackingContent() {
                   <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-sm">{trackingNumber}</span>
                 </p>
               )}
-              <p className="text-gray-500 text-sm mt-1">Estimated delivery: {estimatedDelivery}</p>
+              {!['cancelled', 'refunded', 'delivered'].includes(order.status) && (
+                <p className="text-gray-500 text-sm mt-1">{isPickup ? 'Ready to collect by' : 'Delivered by'} {estimatedDelivery}{isUnpaid ? ', once paid' : ''}</p>
+              )}
+              {isUnpaid && (
+                <Link href={`/pay/${encodeURIComponent(order.order_number)}`} className="mt-3 inline-flex items-center h-11 px-5 rounded-[12px] bg-[#5B4436] hover:bg-[#47362C] text-white font-semibold transition-colors">
+                  Finish paying ₵{Number(order.total || 0).toFixed(2)}
+                </Link>
+              )}
             </div>
             <div className={`px-4 py-2 rounded-full font-semibold whitespace-nowrap ${statusBadge.color}`}>
               {statusBadge.label}
@@ -295,9 +305,9 @@ function OrderTrackingContent() {
                   <i className="ri-map-pin-line text-xl text-gray-900"></i>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Shipping To</p>
+                  <p className="text-sm text-gray-600">{isPickup ? 'Collection' : 'Delivering to'}</p>
                   <p className="font-semibold text-gray-900">
-                    {shippingAddress.city || shippingAddress.region || 'Ghana'}
+                    {isPickup ? 'Store pickup' : (shippingAddress.city || shippingAddress.region || 'Ghana')}
                   </p>
                 </div>
               </div>

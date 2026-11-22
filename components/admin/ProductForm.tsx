@@ -58,9 +58,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [sku, setSku] = useState(initialData?.sku || '');
     const [stock, setStock] = useState(initialData?.quantity || '');
     const [moq, setMoq] = useState(initialData?.moq || '1');
-    const [lowStockThreshold, setLowStockThreshold] = useState(initialData?.metadata?.low_stock_threshold || '5');
+    const [lowStockThreshold, setLowStockThreshold] = useState(String(initialData?.metadata?.low_stock_threshold ?? '5'));
     const [description, setDescription] = useState(initialData?.description || '');
-    const [status, setStatus] = useState(initialData?.status || 'Active');
+    const [status, setStatus] = useState(String(initialData?.status || 'active').toLowerCase());
     const [featured, setFeatured] = useState(initialData?.featured || false);
     const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
     const [activeTab, setActiveTab] = useState('general');
@@ -192,7 +192,8 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         ...v,
         stock: v.stock ?? v.quantity ?? 0,
         color: v.color ?? v.option2 ?? '',
-        size: v.name || '',
+        // Colour-only rows store the colour in name too; their size is empty
+        size: v.option1 || (v.name && v.name !== v.option2 ? v.name : ''),
         image_url: v.image_url || ''
     }));
 
@@ -221,6 +222,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     });
 
     const [customColorName, setCustomColorName] = useState('');
+    const [variantUploading, setVariantUploading] = useState<string | null>(null);
     const [customColorHex, setCustomColorHex] = useState('#888888');
     const [customSize, setCustomSize] = useState('');
 
@@ -228,12 +230,17 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const buildVariantKey = (color: string, size: string) => `${color}|||${size}`;
 
     // Store variant data (price, stock, sku, optional image_url) keyed by "color|||size"
-    const [variantData, setVariantData] = useState<Record<string, { price: string; stock: string; sku: string; image_url?: string }>>(() => {
-        const data: Record<string, { price: string; stock: string; sku: string; image_url?: string }> = {};
+    type VariantRow = { id?: string; price: string; stock: string; sku: string; image_url?: string };
+    const [variantData, setVariantData] = useState<Record<string, VariantRow>>(() => {
+        const data: Record<string, VariantRow> = {};
+        const basePrice = Number(initialData?.price) || 0;
         existingVariants.forEach((v: any) => {
             const key = buildVariantKey(v.color || '', v.size || '');
+            const vp = Number(v.price) || 0;
             data[key] = {
-                price: v.price?.toString() || '',
+                id: v.id,
+                // Same as the product price: leave blank so it follows price changes
+                price: vp > 0 && vp !== basePrice ? String(vp) : '',
                 stock: v.stock?.toString() || '0',
                 sku: v.sku || '',
                 image_url: v.image_url || undefined
@@ -260,8 +267,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
     // Build the flat variants array for saving (used by handleSubmit)
     const variants = variantCombinations.map((combo, idx) => {
-        const d = variantData[combo.key] || { price: price, stock: '0', sku: '' };
+        const d = variantData[combo.key] || { price: '', stock: '0', sku: '' };
         return {
+            id: (d as VariantRow).id,
             name: combo.size,
             color: combo.color,
             sku: d.sku,
@@ -275,14 +283,14 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const updateVariantField = (key: string, field: string, value: string) => {
         setVariantData(prev => ({
             ...prev,
-            [key]: { ...prev[key] || { price: price, stock: '0', sku: '' }, [field]: value }
+            [key]: { ...prev[key] || { price: '', stock: '0', sku: '' }, [field]: value }
         }));
     };
 
     const setVariantImage = (key: string, imageUrl: string) => {
         setVariantData(prev => ({
             ...prev,
-            [key]: { ...prev[key] || { price: price, stock: '0', sku: '' }, image_url: imageUrl || undefined }
+            [key]: { ...prev[key] || { price: '', stock: '0', sku: '' }, image_url: imageUrl || undefined }
         }));
     };
 
@@ -291,7 +299,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         setVariantData(prev => {
             const updated = { ...prev };
             variantCombinations.forEach(combo => {
-                updated[combo.key] = { ...updated[combo.key] || { price: price, stock: '0', sku: '' }, [field]: value };
+                updated[combo.key] = { ...updated[combo.key] || { price: '', stock: '0', sku: '' }, [field]: value };
             });
             return updated;
         });
@@ -299,8 +307,8 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
     const toggleColor = (color: { name: string; hex: string }) => {
         setSelectedColors(prev => {
-            const exists = prev.find(c => c.name === color.name);
-            if (exists) return prev.filter(c => c.name !== color.name);
+            const same = (c: { name: string }) => c.name.trim().toLowerCase() === color.name.trim().toLowerCase();
+            if (prev.some(same)) return prev.filter(c => !same(c));
             return [...prev, color];
         });
     };
@@ -383,6 +391,10 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [seoTitle, setSeoTitle] = useState(initialData?.seo_title || '');
     const [metaDescription, setMetaDescription] = useState(initialData?.seo_description || '');
     const [urlSlug, setUrlSlug] = useState(initialData?.slug || '');
+    // New products: the web address follows the full name until the admin types
+    // their own. (It used to lock in after the first letter, saving "s" for "Satin Shirt".)
+    const [slugEdited, setSlugEdited] = useState(!!initialData?.slug);
+    const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     const [keywords, setKeywords] = useState(initialData?.tags?.join(', ') || '');
     // Track manual edits so auto-generation doesn't overwrite user changes
     const [seoTitleEdited, setSeoTitleEdited] = useState(!!initialData?.seo_title);
@@ -426,12 +438,11 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         fetchCategories();
     }, [categoryId]);
 
-    // Auto-generate slug from name if not manually edited
+    // Auto-generate the web address from the name until it's edited by hand
     useEffect(() => {
-        if (!isEditMode && productName && !urlSlug) {
-            setUrlSlug(productName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
-        }
-    }, [productName, isEditMode, urlSlug]);
+        if (!slugEdited) setUrlSlug(slugify(productName || ''));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [productName, slugEdited]);
 
     // Auto-generate SEO fields from name + description (only if not manually edited)
     useEffect(() => {
@@ -573,6 +584,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     // Variant helpers removed — variants are now auto-generated from selectedColors × selectedSizes
 
     const handleSubmit = async () => {
+        if (variantUploading) { alert('Wait for the photo to finish uploading.'); return; }
         try {
             setLoading(true);
 
@@ -590,7 +602,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
             const productData = {
                 name: productName,
-                slug: urlSlug || productName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''),
+                slug: slugify(urlSlug) || slugify(productName),
                 description,
                 category_id: categoryId || null,
                 price: parseFloat(price) || 0,
@@ -604,7 +616,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 seo_description: metaDescription,
                 tags: (keywords as string).split(',').map((k: string) => k.trim()).filter(Boolean),
                 metadata: {
-                    low_stock_threshold: parseInt(lowStockThreshold) || 5,
+                    low_stock_threshold: Number.isNaN(parseInt(lowStockThreshold)) ? 5 : Math.max(0, parseInt(lowStockThreshold)),
                     preorder_shipping: preorderShipping.trim() || null,
                     wholesale_price: wholesalePrice ? parseFloat(wholesalePrice) : null,
                     wholesale_min_qty: wholesaleMinQty ? parseInt(wholesaleMinQty) : null,
@@ -814,9 +826,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                         onChange={(e) => setStatus(e.target.value)}
                                         className="w-full px-4 py-3 pr-8 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 cursor-pointer"
                                     >
-                                        <option>Active</option>
-                                        <option>Draft</option>
-                                        <option>Archived</option>
+                                        <option value="active">Active</option>
+                                        <option value="draft">Draft</option>
+                                        <option value="archived">Archived</option>
                                     </select>
                                 </div>
                             </div>
@@ -1445,7 +1457,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                             </thead>
                                             <tbody>
                                                 {variantCombinations.map((combo) => {
-                                                    const d = variantData[combo.key] || { price: price, stock: '0', sku: '' };
+                                                    const d = variantData[combo.key] || { price: '', stock: '0', sku: '' };
                                                     return (
                                                         <tr key={combo.key} className="border-b border-gray-100 hover:bg-gray-50">
                                                             {selectedColors.length > 0 && (
@@ -1477,8 +1489,8 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                                         <span className="text-gray-400 text-xs">No image</span>
                                                                     )}
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900 flex items-center gap-1">
-                                                                            <i className="ri-upload-line"></i> Upload
+                                                                        <label className={`cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900 flex items-center gap-1 ${variantUploading === combo.key ? 'opacity-60 pointer-events-none' : ''}`}>
+                                                                            <i className={variantUploading === combo.key ? 'ri-loader-4-line animate-spin' : 'ri-upload-line'}></i> {variantUploading === combo.key ? 'Uploading…' : 'Upload'}
                                                                             <input
                                                                                 type="file"
                                                                                 accept=".jpg,.jpeg,.png,.webp"
@@ -1486,13 +1498,22 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                                                                 onChange={async (e) => {
                                                                                     const file = e.target.files?.[0];
                                                                                     if (!file) return;
-                                                                                    const fd = new FormData();
-                                                                                    fd.append('file', file);
-                                                                                    fd.append('bucket', 'product-images');
-                                                                                    const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'include' });
-                                                                                    const data = await res.json().catch(() => ({}));
-                                                                                    if (data?.url) setVariantImage(combo.key, data.url);
                                                                                     e.target.value = '';
+                                                                                    if (file.size > 5 * 1024 * 1024) { alert(`"${file.name}" is too large. Max 5MB.`); return; }
+                                                                                    setVariantUploading(combo.key);
+                                                                                    try {
+                                                                                        const fd = new FormData();
+                                                                                        fd.append('file', file);
+                                                                                        fd.append('bucket', 'product-images');
+                                                                                        const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'include' });
+                                                                                        const data = await res.json().catch(() => ({}));
+                                                                                        if (!res.ok || !data?.url) throw new Error(data?.error || 'Upload failed');
+                                                                                        setVariantImage(combo.key, data.url);
+                                                                                    } catch (err: any) {
+                                                                                        alert(`Could not upload the photo: ${err.message}`);
+                                                                                    } finally {
+                                                                                        setVariantUploading(null);
+                                                                                    }
                                                                                 }}
                                                                             />
                                                                         </label>
@@ -1716,7 +1737,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                         setSeoTitle(title);
                                         setMetaDescription(metaDesc);
                                         setKeywords(kw);
-                                        if (productName) setUrlSlug(productName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
+                                        if (productName) { setUrlSlug(slugify(productName)); setSlugEdited(false); }
                                         setSeoTitleEdited(false);
                                         setMetaDescEdited(false);
                                         setKeywordsEdited(false);
@@ -1733,7 +1754,7 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 <div className="p-4 bg-white border-2 border-gray-100 rounded-xl">
                                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Google Preview</p>
                                     <p className="text-brand-brown text-base font-medium leading-snug truncate">{seoTitle || productName}</p>
-                                    <p className="text-brand-brown text-xs mt-0.5">example.com/product/{urlSlug}</p>
+                                    <p className="text-brand-brown text-xs mt-0.5">faithlinegh.com/product/{urlSlug}</p>
                                     <p className="text-gray-600 text-sm mt-1 line-clamp-2">{metaDescription}</p>
                                 </div>
                             )}
@@ -1781,7 +1802,8 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     <input
                                         type="text"
                                         value={urlSlug}
-                                        onChange={(e) => setUrlSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)+/g, ''))}
+                                        onChange={(e) => { setSlugEdited(true); setUrlSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+/, '')); }}
+                                        onBlur={() => setUrlSlug(slugify(urlSlug))}
                                         className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
                                         placeholder="product-slug"
                                     />

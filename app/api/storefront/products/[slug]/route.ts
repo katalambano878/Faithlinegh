@@ -24,7 +24,9 @@ export async function GET(
     let query = supabaseAdmin
       .from('products')
       .select(`
-        *,
+        id, name, slug, description, short_description, price, compare_at_price, sku, quantity, moq,
+        category_id, brand, tags, status, featured, on_sale, rating_avg, review_count, metadata,
+        seo_title, seo_description, created_at, updated_at,
         categories(name, slug),
         product_variants(id, name, price, quantity, option1, option2, image_url, metadata, sort_order),
         product_images(url, position, alt_text, media_type)

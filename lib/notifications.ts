@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { supabase } from '@/lib/supabase';
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import { escapeHtml } from '@/lib/sanitize';
 
 const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
@@ -217,17 +217,17 @@ export async function sendOrderConfirmation(order: any) {
     // Build customer name from available sources
     const getName = () => {
         // Try shipping_address first
-        if (shipping_address?.full_name) return shipping_address.full_name;
+        if (shipping_address?.full_name) return escapeHtml(String(shipping_address.full_name));
         if (shipping_address?.firstName) {
-            return shipping_address.lastName 
+            return escapeHtml(shipping_address.lastName 
                 ? `${shipping_address.firstName} ${shipping_address.lastName}` 
-                : shipping_address.firstName;
+                : String(shipping_address.firstName));
         }
         // Fall back to metadata
         if (metadata?.first_name) {
-            return metadata.last_name 
+            return escapeHtml(metadata.last_name 
                 ? `${metadata.first_name} ${metadata.last_name}` 
-                : metadata.first_name;
+                : String(metadata.first_name));
         }
         return 'Customer';
     };
@@ -338,16 +338,16 @@ export async function sendOrderStatusUpdate(order: any, newStatus: string) {
 
     // Build customer name from available sources
     const getName = () => {
-        if (shipping_address?.full_name) return shipping_address.full_name;
+        if (shipping_address?.full_name) return escapeHtml(String(shipping_address.full_name));
         if (shipping_address?.firstName) {
-            return shipping_address.lastName 
+            return escapeHtml(shipping_address.lastName 
                 ? `${shipping_address.firstName} ${shipping_address.lastName}` 
-                : shipping_address.firstName;
+                : String(shipping_address.firstName));
         }
         if (metadata?.first_name) {
-            return metadata.last_name 
+            return escapeHtml(metadata.last_name 
                 ? `${metadata.first_name} ${metadata.last_name}` 
-                : metadata.first_name;
+                : String(metadata.first_name));
         }
         return 'Customer';
     };
@@ -359,28 +359,52 @@ export async function sendOrderStatusUpdate(order: any, newStatus: string) {
     console.log(`[Notification] Status update for Order #${order_number} to ${newStatus} | Tracking: ${trackingNumber}`);
 
     const subject = `Order Update #${order_number || id}`;
-    let message = `Your order #${order_number || id} status has been updated to ${newStatus}.`;
-    let smsMessage = message;
+    const ref = `#${order_number || id}`;
+    const isPickup = order.shipping_method === 'pickup';
+    const track = trackingNumber ? ` Tracking: ${trackingNumber}.` : '';
+    const labels: Record<string, string> = {
+        pending: 'Received',
+        awaiting_payment: 'Waiting for payment',
+        processing: 'Being prepared',
+        shipped: isPickup ? 'Ready to collect' : 'Packaged',
+        dispatched_to_rider: 'With the rider',
+        delivered: isPickup ? 'Collected' : 'Delivered',
+        cancelled: 'Cancelled',
+        refunded: 'Refunded',
+    };
+    const statusLabel = labels[newStatus] || String(newStatus).replace(/_/g, ' ');
+    let message: string;
+    let smsMessage: string;
 
-    if (newStatus === 'shipped') {
-        message = `Good news! Your order #${order_number || id} has been packaged and is ready.`;
-        smsMessage = trackingNumber
-            ? `Good news ${name}! Order #${order_number || id} has been packaged. Tracking: ${trackingNumber}. Track: ${trackingUrl}`
-            : `Good news ${name}! Order #${order_number || id} has been packaged. Track: ${trackingUrl}`;
+    if (newStatus === 'processing') {
+        message = `Your order ${ref} is being prepared.${isPickup ? ' We will tell you when it is ready to collect.' : ' We will tell you when it is on its way.'}`;
+        smsMessage = `Hi ${name}, your Faithline order ${ref} is being prepared.${track} Track: ${trackingUrl}`;
+    } else if (newStatus === 'shipped') {
+        message = isPickup
+            ? `Good news! Your order ${ref} is packed and ready to collect from the store. Bring your order number.`
+            : `Good news! Your order ${ref} has been packaged and will go out for delivery soon.`;
+        smsMessage = isPickup
+            ? `Good news ${name}! Order ${ref} is ready to collect from the store. Bring your order number.`
+            : `Good news ${name}! Order ${ref} has been packaged.${track} Track: ${trackingUrl}`;
     } else if (newStatus === 'dispatched_to_rider') {
-        message = `Your order #${order_number || id} has been dispatched to the rider for delivery.`;
-        smsMessage = trackingNumber
-            ? `Hi ${name}, order #${order_number || id} is with the rider for delivery. Tracking: ${trackingNumber}. Track: ${trackingUrl}`
-            : `Hi ${name}, order #${order_number || id} is with the rider for delivery. Track: ${trackingUrl}`;
+        message = `Your order ${ref} is with the rider and on its way to you.`;
+        smsMessage = `Hi ${name}, order ${ref} is with the rider and on its way.${track} Track: ${trackingUrl}`;
     } else if (newStatus === 'delivered') {
-        message = `Your order #${order_number || id} has been delivered. Enjoy!`;
-        smsMessage = `Hi ${name}, your order #${order_number || id} has been delivered. Enjoy your purchase!`;
-    } else if (newStatus === 'processing') {
-        smsMessage = trackingNumber
-            ? `Hi ${name}, your order #${order_number || id} is being processed. Tracking: ${trackingNumber}. Track: ${trackingUrl}`
-            : `Hi ${name}, your order #${order_number || id} is being processed. Track: ${trackingUrl}`;
+        message = isPickup
+            ? `Your order ${ref} has been collected. Thank you for shopping with Faithline!`
+            : `Your order ${ref} has been delivered. Enjoy, and thank you for shopping with Faithline!`;
+        smsMessage = isPickup
+            ? `Hi ${name}, order ${ref} has been collected. Thank you for shopping with Faithline!`
+            : `Hi ${name}, order ${ref} has been delivered. Enjoy your purchase!`;
+    } else if (newStatus === 'cancelled') {
+        message = `Your order ${ref} has been cancelled. If you have paid or this is a mistake, reply to this email or contact us and we will sort it out.`;
+        smsMessage = `Hi ${name}, your Faithline order ${ref} has been cancelled. Questions? Contact us on 0541770961.`;
+    } else if (newStatus === 'refunded') {
+        message = `Your payment for order ${ref} has been refunded. It can take a few days to show, depending on your bank or mobile money provider.`;
+        smsMessage = `Hi ${name}, your payment for Faithline order ${ref} has been refunded.`;
     } else {
-        smsMessage = `Hi ${name}, order #${order_number || id} status: ${newStatus}. Track: ${trackingUrl}`;
+        message = `Your order ${ref} is now: ${statusLabel}.`;
+        smsMessage = `Hi ${name}, order ${ref}: ${statusLabel}. Track: ${trackingUrl}`;
     }
 
     // Status icons/colors
@@ -390,6 +414,7 @@ export async function sendOrderStatusUpdate(order: any, newStatus: string) {
         dispatched_to_rider: { icon: '&#128101;', color: '#4f46e5', bg: '#eef2ff' },
         delivered: { icon: '&#127881;', color: '#16a34a', bg: '#f0fdf4' },
         cancelled: { icon: '&#10060;', color: '#dc2626', bg: '#fef2f2' },
+        refunded: { icon: '&#8617;', color: '#6b7280', bg: '#f9fafb' },
     };
     const sc = statusConfig[newStatus] || { icon: '&#128276;', color: '#6b7280', bg: '#f9fafb' };
 
@@ -405,14 +430,14 @@ export async function sendOrderStatusUpdate(order: any, newStatus: string) {
 
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:12px;overflow:hidden;margin:20px 0;">
   ${emailInfoRow('Order Number', `#${order_number || id}`)}
-  ${emailInfoRow('New Status', `<span style="display:inline-block;background-color:${sc.bg};color:${sc.color};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;">${newStatus}</span>`)}
+  ${emailInfoRow('New Status', `<span style="display:inline-block;background-color:${sc.bg};color:${sc.color};padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;text-transform:uppercase;">${escapeHtml(statusLabel)}</span>`)}
   ${trackingNumber ? emailInfoRow('Tracking Number', trackingNumber) : ''}
 </table>
 
 <p style="color:#374151;font-size:14px;line-height:1.6;margin:16px 0;">${message}</p>
 
 ${emailButton('Track Your Order', trackingUrl)}
-`, `Your order #${order_number} is now ${newStatus}`)
+`, `Your order #${order_number} is now: ${statusLabel}`)
     });
 
     // SMS
@@ -483,16 +508,16 @@ export async function sendPaymentLink(order: any) {
 
     // Build customer name from available sources
     const getName = () => {
-        if (shipping_address?.full_name) return shipping_address.full_name;
+        if (shipping_address?.full_name) return escapeHtml(String(shipping_address.full_name));
         if (shipping_address?.firstName) {
-            return shipping_address.lastName 
+            return escapeHtml(shipping_address.lastName 
                 ? `${shipping_address.firstName} ${shipping_address.lastName}` 
-                : shipping_address.firstName;
+                : String(shipping_address.firstName));
         }
         if (metadata?.first_name) {
-            return metadata.last_name 
+            return escapeHtml(metadata.last_name 
                 ? `${metadata.first_name} ${metadata.last_name}` 
-                : metadata.first_name;
+                : String(metadata.first_name));
         }
         return 'Customer';
     };

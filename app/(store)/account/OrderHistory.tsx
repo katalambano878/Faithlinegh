@@ -9,6 +9,7 @@ interface Order {
   orderNumber: string;
   date: string;
   status: string;
+  paymentStatus: string;
   total: number;
   items: {
     id: string;
@@ -46,6 +47,7 @@ export default function OrderHistory() {
             orderNumber: order.order_number,
             date: order.created_at,
             status: order.status,
+            paymentStatus: order.payment_status,
             total: order.total,
             items: order.order_items.map((item: any) => ({
               id: item.id,
@@ -82,17 +84,6 @@ export default function OrderHistory() {
       default: // pending
         return 'bg-gray-100 text-gray-700';
     }
-  };
-
-  const handleReorder = (order: Order) => {
-    // Implement reorder logic (add items back to cart)
-    console.log('Reordering:', order);
-    alert('Reorder feature coming soon!');
-  };
-
-  const handleDownloadInvoice = (orderId: string) => {
-    console.log('Downloading invoice for order:', orderId);
-    alert('Invoice download coming soon!');
   };
 
   if (loading) {
@@ -182,27 +173,21 @@ export default function OrderHistory() {
               </div>
 
               <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4 border-t border-gray-200">
+                {order.paymentStatus !== 'paid' && !['cancelled', 'refunded'].includes(order.status) && (
+                  <Link
+                    href={`/pay/${encodeURIComponent(order.orderNumber)}`}
+                    className="flex-1 sm:flex-none text-center px-4 py-2 bg-[#5B4436] text-white rounded-lg font-semibold hover:bg-[#47362C] transition-colors whitespace-nowrap"
+                  >
+                    Pay ₵{Number(order.total || 0).toFixed(2)}
+                  </Link>
+                )}
                 <Link
-                  href={`/order-tracking?order=${order.orderNumber}`}
+                  href={`/order-success?order=${encodeURIComponent(order.orderNumber)}`}
                   className="flex-1 sm:flex-none text-center px-4 py-2 bg-gray-900 text-white rounded-lg font-semibold hover:bg-brand-bag-dark transition-colors whitespace-nowrap"
                 >
-                  <i className="ri-map-pin-line mr-2"></i>
-                  Track Order
+                  <i className="ri-file-list-3-line mr-2"></i>
+                  View order
                 </Link>
-                <button
-                  onClick={() => handleReorder(order)}
-                  className="flex-1 sm:flex-none px-4 py-2 border-2 border-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
-                >
-                  <i className="ri-refresh-line mr-2"></i>
-                  Reorder
-                </button>
-                <button
-                  onClick={() => handleDownloadInvoice(order.id)}
-                  className="flex-1 sm:flex-none px-4 py-2 border-2 border-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
-                >
-                  <i className="ri-download-line mr-2"></i>
-                  Invoice
-                </button>
                 <Link
                   href="/contact"
                   className="flex-1 sm:flex-none text-center px-4 py-2 border-2 border-gray-300 text-gray-900 rounded-lg font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"

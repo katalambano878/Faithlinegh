@@ -199,8 +199,14 @@ export default function PaymentPage() {
               <span className="text-gray-900">₵ {order?.subtotal?.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Shipping</span>
-              <span className="text-gray-900">₵ {order?.shipping_total?.toFixed(2)}</span>
+              <span className="text-gray-600">{order?.shipping_method === 'pickup' ? 'Store pickup' : 'Delivery'}</span>
+              <span className="text-gray-900">
+                {order?.shipping_method === 'pickup'
+                  ? 'Free'
+                  : order?.metadata?.delivery_fee_pending || !(order?.shipping_total > 0)
+                    ? 'We’ll contact you with the fee'
+                    : `₵ ${order?.shipping_total?.toFixed(2)}`}
+              </span>
             </div>
             {order?.discount_total > 0 && (
               <div className="flex justify-between text-sm">
@@ -217,7 +223,10 @@ export default function PaymentPage() {
         </div>
 
         {/* Payment status banners */}
-        {!hasStockIssue && order?.payment_status === 'pending' && (
+        {['cancelled', 'refunded'].includes(order?.status) && order?.payment_status !== 'paid' && (
+          <div className="bg-[#FBEDEA] text-[#A3392B] rounded-xl p-4 mb-4 text-sm font-medium">This order was cancelled, so it can’t be paid. Please place a new order or contact us.</div>
+        )}
+        {!hasStockIssue && !['cancelled', 'refunded'].includes(order?.status) && order?.payment_status === 'pending' && (
           <div className="bg-[#E6DFD5] border border-[#5B4436]/30 rounded-lg p-4 mb-6">
             <div className="flex items-start space-x-3">
               <i className="ri-time-line text-xl text-[#5B4436] mt-0.5"></i>
@@ -229,7 +238,7 @@ export default function PaymentPage() {
           </div>
         )}
 
-        {!hasStockIssue && order?.payment_status === 'failed' && (
+        {!hasStockIssue && !['cancelled', 'refunded'].includes(order?.status) && order?.payment_status === 'failed' && (
           <div className="bg-[#E6DFD5] border border-[#5B4436]/30 rounded-lg p-4 mb-6">
             <div className="flex items-start space-x-3">
               <i className="ri-error-warning-line text-xl text-[#5B4436] mt-0.5"></i>

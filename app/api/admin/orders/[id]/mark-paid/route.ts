@@ -52,26 +52,32 @@ export async function POST(
   const { id } = await params;
 
   try {
-    // Fetch current order to preserve metadata
     const { data: order, error: fetchError } = await supabaseAdmin
       .from('orders')
-      .select('metadata')
+      .select('id, order_number, payment_status, status')
       .eq('id', id)
       .single();
 
     if (fetchError || !order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
+    if (order.payment_status === 'paid') {
+      return NextResponse.json({ success: true, alreadyPaid: true });
+    }
+    if (['cancelled', 'refunded'].includes(order.status)) {
+      return NextResponse.json({ error: 'This order is cancelled. Change its status first.' }, { status: 409 });
+    }
 
-    const { error } = await supabaseAdmin
-      .from('orders')
-      .update({
-        payment_status: 'paid',
-        metadata: { ...(order.metadata || {}), manually_marked_paid: true },
-      })
-      .eq('id', id);
-
+    // Same path as a Moolre payment: marks paid, moves to processing, deducts stock once
+    const { error } = await supabaseAdmin.rpc('mark_order_paid', {
+      order_ref: order.order_number,
+      moolre_ref: 'MANUAL-ADMIN',
+    });
     if (error) throw error;
+    await supabaseAdmin.rpc('merge_order_metadata', {
+      p_order_id: order.id,
+      p_patch: { manually_marked_paid: true },
+    });
 
     return NextResponse.json({ success: true });
   } catch (e: any) {

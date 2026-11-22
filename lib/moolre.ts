@@ -87,6 +87,7 @@ export async function generateMoolreLink(params: MoolreLinkParams): Promise<Mool
 
 export interface MoolreStatus {
     confirmed: boolean;       // txstatus === 1
+    failed: boolean;          // txstatus === 2
     amount: number | null;    // GHS
     transactionId?: string;
     externalref?: string;
@@ -111,11 +112,14 @@ export async function getMoolreStatus(id: string, idtype: '1' | '2' = '1'): Prom
 
     const json = await res.json().catch(() => ({}));
     const data = json?.data || {};
+    // txstatus: 1 = successful, 0 = pending, 2 = failed
     const confirmed = (json?.status == 1 || json?.status === '1') && Number(data.txstatus) === 1;
+    const failed = Number(data.txstatus) === 2;
     const rawAmount = data.amount ?? data.value;
 
     return {
         confirmed,
+        failed,
         amount: rawAmount !== undefined && rawAmount !== null ? Number(rawAmount) : null,
         transactionId: data.transactionid,
         externalref: data.externalref,

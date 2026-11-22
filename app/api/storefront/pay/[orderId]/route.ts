@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET(
   _request: Request,
@@ -15,11 +10,27 @@ export async function GET(
   try {
     // Fetch order (by UUID or order_number)
     const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(orderId);
-    const { data: order, error: orderError } = await supabaseAdmin
+    if (!isUUID && !/^[A-Z0-9-]{4,60}$/i.test(orderId)) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 });
+    }
+    // Only what the pay page shows: no email, phone or address
+    const query = supabaseAdmin
       .from('orders')
-      .select('*, order_items(id, product_id, product_name, variant_name, quantity, unit_price, metadata)')
-      .or(isUUID ? `id.eq.${orderId}` : `order_number.eq.${orderId}`)
-      .single();
+      .select('id, order_number, status, payment_status, currency, subtotal, discount_total, shipping_total, total, shipping_method, created_at, metadata, order_items(id, product_id, variant_id, product_name, variant_name, quantity, unit_price, metadata)');
+    const { data: rawOrder, error: orderError } = isUUID
+      ? await query.eq('id', orderId).single()
+      : await query.eq('order_number', orderId).single();
+    const order: any = rawOrder
+      ? {
+          ...rawOrder,
+          metadata: {
+            first_name: rawOrder.metadata?.first_name,
+            tracking_number: rawOrder.metadata?.tracking_number,
+            delivery_fee_pending: rawOrder.metadata?.delivery_fee_pending,
+            payment_channel: rawOrder.metadata?.payment_channel,
+          },
+        }
+      : null;
 
     if (orderError || !order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -51,7 +62,7 @@ export async function GET(
         }
 
         // Check variant stock if variant metadata is available
-        const variantId = item.metadata?.variant_id;
+        const variantId = item.variant_id || item.metadata?.variant_id;
         if (variantId) {
           const { data: variant } = await supabaseAdmin
             .from('product_variants')

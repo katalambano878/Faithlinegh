@@ -8,6 +8,11 @@ export interface PermissionMeta {
 
 export const PERMISSION_LABELS: Record<string, PermissionMeta> = {
   dashboard: { label: 'Dashboard', icon: 'ri-dashboard-line', description: 'View the admin dashboard and KPIs' },
+  sms_credit: { label: 'Buy SMS', icon: 'ri-message-3-line', description: 'See the SMS balance and buy more texts' },
+  live: { label: 'Live shoppers', icon: 'ri-pulse-line', description: 'See who is on the website right now' },
+  end_of_day: { label: 'End of Day', icon: 'ri-calendar-check-line', description: 'Daily sales, payments and stock summary' },
+  sold: { label: 'Products sold', icon: 'ri-shopping-basket-line', description: 'Units and revenue per product for any period' },
+  expenses: { label: 'Expenses', icon: 'ri-file-list-2-line', description: 'Record money spent; admins review everyone\'s' },
   orders: { label: 'Orders', icon: 'ri-shopping-bag-line', description: 'View and manage customer orders' },
   pos: { label: 'POS System', icon: 'ri-store-3-line', description: 'Access the point of sale system' },
   products: { label: 'Products', icon: 'ri-box-3-line', description: 'Manage products, pricing, and images' },

@@ -279,10 +279,13 @@ type ProductForSchema = {
   description?: string;
   images?: string[];
   price: number;
+  /** Highest option price, when options cost different amounts */
+  highPrice?: number;
   compareAtPrice?: number | null;
   currency?: string;
   sku?: string;
   inStock?: boolean;
+  preorder?: boolean;
   brand?: string;
   category?: string;
   rating?: number;
@@ -305,31 +308,31 @@ export function productSchema(p: ProductForSchema) {
     brand: { '@type': 'Brand', name: p.brand || SITE_NAME },
     ...(p.category ? { category: p.category } : {}),
     offers: {
-      '@type': 'Offer',
+      ...(p.highPrice && p.highPrice > p.price
+        ? { '@type': 'AggregateOffer', lowPrice: Number(p.price).toFixed(2), highPrice: Number(p.highPrice).toFixed(2) }
+        : { '@type': 'Offer', price: Number(p.price || 0).toFixed(2), priceValidUntil }),
       url,
-      price: Number(p.price || 0).toFixed(2),
       priceCurrency: p.currency || 'GHS',
-      priceValidUntil,
-      availability: p.inStock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
+      availability: p.preorder
+        ? 'https://schema.org/PreOrder'
+        : p.inStock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       itemCondition: 'https://schema.org/NewCondition',
       seller: { '@id': ORG_ID },
+      // Delivery within 48 hours across Ghana; the fee depends on the location, so no rate is stated
       shippingDetails: {
         '@type': 'OfferShippingDetails',
-        shippingRate: { '@type': 'MonetaryAmount', value: '20', currency: 'GHS' },
         shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'GH' },
         deliveryTime: {
           '@type': 'ShippingDeliveryTime',
           handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
-          transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 5, unitCode: 'DAY' },
+          transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' },
         },
       },
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
         applicableCountry: 'GH',
         returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 30,
-        returnMethod: 'https://schema.org/ReturnByMail',
-        returnFees: 'https://schema.org/FreeReturn',
+        merchantReturnDays: 7,
       },
     },
   };

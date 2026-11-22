@@ -151,7 +151,8 @@ export async function priceCart(
     }
     const tracksVariantStock = variants.some(v => (Number(v.quantity) || 0) > 0);
     const stockKey = variant && tracksVariantStock ? `v:${variant.id}` : `p:${p.id}`;
-    demand.set(stockKey, (demand.get(stockKey) || 0) + input.quantity);
+    // Pre-order products are sold ahead of stock arriving
+    if (p.metadata?.availability !== 'preorder') demand.set(stockKey, (demand.get(stockKey) || 0) + input.quantity);
 
     const image = (variant?.image_url as string) ||
       [...(p.product_images || [])].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0))[0]?.url || null;

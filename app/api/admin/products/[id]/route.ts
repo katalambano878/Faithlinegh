@@ -129,9 +129,16 @@ export async function PUT(
 
     // Keep metadata keys this form doesn't edit (merge, don't replace)
     const { data: current } = await supabaseAdmin
-      .from('products').select('metadata').eq('id', productId).single();
+      .from('products').select('metadata, slug').eq('id', productId).single();
     if (productData.metadata && typeof productData.metadata === 'object') {
       productData.metadata = { ...(current?.metadata || {}), ...productData.metadata };
+    }
+    // Renamed web address: remember the old one so shared links still open the product
+    if (current?.slug && productData.slug && current.slug !== productData.slug) {
+      const meta = productData.metadata && typeof productData.metadata === 'object' ? productData.metadata : { ...(current.metadata || {}) };
+      const previous: string[] = Array.isArray(meta.previous_slugs) ? meta.previous_slugs : [];
+      meta.previous_slugs = [...new Set([...previous, current.slug])].filter(s => s !== productData.slug).slice(-10);
+      productData.metadata = meta;
     }
     if (productData.price !== undefined) {
       const cmp = Number(productData.compare_at_price);

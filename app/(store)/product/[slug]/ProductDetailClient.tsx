@@ -137,6 +137,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           featured: ['Premium Quality', 'Authentic Design'],
           care: 'Handle with care.',
           preorderShipping: dataToTransform.metadata?.preorder_shipping || null,
+          isPreorder: dataToTransform.metadata?.availability === 'preorder',
           bundlePricing: parseBundleTiers(dataToTransform.metadata?.bundle_pricing)
         };
 
@@ -161,7 +162,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         const vStock = (v: any) => v.stock ?? v.quantity ?? 0;
         const perVariantStock = transformedProduct.variants.some((v: any) => vStock(v) > 0);
         const firstInStockColor = (transformedProduct.colors as string[]).find((color) =>
-          transformedProduct.variants.some((v: any) => v.color === color && (perVariantStock ? vStock(v) > 0 : (transformedProduct.stockCount ?? 0) > 0))
+          transformedProduct.isPreorder || transformedProduct.variants.some((v: any) => v.color === color && (perVariantStock ? vStock(v) > 0 : (transformedProduct.stockCount ?? 0) > 0))
         );
         const initialColor = firstInStockColor || '';
         setSelectedColor(initialColor);
@@ -233,7 +234,8 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   // Determine the active price: variant price if selected, otherwise base price
   // A variant saved without its own price (0/blank) sells at the product price
   const activePrice = Number(selectedVariant?.price) > 0 ? Number(selectedVariant.price) : (product?.price ?? 0);
-  const activeStock = selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
+  // Pre-order products can be ordered whatever the stock says
+  const activeStock = product?.isPreorder ? 99 : selectedVariant ? (selectedVariant.stock ?? selectedVariant.quantity ?? product?.stockCount ?? 0) : (product?.stockCount ?? 0);
 
   // Bundle pricing (e.g. 1 for ₵90, 3 for ₵255, 5 for ₵410)
   const bundleTiers: BundleTier[] = product?.bundlePricing || [];
@@ -308,7 +310,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   // When any variant carries stock, stock is tracked per variant and a 0 means sold out.
   // Otherwise (legacy products) only the product-level stock counts.
   const variantsTrackStock = (product.variants || []).some((v: any) => variantStock(v) > 0);
-  const isVariantOut = (v: any) => variantsTrackStock ? variantStock(v) === 0 : (product.stockCount ?? 0) === 0;
+  const isVariantOut = (v: any) => !product.isPreorder && (variantsTrackStock ? variantStock(v) === 0 : (product.stockCount ?? 0) === 0);
   const colorVariants = (color: string) => product.variants.filter((v: any) => v.color === color);
   const isColorOut = (color: string) => colorVariants(color).every(isVariantOut);
   const colorImage = (color: string) => colorVariants(color).find((v: any) => v.image_url)?.image_url as string | undefined;
@@ -380,7 +382,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   };
 
   const nudgeMessage = needsColorSelection ? 'Choose a colour to continue.' : 'Choose your size to add this to your bag.';
-  const ctaLabel = soldOut ? 'Out of stock' : 'Add to bag';
+  const ctaLabel = soldOut ? 'Out of stock' : product.isPreorder ? 'Pre-order' : 'Add to bag';
 
   return (
     <>
@@ -640,7 +642,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 <p className="hidden lg:block -mt-4 text-[13px] text-[#1F5A37] font-medium">You save ₵{Number.isInteger(bundleSaved) ? bundleSaved : bundleSaved.toFixed(2)} with this bundle.</p>
               )}
               {product.preorderShipping && (
-                <p className="-mt-3 text-[13px] text-[#8A4B1F] flex items-center gap-1.5"><i className="ri-time-line"></i>{product.preorderShipping}</p>
+                <p className="-mt-3 text-[13px] text-[#8A4B1F] flex items-center gap-1.5"><i className="ri-time-line" aria-hidden="true"></i>{product.isPreorder && !/pre-?order/i.test(product.preorderShipping) ? `Pre-order · ${product.preorderShipping}` : product.preorderShipping}</p>
               )}
 
               <div className="flex items-center gap-2 flex-wrap text-[12px] text-[#6E6158] -mt-2">

@@ -1,369 +1,334 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { adminRequest } from '@/lib/admin-request';
+import { downloadCsv, todayStamp } from '@/lib/csv';
 
-export default function InventoryManagementPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [stockFilter, setStockFilter] = useState('all');
-  const [showImportModal, setShowImportModal] = useState(false);
-  const [showExportModal, setShowExportModal] = useState(false);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [products, setProducts] = useState<any[]>([]);
+type Variant = { id: string; size: string; color: string; quantity: number; price: number };
+type Item = {
+  id: string;
+  name: string;
+  slug: string;
+  sku: string;
+  category: string;
+  status: string;
+  image: string;
+  price: number;
+  stock: number;
+  threshold: number;
+  preorder: boolean;
+  variants: Variant[];
+  state: 'out' | 'low' | 'good';
+  soldOutOptions: number;
+  value: number;
+};
+
+type Filter = 'all' | 'low' | 'out' | 'good' | 'options';
+
+const cedi = (n: number) => `₵${n.toLocaleString('en-GH', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+
+function toItem(p: any): Item {
+  const variants: Variant[] = (p.product_variants || []).map((v: any) => ({
+    id: v.id,
+    size: v.name && v.name !== v.option2 ? v.name : '',
+    color: v.option2 || '',
+    quantity: Number(v.quantity) || 0,
+    price: Number(v.price) > 0 ? Number(v.price) : Number(p.price) || 0,
+  })).sort((a: Variant, b: Variant) => a.color.localeCompare(b.color));
+  const hasVariants = variants.length > 0;
+  const stock = hasVariants ? variants.reduce((s, v) => s + v.quantity, 0) : Number(p.quantity) || 0;
+  const threshold = Number.isFinite(Number(p.metadata?.low_stock_threshold)) ? Number(p.metadata.low_stock_threshold) : 5;
+  const imgs = [...(p.product_images || [])].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+  const value = hasVariants
+    ? variants.reduce((s, v) => s + v.quantity * v.price, 0)
+    : stock * (Number(p.price) || 0);
+  return {
+    id: p.id,
+    name: String(p.name || '').trim(),
+    slug: p.slug,
+    sku: p.sku || '',
+    category: p.categories?.name || '',
+    status: String(p.status || ''),
+    image: imgs[0]?.url || '',
+    price: Number(p.price) || 0,
+    stock,
+    threshold,
+    preorder: p.metadata?.availability === 'preorder',
+    variants,
+    state: stock === 0 ? 'out' : stock <= threshold ? 'low' : 'good',
+    soldOutOptions: variants.filter(v => v.quantity === 0).length,
+    value,
+  };
+}
+
+function StockInput({ value, onSave, label }: { value: number; onSave: (q: number) => Promise<void>; label: string }) {
+  const [draft, setDraft] = useState(String(value));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  useEffect(() => { setDraft(String(value)); }, [value]);
+  const dirty = draft !== String(value);
+  const save = async () => {
+    const q = Math.max(0, Math.floor(Number(draft)));
+    if (!Number.isFinite(q)) { setDraft(String(value)); return; }
+    setSaving(true);
+    setError('');
+    try { await onSave(q); } catch (e: any) { setError(e.message); setDraft(String(value)); } finally { setSaving(false); }
+  };
+  return (
+    <span className="inline-flex flex-col">
+      <span className="inline-flex items-center gap-1">
+        <input
+          type="number"
+          min={0}
+          inputMode="numeric"
+          aria-label={label}
+          value={draft}
+          onFocus={(e) => e.currentTarget.select()}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); save(); } if (e.key === 'Escape') setDraft(String(value)); }}
+          className={`w-16 h-9 px-2 text-center rounded-lg border tabular-nums font-semibold ${dirty ? 'border-gray-900' : 'border-gray-200'} ${value === 0 && !dirty ? 'text-red-700 bg-red-50' : 'text-gray-900 bg-white'}`}
+        />
+        {dirty && (
+          <button type="button" onClick={save} disabled={saving} className="h-9 px-2.5 rounded-lg bg-gray-900 text-white text-xs font-semibold disabled:opacity-50">
+            {saving ? '…' : 'Save'}
+          </button>
+        )}
+      </span>
+      {error && <span className="text-[11px] text-red-700 mt-0.5 max-w-[160px]">{error}</span>}
+    </span>
+  );
+}
+
+export default function InventoryPage() {
+  const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<Filter>('all');
+  const [showArchived, setShowArchived] = useState(false);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
 
-  useEffect(() => {
-    fetchInventory();
-  }, []);
+  const load = async () => {
+    setLoading(true);
+    setLoadError('');
+    const { data, error } = await supabase
+      .from('products')
+      .select('id, name, slug, sku, price, quantity, status, metadata, categories(name), product_images(url, position), product_variants(id, name, option2, quantity, price)')
+      .order('name');
+    if (error) setLoadError('Could not load stock. Refresh the page to try again.');
+    setItems((data || []).map(toItem));
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
 
-  const fetchInventory = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('products')
-        .select(`
-          id,
-          name,
-          sku,
-          price,
-          quantity,
-          categories(name)
-        `)
-        .order('name');
+  const visible = items.filter(i => showArchived || i.status !== 'archived');
+  const counts = {
+    all: visible.length,
+    low: visible.filter(i => i.state === 'low').length,
+    out: visible.filter(i => i.state === 'out').length,
+    good: visible.filter(i => i.state === 'good').length,
+    options: visible.filter(i => i.state !== 'out' && i.soldOutOptions > 0).length,
+  };
+  const totalUnits = visible.reduce((s, i) => s + i.stock, 0);
+  const totalValue = visible.reduce((s, i) => s + i.value, 0);
 
-      if (error) throw error;
+  const rows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return visible.filter(i => {
+      if (q && !`${i.name} ${i.sku} ${i.category}`.toLowerCase().includes(q)) return false;
+      if (filter === 'all') return true;
+      if (filter === 'options') return i.state !== 'out' && i.soldOutOptions > 0;
+      return i.state === filter;
+    }).sort((a, b) => ({ out: 0, low: 1, good: 2 }[a.state] - { out: 0, low: 1, good: 2 }[b.state]) || a.name.localeCompare(b.name));
+  }, [visible, search, filter]);
 
-      if (data) {
-        const mapped = data.map((p: any) => {
-          const stock = p.quantity || 0;
-          let status = 'good';
-          if (stock === 0) status = 'out';
-          else if (stock < 10) status = 'low';
+  const saveStock = async (item: Item, variantId: string | null, quantity: number) => {
+    const res = await adminRequest<{ productTotal: number }>('/api/admin/inventory', {
+      method: 'PATCH',
+      body: JSON.stringify({ productId: item.id, variantId, quantity }),
+    });
+    setItems(prev => prev.map(p => {
+      if (p.id !== item.id) return p;
+      const raw = {
+        id: p.id, name: p.name, slug: p.slug, sku: p.sku, price: p.price, status: p.status,
+        quantity: res.productTotal,
+        metadata: { low_stock_threshold: p.threshold, availability: p.preorder ? 'preorder' : undefined },
+        categories: p.category ? { name: p.category } : null,
+        product_images: p.image ? [{ url: p.image, position: 0 }] : [],
+        product_variants: p.variants.map(v => ({ id: v.id, name: v.size || v.color, option2: v.color || null, quantity: v.id === variantId ? quantity : v.quantity, price: v.price })),
+      };
+      return toItem(raw);
+    }));
+  };
 
-          // categories is an array from the join
-          const categoryData = p.categories as { name: string }[] | null;
-          return {
-            id: p.id,
-            name: p.name,
-            sku: p.sku || 'N/A',
-            category: categoryData?.[0]?.name || 'Uncategorized',
-            currentStock: stock,
-            reorderLevel: 10, // Default
-            reorderQuantity: 50, // Default
-            price: p.price || 0,
-            cost: 0, // Not in DB
-            status,
-            supplier: 'Standard Supplier' // Default
-          };
-        });
-        setProducts(mapped);
+  const exportCsv = () => {
+    const out: unknown[][] = [['Product', 'SKU', 'Category', 'Colour', 'Size', 'Stock', 'Price (GHS)', 'Stock value (GHS)', 'Status']];
+    for (const i of rows) {
+      if (i.variants.length === 0) {
+        out.push([i.name, i.sku, i.category, '', '', i.stock, i.price.toFixed(2), i.value.toFixed(2), i.state]);
+      } else {
+        for (const v of i.variants) out.push([i.name, i.sku, i.category, v.color, v.size, v.quantity, v.price.toFixed(2), (v.quantity * v.price).toFixed(2), v.quantity === 0 ? 'out' : i.state]);
       }
-    } catch (error) {
-      console.error('Error fetching inventory:', error);
-    } finally {
-      setLoading(false);
     }
+    downloadCsv(`faithline-stock-${todayStamp()}.csv`, out);
   };
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = stockFilter === 'all' ||
-      (stockFilter === 'low' && product.status === 'low') ||
-      (stockFilter === 'out' && product.status === 'out') ||
-      (stockFilter === 'good' && product.status === 'good');
-    return matchesSearch && matchesFilter;
-  });
-
-  const lowStockCount = products.filter(p => p.status === 'low').length;
-  const outOfStockCount = products.filter(p => p.status === 'out').length;
-  const totalValue = products.reduce((sum, p) => sum + (p.currentStock * p.price), 0); // Using Price as Value
-
-  const toggleProductSelection = (id: string) => {
-    setSelectedProducts(prev =>
-      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
-    );
-  };
-
-  const toggleAllProducts = () => {
-    if (selectedProducts.length === filteredProducts.length) {
-      setSelectedProducts([]);
-    } else {
-      setSelectedProducts(filteredProducts.map(p => p.id));
-    }
-  };
-
-  const handleBulkRestock = () => {
-    // Placeholder for bulk restock logic
-    alert("Bulk restock feature coming soon (requires backend logic).");
-    setSelectedProducts([]);
-  };
-
-  const handleExportCSV = () => {
-    const csvData = [
-      ['SKU', 'Product Name', 'Category', 'Current Stock', 'Price', 'Status'],
-      ...products.map(p => [
-        p.sku,
-        p.name,
-        p.category,
-        p.currentStock.toString(),
-        p.price.toFixed(2),
-        p.status
-      ])
-    ];
-
-    const csvContent = csvData.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `inventory-export-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    setShowExportModal(false);
-  };
+  const FILTERS: { key: Filter; label: string }[] = [
+    { key: 'all', label: 'All' },
+    { key: 'out', label: 'Sold out' },
+    { key: 'low', label: 'Running low' },
+    { key: 'options', label: 'Some options sold out' },
+    { key: 'good', label: 'In stock' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Inventory Management</h1>
-            <p className="text-gray-600 mt-1 md:mt-2 text-sm md:text-base">Track stock levels, manage reorders, and forecast demand</p>
-          </div>
-          <Link
-            href="/admin"
-            className="bg-gray-900 hover:bg-brand-bag-dark text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap text-center"
-          >
-            Back to Dashboard
-          </Link>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Inventory</h1>
+          <p className="text-gray-600 mt-1 text-sm">Stock for every product, colour and size. Change a number and press Save.</p>
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Products</p>
-                <p className="text-3xl font-bold text-gray-900">{products.length}</p>
-              </div>
-              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
-                <i className="ri-stack-line text-2xl text-brand-brown"></i>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Low Stock Items</p>
-                <p className="text-3xl font-bold text-brand-brown">{lowStockCount}</p>
-              </div>
-              <div className="w-12 h-12 flex items-center justify-center bg-brand-cream rounded-lg">
-                <i className="ri-alert-line text-2xl text-brand-brown"></i>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Out of Stock</p>
-                <p className="text-3xl font-bold text-brand-brown">{outOfStockCount}</p>
-              </div>
-              <div className="w-12 h-12 flex items-center justify-center bg-red-100 rounded-lg">
-                <i className="ri-close-circle-line text-2xl text-brand-brown"></i>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-sm p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Total Retail Value</p>
-                <p className="text-3xl font-bold text-gray-700">₵{totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-              </div>
-              <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded-lg">
-                <i className="ri-money-dollar-circle-line text-2xl text-gray-700"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <div className="flex-1 max-w-md">
-              <div className="relative">
-                <i className="ri-search-line absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl flex items-center justify-center"></i>
-                <input
-                  type="text"
-                  placeholder="Search by product name or SKU..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2 bg-gray-100 rounded-lg p-1">
-                {['all', 'low', 'out', 'good'].map((filter) => (
-                  <button
-                    key={filter}
-                    onClick={() => setStockFilter(filter)}
-                    className={`px-4 py-2 rounded-md font-medium text-sm transition-colors whitespace-nowrap cursor-pointer ${stockFilter === filter
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                  >
-                    {filter === 'all' && 'All'}
-                    {filter === 'low' && 'Low Stock'}
-                    {filter === 'out' && 'Out (0)'}
-                    {filter === 'good' && 'In Stock'}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={() => setShowImportModal(true)}
-                className="bg-gray-900 hover:bg-brand-bag-dark text-white px-4 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
-              >
-                <i className="ri-upload-line"></i>
-                <span>Import CSV</span>
-              </button>
-
-              <button
-                onClick={handleExportCSV}
-                className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-4 py-3 rounded-lg font-semibold transition-colors flex items-center space-x-2 whitespace-nowrap cursor-pointer"
-              >
-                <i className="ri-download-line"></i>
-                <span>Export CSV</span>
-              </button>
-            </div>
-          </div>
-
-          {selectedProducts.length > 0 && (
-            <div className="mt-4 flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <p className="text-gray-800 font-medium">
-                {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} selected
-              </p>
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleBulkRestock}
-                  className="bg-gray-900 hover:bg-brand-bag-dark text-white px-4 py-2 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
-                >
-                  Bulk Restock
-                </button>
-                <button
-                  onClick={() => setSelectedProducts([])}
-                  className="text-gray-600 hover:text-gray-900 font-medium whitespace-nowrap cursor-pointer"
-                >
-                  Clear Selection
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
-                      onChange={toggleAllProducts}
-                      className="w-5 h-5 text-gray-900 rounded cursor-pointer"
-                    />
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Product</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">SKU</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Category</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Stock</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Retail Value</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {loading ? (
-                  <tr><td colSpan={8} className="p-10 text-center text-gray-500">Loading inventory...</td></tr>
-                ) : filteredProducts.length === 0 ? (
-                  <tr><td colSpan={8} className="p-10 text-center text-gray-500">No products found.</td></tr>
-                ) : (
-                  filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedProducts.includes(product.id)}
-                          onChange={() => toggleProductSelection(product.id)}
-                          className="w-5 h-5 text-gray-900 rounded cursor-pointer"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div>
-                          <p className="font-semibold text-gray-900">{product.name}</p>
-                          <p className="text-sm text-gray-500">{product.supplier}</p>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-gray-700">{product.sku}</td>
-                      <td className="px-6 py-4 text-gray-700">{product.category}</td>
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-gray-900">{product.currentStock}</span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="font-semibold text-gray-900">
-                          ₵{(product.currentStock * product.price).toFixed(2)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {product.status === 'good' && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-900 whitespace-nowrap">
-                            <i className="ri-checkbox-circle-fill mr-1"></i>
-                            In Stock
-                          </span>
-                        )}
-                        {product.status === 'low' && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-brand-cream text-brand-brown whitespace-nowrap">
-                            <i className="ri-alert-fill mr-1"></i>
-                            Low Stock
-                          </span>
-                        )}
-                        {product.status === 'out' && (
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-brand-brown whitespace-nowrap">
-                            <i className="ri-close-circle-fill mr-1"></i>
-                            Out of Stock
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
-                            title="Edit"
-                          >
-                            <i className="ri-edit-line text-lg"></i>
-                          </button>
-                          <button
-                            className="w-8 h-8 flex items-center justify-center text-gray-600 hover:text-brand-brown transition-colors cursor-pointer"
-                            title="View Details"
-                          >
-                            <i className="ri-eye-line text-lg"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <button type="button" onClick={exportCsv} className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-lg border-2 border-gray-300 text-sm font-semibold text-gray-800 hover:border-gray-400">
+          <i className="ri-download-line" aria-hidden="true" /> Export stock (CSV)
+        </button>
       </div>
-      {showImportModal && <div className="hidden">Mock Modal</div>}
-      {showExportModal && <div className="hidden">Mock Export</div>}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { label: 'Sold out', value: counts.out, hint: 'Shoppers can’t buy these', tone: counts.out ? 'text-red-700' : 'text-gray-900', icon: 'ri-close-circle-line', f: 'out' as Filter },
+          { label: 'Running low', value: counts.low, hint: 'At or below each product’s low-stock level', tone: counts.low ? 'text-amber-700' : 'text-gray-900', icon: 'ri-alert-line', f: 'low' as Filter },
+          { label: 'Units in stock', value: totalUnits.toLocaleString('en-GH'), hint: `${counts.all} products`, tone: 'text-gray-900', icon: 'ri-stack-line', f: 'all' as Filter },
+          { label: 'Stock value', value: cedi(totalValue), hint: 'At selling price', tone: 'text-gray-900', icon: 'ri-money-dollar-circle-line', f: null },
+        ].map(c => {
+          const body = (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">{c.label}</p>
+                <i className={`${c.icon} text-xl text-gray-400`} aria-hidden="true" />
+              </div>
+              <p className={`mt-2 text-2xl md:text-3xl font-bold tabular-nums ${c.tone}`}>{c.value}</p>
+              <p className="text-xs text-gray-500 mt-1">{c.hint}</p>
+            </>
+          );
+          return c.f
+            ? <button key={c.label} type="button" onClick={() => setFilter(c.f!)} className={`text-left bg-white rounded-xl border p-4 md:p-5 hover:shadow-sm transition-shadow ${filter === c.f && c.f !== 'all' ? 'border-gray-900' : 'border-gray-200'}`}>{body}</button>
+            : <div key={c.label} className="bg-white rounded-xl border border-gray-200 p-4 md:p-5">{body}</div>;
+        })}
+      </div>
+
+      <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col lg:flex-row lg:items-center gap-3">
+        <div className="relative flex-1 min-w-0">
+          <i className="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+          <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search name, SKU or category"
+            aria-label="Search stock" className="w-full h-11 pl-9 pr-3 rounded-lg border-2 border-gray-200 focus:border-gray-900 outline-none text-sm" />
+        </div>
+        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter stock">
+          {FILTERS.map(f => (
+            <button key={f.key} type="button" aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}
+              className={`h-9 px-3 rounded-full text-sm font-medium border transition-colors ${filter === f.key ? 'bg-gray-900 border-gray-900 text-white' : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'}`}>
+              {f.label} <span className={`ml-1 tabular-nums ${filter === f.key ? 'text-white/70' : 'text-gray-400'}`}>{counts[f.key]}</span>
+            </button>
+          ))}
+        </div>
+        <label className="inline-flex items-center gap-2 text-sm text-gray-600 whitespace-nowrap">
+          <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} className="w-4 h-4" />
+          Show archived
+        </label>
+      </div>
+
+      {loadError && <div className="p-4 rounded-lg bg-red-50 text-red-800 text-sm border border-red-100" role="alert">{loadError}</div>}
+
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {loading ? (
+          <p className="p-10 text-center text-gray-500">Loading stock…</p>
+        ) : rows.length === 0 ? (
+          <p className="p-10 text-center text-gray-500">{search ? 'No products match your search.' : 'Nothing here.'}</p>
+        ) : (
+          <ul className="divide-y divide-gray-100">
+            {rows.map(item => {
+              const isOpen = !!open[item.id];
+              const colors = [...new Set(item.variants.map(v => v.color))];
+              const sizes = [...new Set(item.variants.map(v => v.size))];
+              return (
+                <li key={item.id}>
+                  <div className="flex flex-wrap items-center gap-3 px-4 py-3">
+                    <div className="w-12 h-14 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
+                      {item.image ? <img src={item.image} alt="" className="w-full h-full object-cover" /> : <i className="ri-image-line text-gray-300 text-xl w-full h-full flex items-center justify-center" aria-hidden="true" />}
+                    </div>
+                    <div className="flex-1 min-w-[160px]">
+                      <p className="font-semibold text-gray-900 truncate">{item.name}</p>
+                      <p className="text-xs text-gray-500 truncate">
+                        {[item.category || 'No category', item.sku].filter(Boolean).join(' · ')}
+                        {item.status !== 'active' && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 capitalize">{item.status}</span>}
+                        {item.preorder && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-[#FBF1E6] text-[#8A4B1F]">Pre-order</span>}
+                      </p>
+                    </div>
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                      item.state === 'out' ? 'bg-red-50 text-red-700' : item.state === 'low' ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-800'}`}>
+                      <i className={item.state === 'out' ? 'ri-close-circle-fill' : item.state === 'low' ? 'ri-alert-fill' : 'ri-checkbox-circle-fill'} aria-hidden="true" />
+                      {item.state === 'out' ? 'Sold out' : item.state === 'low' ? `Low (≤${item.threshold})` : 'In stock'}
+                    </span>
+                    {item.soldOutOptions > 0 && item.state !== 'out' && (
+                      <span className="text-xs text-amber-800 whitespace-nowrap">{item.soldOutOptions} option{item.soldOutOptions === 1 ? '' : 's'} sold out</span>
+                    )}
+                    <div className="flex items-center gap-3 ml-auto">
+                      <div className="text-right">
+                        <p className="text-[11px] text-gray-500">Value</p>
+                        <p className="text-sm font-semibold tabular-nums text-gray-900">{cedi(item.value)}</p>
+                      </div>
+                      {item.variants.length === 0 ? (
+                        <StockInput value={item.stock} label={`Stock for ${item.name}`} onSave={(q) => saveStock(item, null, q)} />
+                      ) : (
+                        <button type="button" onClick={() => setOpen(o => ({ ...o, [item.id]: !o[item.id] }))} aria-expanded={isOpen}
+                          className="h-9 px-3 rounded-lg border border-gray-300 text-sm font-semibold text-gray-800 hover:bg-gray-50 whitespace-nowrap tabular-nums">
+                          {item.stock} in stock <i className={`ri-arrow-${isOpen ? 'up' : 'down'}-s-line ml-0.5`} aria-hidden="true" />
+                        </button>
+                      )}
+                      <Link href={`/admin/products/${item.id}`} className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100" aria-label={`Edit ${item.name}`} title="Edit product">
+                        <i className="ri-edit-line text-lg" aria-hidden="true" />
+                      </Link>
+                      {item.slug && item.status === 'active' && (
+                        <a href={`/product/${item.slug}`} target="_blank" rel="noreferrer" className="w-9 h-9 flex items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100" aria-label={`View ${item.name} on the website`} title="View on website">
+                          <i className="ri-external-link-line text-lg" aria-hidden="true" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                  {isOpen && item.variants.length > 0 && (
+                    <div className="px-4 pb-4 overflow-x-auto">
+                      <table className="text-sm border-separate border-spacing-0">
+                        <thead>
+                          <tr>
+                            <th className="text-left pr-4 py-1.5 font-semibold text-gray-600">{colors.some(Boolean) ? 'Colour' : ''}</th>
+                            {sizes.map(s => <th key={s || 'one'} className="px-1.5 py-1.5 font-semibold text-gray-600 text-center">{s || 'Stock'}</th>)}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {colors.map(c => (
+                            <tr key={c || 'one'}>
+                              <td className="pr-4 py-1 font-medium text-gray-900 whitespace-nowrap">{c || '—'}</td>
+                              {sizes.map(s => {
+                                const v = item.variants.find(x => x.color === c && x.size === s);
+                                return (
+                                  <td key={`${c}-${s}`} className="px-1.5 py-1">
+                                    {v ? <StockInput value={v.quantity} label={`Stock for ${item.name} ${[c, s].filter(Boolean).join(' ')}`} onSave={(q) => saveStock(item, v.id, q)} /> : <span className="text-gray-300">—</span>}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

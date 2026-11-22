@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import VariantMatrix from '@/components/admin/VariantMatrix';
+import SeoPanel, { defaultSeo, stripBrand } from '@/components/admin/SeoPanel';
+import { shadeForColorName, splitColorNames } from '@/lib/color-names';
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase'; // used for categories fetch only
@@ -63,7 +65,33 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [description, setDescription] = useState(initialData?.description || '');
     const [status, setStatus] = useState(String(initialData?.status || 'active').toLowerCase());
     const [featured, setFeatured] = useState(initialData?.featured || false);
-    const [preorderShipping, setPreorderShipping] = useState(initialData?.metadata?.preorder_shipping || '');
+    // Availability: sell now, or take pre-orders that arrive later
+    const savedMeta = initialData?.metadata || {};
+    const [availability, setAvailability] = useState<'now' | 'preorder'>(
+        savedMeta.availability === 'preorder' || (!savedMeta.availability && savedMeta.preorder_shipping) ? 'preorder' : 'now'
+    );
+    const [preorderMode, setPreorderMode] = useState<'days' | 'date'>(savedMeta.preorder_date ? 'date' : 'days');
+    const [preorderDays, setPreorderDays] = useState<string>(savedMeta.preorder_days ? String(savedMeta.preorder_days) : '');
+    const [preorderUnit, setPreorderUnit] = useState<'days' | 'weeks'>(savedMeta.preorder_unit === 'weeks' ? 'weeks' : 'days');
+    const [preorderDate, setPreorderDate] = useState<string>(savedMeta.preorder_date || '');
+    // Older products only have free text; keep it as the note
+    const [preorderNote, setPreorderNote] = useState<string>(
+        savedMeta.preorder_note ?? (savedMeta.preorder_days || savedMeta.preorder_date ? '' : (savedMeta.preorder_shipping || ''))
+    );
+
+    /** The line shoppers see under the price, e.g. "Pre-order · arrives in about 2 weeks". */
+    const preorderLine = (() => {
+        if (availability !== 'preorder') return '';
+        let when = '';
+        if (preorderMode === 'days' && Number(preorderDays) > 0) {
+            const n = Number(preorderDays);
+            when = `arrives in about ${n} ${preorderUnit === 'weeks' ? (n === 1 ? 'week' : 'weeks') : (n === 1 ? 'day' : 'days')}`;
+        } else if (preorderMode === 'date' && preorderDate) {
+            when = `arrives by ${new Date(`${preorderDate}T12:00:00`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}`;
+        }
+        const note = preorderNote.trim();
+        return ['Pre-order', when, note].filter(Boolean).join(' · ');
+    })();
     const [activeTab, setActiveTab] = useState('general');
     const [aiGenerating, setAiGenerating] = useState(false);
 
@@ -224,7 +252,38 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
     const [customColorName, setCustomColorName] = useState('');
     const [variantUploading, setVariantUploading] = useState<string | null>(null);
-    const [customColorHex, setCustomColorHex] = useState('#888888');
+    // '' = no shade chosen yet; filled from the name until the admin picks one
+    const [customColorHex, setCustomColorHex] = useState('');
+    const [customHexPicked, setCustomHexPicked] = useState(false);
+    const [colorError, setColorError] = useState('');
+    const [storeColors, setStoreColors] = useState<{ name: string; hex: string; uses: number }[]>([]);
+    const [colorBoxFocused, setColorBoxFocused] = useState(false);
+
+    // Colours already used on other products, so names and shades stay consistent
+    useEffect(() => {
+        supabase.from('product_variants').select('option2, metadata').not('option2', 'is', null).limit(2000)
+            .then(({ data }) => {
+                const byName = new Map<string, { name: string; hexes: Map<string, number>; uses: number }>();
+                for (const v of data || []) {
+                    const name = String(v.option2 || '').trim();
+                    const hex = (v as any).metadata?.color_hex;
+                    if (!name || name.length < 2) continue;
+                    const k = name.toLowerCase();
+                    const e = byName.get(k) || { name, hexes: new Map(), uses: 0 };
+                    e.uses++;
+                    if (typeof hex === 'string' && /^#[0-9a-f]{6}$/i.test(hex) && hex.toUpperCase() !== '#888888') e.hexes.set(hex, (e.hexes.get(hex) || 0) + 1);
+                    byName.set(k, e);
+                }
+                setStoreColors([...byName.values()]
+                    .filter(e => e.hexes.size > 0)
+                    .map(e => ({ name: e.name, uses: e.uses, hex: [...e.hexes.entries()].sort((a, b) => b[1] - a[1])[0][0] }))
+                    .sort((a, b) => b.uses - a.uses));
+            });
+    }, []);
+
+    /** Shade for a name: one used before in the store, else our colour list. */
+    const knownShade = (name: string): string | null =>
+        storeColors.find(c => c.name.toLowerCase() === name.trim().toLowerCase())?.hex || shadeForColorName(name);
     const [customSize, setCustomSize] = useState('');
 
     // Build variants from colors × sizes (or just sizes, or just colors)
@@ -323,14 +382,43 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     // Re-order selected sizes into canonical order (XS → 5XL, small → large shoe sizes, etc.)
     const autoSortSizes = () => setSelectedSizes(prev => sortSizesSmart(prev));
 
-    const addCustomColor = () => {
-        if (!customColorName.trim()) return;
-        const exists = selectedColors.find(c => c.name.toLowerCase() === customColorName.trim().toLowerCase());
-        if (!exists) {
-            setSelectedColors(prev => [...prev, { name: customColorName.trim(), hex: customColorHex }]);
+    const onCustomColorName = (value: string) => {
+        setCustomColorName(value);
+        setColorError('');
+        if (!customHexPicked) {
+            const names = splitColorNames(value);
+            setCustomColorHex(names.length === 1 ? (knownShade(names[0]) || '') : '');
         }
+    };
+
+    const resetColorBox = () => {
         setCustomColorName('');
-        setCustomColorHex('#888888');
+        setCustomColorHex('');
+        setCustomHexPicked(false);
+        setColorError('');
+    };
+
+    /** Adds one or several colours ("Black, White, Navy Blue"). Every colour needs a shade. */
+    const addCustomColor = (override?: { name: string; hex: string }) => {
+        const names = override ? [override.name] : splitColorNames(customColorName);
+        if (names.length === 0) return;
+        const toAdd: { name: string; hex: string }[] = [];
+        const missing: string[] = [];
+        for (const name of names) {
+            if (selectedColors.some(c => c.name.toLowerCase() === name.toLowerCase())) continue;
+            if (toAdd.some(c => c.name.toLowerCase() === name.toLowerCase())) continue;
+            const hex = override?.hex || (names.length === 1 && customColorHex) || knownShade(name);
+            if (hex) toAdd.push({ name, hex });
+            else missing.push(name);
+        }
+        if (missing.length) {
+            setColorError(names.length === 1
+                ? `Pick a shade for ${missing[0]}: tap the square.`
+                : `We don't know the shade of ${missing.join(', ')}. Add ${missing.length === 1 ? 'it' : 'them'} on ${missing.length === 1 ? 'its' : 'their'} own and tap the square to choose.`);
+        }
+        if (toAdd.length) setSelectedColors(prev => [...prev, ...toAdd]);
+        if (!missing.length) resetColorBox();
+        else if (names.length > 1) { setCustomColorName(missing.join(', ')); setCustomColorHex(''); setCustomHexPicked(false); }
     };
 
     const addCustomSize = () => {
@@ -378,33 +466,27 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     const [uploadProgress, setUploadProgress] = useState<{ name: string; done: boolean }[]>([]);
 
     // SEO
-    const [seoTitle, setSeoTitle] = useState(initialData?.seo_title || '');
+    const [seoTitle, setSeoTitle] = useState(stripBrand(initialData?.seo_title || ''));
     const [metaDescription, setMetaDescription] = useState(initialData?.seo_description || '');
     const [urlSlug, setUrlSlug] = useState(initialData?.slug || '');
     // New products: the web address follows the full name until the admin types
     // their own. (It used to lock in after the first letter, saving "s" for "Satin Shirt".)
     const [slugEdited, setSlugEdited] = useState(!!initialData?.slug);
     const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-    const [keywords, setKeywords] = useState(initialData?.tags?.join(', ') || '');
+    const [tagList, setTagList] = useState<string[]>(
+        // Drop the filler tags the old editor added
+        (initialData?.tags || []).map((t: string) => String(t).trim()).filter((t: string) => {
+            const low = t.toLowerCase();
+            if (!t || ['store', 'online shopping'].includes(low)) return false;
+            // Single words copied from the name ("bare", "capri") add nothing
+            const nameWords = String(initialData?.name || '').toLowerCase().split(/\s+/);
+            return low.includes(' ') || !nameWords.includes(low);
+        })
+    );
+    const [shareImage, setShareImage] = useState<string>(initialData?.metadata?.og_image || '');
     // Track manual edits so auto-generation doesn't overwrite user changes
     const [seoTitleEdited, setSeoTitleEdited] = useState(!!initialData?.seo_title);
     const [metaDescEdited, setMetaDescEdited] = useState(!!initialData?.seo_description);
-    const [keywordsEdited, setKeywordsEdited] = useState(!!(initialData?.tags?.length));
-
-    const generateSeoFields = (name: string, desc: string) => {
-        const title = name ? `${name} | Faithlinegh` : '';
-        const metaDesc = desc
-            ? (desc.length > 160 ? desc.substring(0, 157).trimEnd() + '...' : desc)
-            : name ? `Shop ${name} at our store. Quality fashion with nationwide delivery in Ghana.` : '';
-        const kw = name
-            ? [...new Set([
-                name.toLowerCase(),
-                ...name.toLowerCase().split(/\s+/).filter(w => w.length > 2),
-                'store', 'online shopping'
-              ])].join(', ')
-            : '';
-        return { title, metaDesc, kw };
-    };
 
     const tabs = [
         { id: 'general', label: 'General', icon: 'ri-information-line' },
@@ -437,10 +519,9 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
     // Auto-generate SEO fields from name + description (only if not manually edited)
     useEffect(() => {
         if (isEditMode) return; // don't auto-overwrite on edit
-        const { title, metaDesc, kw } = generateSeoFields(productName, description);
-        if (!seoTitleEdited) setSeoTitle(title);
-        if (!metaDescEdited) setMetaDescription(metaDesc);
-        if (!keywordsEdited) setKeywords(kw);
+        const d = defaultSeo(productName, description, categories.find((c: any) => c.id === categoryId)?.name);
+        if (!seoTitleEdited) setSeoTitle(d.title);
+        if (!metaDescEdited) setMetaDescription(d.description);
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [productName, description]);
 
@@ -575,6 +656,11 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
     const handleSubmit = async () => {
         if (variantUploading) { alert('Wait for the photo to finish uploading.'); return; }
+        if (availability === 'preorder' && !(preorderMode === 'days' ? Number(preorderDays) > 0 : !!preorderDate)) {
+            alert('Pre-order: say when it arrives (a number of days or a date).');
+            setActiveTab('general');
+            return;
+        }
         // Colours with nothing in stock show as sold out on the website
         const emptyColors = selectedColors
             .filter(c => variants.filter(v => v.color === c.name).every(v => (parseInt(v.stock) || 0) === 0))
@@ -609,15 +695,21 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                 moq: parseInt(moq) || 1,
                 status: status.toLowerCase(),
                 featured,
-                seo_title: seoTitle,
-                seo_description: metaDescription,
-                tags: (keywords as string).split(',').map((k: string) => k.trim()).filter(Boolean),
+                seo_title: stripBrand(seoTitle) || null,
+                seo_description: metaDescription.trim() || null,
+                tags: tagList,
                 metadata: {
                     low_stock_threshold: Number.isNaN(parseInt(lowStockThreshold)) ? 5 : Math.max(0, parseInt(lowStockThreshold)),
-                    preorder_shipping: preorderShipping.trim() || null,
+                    availability: availability === 'preorder' ? 'preorder' : 'in_stock',
+                    preorder_shipping: availability === 'preorder' ? preorderLine : null,
+                    preorder_days: availability === 'preorder' && preorderMode === 'days' && Number(preorderDays) > 0 ? Number(preorderDays) : null,
+                    preorder_unit: availability === 'preorder' && preorderMode === 'days' ? preorderUnit : null,
+                    preorder_date: availability === 'preorder' && preorderMode === 'date' && preorderDate ? preorderDate : null,
+                    preorder_note: availability === 'preorder' ? (preorderNote.trim() || null) : null,
                     wholesale_price: wholesalePrice ? parseFloat(wholesalePrice) : null,
                     wholesale_min_qty: wholesaleMinQty ? parseInt(wholesaleMinQty) : null,
-                    bundle_pricing: validBundleTiers.length > 0 ? validBundleTiers : null
+                    bundle_pricing: validBundleTiers.length > 0 ? validBundleTiers : null,
+                    og_image: shareImage && images.some((img: any) => img.url === shareImage) ? shareImage : null
                 },
                 variants: variantsPayload,
             };
@@ -842,19 +934,79 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 </label>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Pre-order / Estimated Shipping
-                                </label>
-                                <input
-                                    type="text"
-                                    value={preorderShipping}
-                                    onChange={(e) => setPreorderShipping(e.target.value)}
-                                    placeholder="e.g., Ships in 14 days, Available March 15"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-gray-600 focus:border-transparent transition-all"
-                                />
-                                <p className="text-xs text-gray-500 mt-1">Leave empty if product ships immediately. Otherwise, enter estimated shipping time.</p>
-                            </div>
+                            <fieldset>
+                                <legend className="block text-sm font-semibold text-gray-900 mb-2">Availability</legend>
+                                <div className="grid sm:grid-cols-2 gap-3" role="radiogroup">
+                                    {([
+                                        { key: 'now', title: 'Available now', body: 'In stock. Collected within 24 hours or delivered within 48.', icon: 'ri-checkbox-circle-line' },
+                                        { key: 'preorder', title: 'Pre-order', body: 'Customers pay now and it arrives later. Orders are taken even with no stock.', icon: 'ri-time-line' },
+                                    ] as const).map(opt => {
+                                        const on = availability === opt.key;
+                                        return (
+                                            <button
+                                                key={opt.key}
+                                                type="button"
+                                                role="radio"
+                                                aria-checked={on}
+                                                onClick={() => setAvailability(opt.key)}
+                                                className={`text-left p-4 rounded-xl border-2 transition-colors ${on ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                                            >
+                                                <span className="flex items-center gap-2 font-semibold text-gray-900">
+                                                    <i className={`${opt.icon} text-lg`} aria-hidden="true"></i>{opt.title}
+                                                    {on && <i className="ri-check-line ml-auto" aria-hidden="true"></i>}
+                                                </span>
+                                                <span className="block text-sm text-gray-600 mt-1">{opt.body}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                {availability === 'preorder' && (
+                                    <div className="mt-4 p-4 rounded-xl border border-gray-200 bg-white space-y-4">
+                                        <div>
+                                            <p className="text-sm font-semibold text-gray-900 mb-2">When does it arrive?</p>
+                                            <div className="inline-flex rounded-lg border border-gray-200 p-1 bg-gray-50" role="tablist">
+                                                {(['days', 'date'] as const).map(m => (
+                                                    <button key={m} type="button" role="tab" aria-selected={preorderMode === m} onClick={() => setPreorderMode(m)}
+                                                        className={`px-3 py-1.5 rounded-md text-sm font-medium ${preorderMode === m ? 'bg-white shadow-sm text-gray-900' : 'text-gray-600'}`}>
+                                                        {m === 'days' ? 'In a number of days' : 'On a date'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {preorderMode === 'days' ? (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm text-gray-700">About</span>
+                                                <input type="number" min={1} inputMode="numeric" value={preorderDays} onChange={(e) => setPreorderDays(e.target.value)}
+                                                    aria-label="How long until it arrives" placeholder="14"
+                                                    className="w-20 h-11 px-3 border border-gray-300 rounded-lg text-center" />
+                                                <select value={preorderUnit} onChange={(e) => setPreorderUnit(e.target.value as 'days' | 'weeks')} aria-label="Days or weeks"
+                                                    className="h-11 px-3 border border-gray-300 rounded-lg bg-white">
+                                                    <option value="days">days</option>
+                                                    <option value="weeks">weeks</option>
+                                                </select>
+                                                <span className="text-sm text-gray-500">after the order</span>
+                                            </div>
+                                        ) : (
+                                            <input type="date" value={preorderDate} min={new Date().toISOString().slice(0, 10)} onChange={(e) => setPreorderDate(e.target.value)}
+                                                aria-label="Arrival date" className="h-11 px-3 border border-gray-300 rounded-lg" />
+                                        )}
+                                        <div>
+                                            <label htmlFor="preorder-note" className="block text-sm font-semibold text-gray-900 mb-1">Note for customers <span className="font-normal text-gray-500">(optional)</span></label>
+                                            <input id="preorder-note" type="text" maxLength={80} value={preorderNote} onChange={(e) => setPreorderNote(e.target.value)}
+                                                placeholder="e.g. Shipping from the UK"
+                                                className="w-full h-11 px-3 border border-gray-300 rounded-lg" />
+                                        </div>
+                                        <div className="rounded-lg bg-[#FBF1E6] px-3 py-2.5">
+                                            <p className="text-[11px] font-semibold uppercase tracking-wider text-[#8A4B1F]/70 mb-0.5">Shoppers see</p>
+                                            <p className="text-sm text-[#8A4B1F] flex items-center gap-1.5"><i className="ri-time-line" aria-hidden="true"></i>{preorderLine}</p>
+                                        </div>
+                                        {preorderMode === 'days' && !(Number(preorderDays) > 0) && preorderMode === 'days' && (
+                                            <p className="text-xs text-amber-700">Add how long it takes so customers know when to expect it.</p>
+                                        )}
+                                    </div>
+                                )}
+                            </fieldset>
                         </div>
                     )}
 
@@ -1200,31 +1352,108 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                     })}
                                 </div>
 
-                                {/* Custom color */}
-                                <div className="flex items-center gap-2 pt-3 border-t border-gray-200">
-                                    <input
-                                        type="color"
-                                        value={customColorHex}
-                                        onChange={(e) => setCustomColorHex(e.target.value)}
-                                        className="w-10 h-10 rounded-lg border border-gray-300 cursor-pointer p-0.5"
-                                        title="Pick a custom color"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={customColorName}
-                                        onChange={(e) => setCustomColorName(e.target.value)}
-                                        placeholder="Custom color name"
-                                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-                                        onKeyDown={(e) => e.key === 'Enter' && addCustomColor()}
-                                    />
-                                    <button
-                                        onClick={addCustomColor}
-                                        disabled={!customColorName.trim()}
-                                        className="px-4 py-2 bg-brand-bag-dark text-white rounded-lg text-sm font-medium hover:bg-brand-bag-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        Add Color
-                                    </button>
-                                </div>
+                                {/* Custom colour: shade fills in from the name; several at once with commas */}
+                                {(() => {
+                                    const typed = splitColorNames(customColorName);
+                                    const last = (customColorName.split(',').pop() || '').trim().toLowerCase();
+                                    const suggestions = last.length >= 1
+                                        ? storeColors.filter(c => c.name.toLowerCase().includes(last)
+                                            && !selectedColors.some(s2 => s2.name.toLowerCase() === c.name.toLowerCase())).slice(0, 6)
+                                        : [];
+                                    const single = typed.length <= 1;
+                                    return (
+                                        <div className="pt-3 border-t border-gray-200">
+                                            <label htmlFor="custom-colour" className="block text-sm font-semibold text-gray-900 mb-1.5">Add another colour</label>
+                                            <div className="relative flex items-start gap-2">
+                                                <label
+                                                    className={`relative w-12 h-12 flex-shrink-0 rounded-xl border-2 cursor-pointer overflow-hidden ${customColorHex ? 'border-gray-300' : 'border-dashed border-gray-300 bg-[repeating-linear-gradient(45deg,#f3f4f6,#f3f4f6_6px,#fff_6px,#fff_12px)]'} ${!single ? 'opacity-40 pointer-events-none' : ''}`}
+                                                    title={customColorHex ? 'Change the shade' : 'Pick a shade'}
+                                                    style={customColorHex ? { backgroundColor: customColorHex } : undefined}
+                                                >
+                                                    <input
+                                                        type="color"
+                                                        value={customColorHex || '#cccccc'}
+                                                        onChange={(e) => { setCustomColorHex(e.target.value); setCustomHexPicked(true); setColorError(''); }}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        aria-label="Pick the shade"
+                                                    />
+                                                    {!customColorHex && <i className="ri-palette-line absolute inset-0 flex items-center justify-center text-gray-400 text-lg" aria-hidden="true"></i>}
+                                                </label>
+                                                <div className="flex-1 min-w-0 relative">
+                                                    <input
+                                                        id="custom-colour"
+                                                        type="text"
+                                                        autoComplete="off"
+                                                        value={customColorName}
+                                                        onChange={(e) => onCustomColorName(e.target.value)}
+                                                        onFocus={() => setColorBoxFocused(true)}
+                                                        onBlur={() => setTimeout(() => setColorBoxFocused(false), 150)}
+                                                        placeholder="e.g. Coffee Brown, or several: Black, White, Navy Blue"
+                                                        className="w-full h-12 px-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-brown/30 focus:border-brand-brown"
+                                                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustomColor(); } }}
+                                                        aria-describedby="custom-colour-hint"
+                                                    />
+                                                    {colorBoxFocused && suggestions.length > 0 && (
+                                                        <ul className="absolute z-20 left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg py-1 max-h-60 overflow-auto" role="listbox" aria-label="Colours used on other products">
+                                                            <li className="px-3 pt-1 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Used on your other products</li>
+                                                            {suggestions.map(c => (
+                                                                <li key={c.name}>
+                                                                    <button
+                                                                        type="button"
+                                                                        role="option"
+                                                                        aria-selected={false}
+                                                                        onMouseDown={(e) => e.preventDefault()}
+                                                                        onClick={() => {
+                                                                            if (single) addCustomColor({ name: c.name, hex: c.hex });
+                                                                            else {
+                                                                                const parts = customColorName.split(',');
+                                                                                parts[parts.length - 1] = ` ${c.name}`;
+                                                                                onCustomColorName(parts.join(',').replace(/^\s+/, ''));
+                                                                            }
+                                                                        }}
+                                                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-gray-50"
+                                                                    >
+                                                                        <span className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0" style={{ backgroundColor: c.hex }} aria-hidden="true"></span>
+                                                                        <span className="flex-1 text-gray-900">{c.name}</span>
+                                                                        <span className="text-xs text-gray-400">{c.uses} {c.uses === 1 ? 'option' : 'options'}</span>
+                                                                    </button>
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => addCustomColor()}
+                                                    disabled={typed.length === 0}
+                                                    className="h-12 px-4 bg-gray-900 text-white rounded-xl text-sm font-semibold hover:bg-black disabled:opacity-40 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
+                                                >
+                                                    {typed.length > 1 ? `Add ${typed.length} colours` : 'Add colour'}
+                                                </button>
+                                            </div>
+                                            {typed.length > 1 && (
+                                                <div className="mt-2 flex flex-wrap gap-1.5" aria-label="Colours to add">
+                                                    {typed.map(n => {
+                                                        const hex = knownShade(n);
+                                                        return (
+                                                            <span key={n} className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border ${hex ? 'border-gray-200 bg-white text-gray-800' : 'border-amber-300 bg-amber-50 text-amber-900'}`}>
+                                                                <span className="w-3 h-3 rounded-full border border-gray-300" style={hex ? { backgroundColor: hex } : undefined} aria-hidden="true"></span>
+                                                                {n}{!hex && ' · shade?'}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                            <p id="custom-colour-hint" className={`mt-1.5 text-xs ${colorError ? 'text-red-700' : 'text-gray-500'}`} role={colorError ? 'alert' : undefined}>
+                                                {colorError || (single && customColorName.trim()
+                                                    ? (customColorHex
+                                                        ? (customHexPicked ? 'Using the shade you picked.' : 'Shade filled in from the name. Tap the square to change it.')
+                                                        : 'We don’t know this shade yet. Tap the square to pick it.')
+                                                    : 'Type a colour name and the shade fills in. Separate several with commas.')}
+                                            </p>
+                                        </div>
+                                    );
+                                })()}
 
                                 {/* Selected colors summary */}
                                 {selectedColors.length > 0 && (
@@ -1592,107 +1821,27 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                     )}
 
                     {activeTab === 'seo' && (
-                        <div className="space-y-6 max-w-3xl">
-                            <div className="flex items-start justify-between gap-4">
-                                <div>
-                                    <h3 className="text-lg font-bold text-gray-900 mb-1">Search Engine Optimization</h3>
-                                    <p className="text-gray-600 text-sm">Auto-generated from your product name and description. You can edit any field manually.</p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const { title, metaDesc, kw } = generateSeoFields(productName, description);
-                                        setSeoTitle(title);
-                                        setMetaDescription(metaDesc);
-                                        setKeywords(kw);
-                                        if (productName) { setUrlSlug(slugify(productName)); setSlugEdited(false); }
-                                        setSeoTitleEdited(false);
-                                        setMetaDescEdited(false);
-                                        setKeywordsEdited(false);
-                                    }}
-                                    className="flex-shrink-0 flex items-center gap-2 px-4 py-2 border-2 border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:border-gray-900 hover:bg-gray-50 transition-colors"
-                                >
-                                    <i className="ri-refresh-line"></i>
-                                    Regenerate
-                                </button>
-                            </div>
-
-                            {/* Google preview */}
-                            {(seoTitle || metaDescription) && (
-                                <div className="p-4 bg-white border-2 border-gray-100 rounded-xl">
-                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Google Preview</p>
-                                    <p className="text-brand-brown text-base font-medium leading-snug truncate">{seoTitle || productName}</p>
-                                    <p className="text-brand-brown text-xs mt-0.5">faithlinegh.com/product/{urlSlug}</p>
-                                    <p className="text-gray-600 text-sm mt-1 line-clamp-2">{metaDescription}</p>
-                                </div>
-                            )}
-
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm font-semibold text-gray-900">Page Title</label>
-                                    <span className={`text-xs font-medium ${seoTitle.length > 60 ? 'text-brand-brown' : seoTitle.length > 50 ? 'text-brand-brown' : 'text-gray-400'}`}>
-                                        {seoTitle.length}/60
-                                    </span>
-                                </div>
-                                <input
-                                    type="text"
-                                    value={seoTitle}
-                                    onChange={(e) => { setSeoTitle(e.target.value); setSeoTitleEdited(true); }}
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                                    placeholder="e.g. Silk Dress | Faithlinegh"
-                                />
-                            </div>
-
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm font-semibold text-gray-900">Meta Description</label>
-                                    <span className={`text-xs font-medium ${metaDescription.length > 160 ? 'text-brand-brown' : metaDescription.length > 140 ? 'text-brand-brown' : 'text-gray-400'}`}>
-                                        {metaDescription.length}/160
-                                    </span>
-                                </div>
-                                <textarea
-                                    rows={3}
-                                    value={metaDescription}
-                                    onChange={(e) => { setMetaDescription(e.target.value); setMetaDescEdited(true); }}
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 resize-none"
-                                    placeholder="e.g. Shop premium products at our store. Worldwide delivery available."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    URL Slug
-                                </label>
-                                <div className="flex items-center">
-                                    <span className="text-gray-600 bg-gray-100 px-4 py-3 border-2 border-r-0 border-gray-300 rounded-l-lg whitespace-nowrap text-sm">
-                                        /product/
-                                    </span>
-                                    <input
-                                        type="text"
-                                        value={urlSlug}
-                                        onChange={(e) => { setSlugEdited(true); setUrlSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+/, '')); }}
-                                        onBlur={() => setUrlSlug(slugify(urlSlug))}
-                                        className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-r-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                                        placeholder="product-slug"
-                                    />
-                                </div>
-                                <p className="text-xs text-gray-400 mt-1">Only lowercase letters, numbers and hyphens. Auto-sanitised as you type.</p>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-900 mb-2">
-                                    Keywords
-                                </label>
-                                <input
-                                    type="text"
-                                    value={keywords}
-                                    onChange={(e) => { setKeywords(e.target.value); setKeywordsEdited(true); }}
-                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                                    placeholder="e.g. lash bed, beauty tools, nigeria"
-                                />
-                                <p className="text-xs text-gray-400 mt-1">Separate with commas. Auto-generated from product name.</p>
-                            </div>
-                        </div>
+                        <SeoPanel
+                            productId={initialData?.id}
+                            productName={productName}
+                            description={description}
+                            category={categories.find((c: any) => c.id === categoryId)?.name}
+                            colors={selectedColors.map(c => c.name)}
+                            images={images.filter((img: any) => img.media_type !== 'video').map((img: any) => img.url)}
+                            savedSlug={initialData?.slug}
+                            title={seoTitle}
+                            setTitle={(v) => { setSeoTitle(v); setSeoTitleEdited(true); }}
+                            metaDescription={metaDescription}
+                            setMetaDescription={(v) => { setMetaDescription(v); setMetaDescEdited(true); }}
+                            slug={urlSlug}
+                            setSlug={setUrlSlug}
+                            onSlugTyped={() => setSlugEdited(true)}
+                            slugify={slugify}
+                            tags={tagList}
+                            setTags={setTagList}
+                            shareImage={shareImage}
+                            setShareImage={setShareImage}
+                        />
                     )}
                 </div>
             </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound, permanentRedirect } from 'next/navigation';
 import ProductDetailClient from './ProductDetailClient';
 import JsonLd from '@/components/JsonLd';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -28,6 +29,8 @@ type ProductRow = {
   rating_avg?: number | null;
   review_count?: number | null;
   categories?: { name: string; slug: string } | null;
+  metadata?: Record<string, any> | null;
+  product_variants?: { price: number | null; quantity: number | null }[] | null;
   product_images?: { url: string; position: number | null; alt_text: string | null }[] | null;
 };
 
@@ -37,15 +40,36 @@ async function getProduct(slug: string): Promise<ProductRow | null> {
     const { data } = await supabaseAdmin
       .from('products')
       .select(
-        'name, slug, description, short_description, seo_title, seo_description, price, compare_at_price, sku, brand, quantity, track_quantity, continue_selling, tags, rating_avg, review_count, categories(name, slug), product_images(url, position, alt_text)'
+        'name, slug, description, short_description, seo_title, seo_description, price, compare_at_price, sku, brand, quantity, track_quantity, continue_selling, tags, rating_avg, review_count, metadata, categories(name, slug), product_images(url, position, alt_text), product_variants(price, quantity)'
       )
       .eq('slug', slug)
       .eq('status', 'active')
-      .single();
+      .maybeSingle();
     return (data as unknown as ProductRow) || null;
   } catch {
     return null;
   }
+}
+
+/** A product's current address when `slug` is one it used before a rename. */
+async function renamedSlug(slug: string): Promise<string | null> {
+  try {
+    const { data } = await supabaseAdmin
+      .from('products')
+      .select('slug')
+      .contains('metadata', { previous_slugs: [slug] })
+      .eq('status', 'active')
+      .limit(1)
+      .maybeSingle();
+    return data?.slug && data.slug !== slug ? data.slug : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Titles are stored without the brand; the layout adds " | Faithlinegh". */
+function cleanTitle(t?: string | null): string {
+  return String(t || '').replace(/\s*[|–—-]\s*faithline(gh)?\s*$/i, '').trim();
 }
 
 function productImages(p: ProductRow): string[] {
@@ -60,7 +84,15 @@ function productImages(p: ProductRow): string[] {
 function isInStock(p: ProductRow): boolean {
   if (p.track_quantity === false) return true;
   if (p.continue_selling) return true;
+  const variants = p.product_variants || [];
+  if (variants.some((v) => (v.quantity ?? 0) > 0)) return true;
   return (p.quantity ?? 0) > 0;
+}
+
+function priceRange(p: ProductRow): { low: number; high: number } {
+  const prices = (p.product_variants || []).map((v) => Number(v.price) || 0).filter((n) => n > 0);
+  const all = prices.length ? prices : [Number(p.price) || 0];
+  return { low: Math.min(...all), high: Math.max(...all) };
 }
 
 export async function generateMetadata({
@@ -72,6 +104,8 @@ export async function generateMetadata({
   const p = await getProduct(slug);
 
   if (!p) {
+    const moved = await renamedSlug(slug);
+    if (moved) return pageMetadata({ title: 'Moved', path: `/product/${moved}`, noindex: true });
     return pageMetadata({ title: 'Product Not Found', path: `/product/${slug}`, noindex: true });
   }
 
@@ -80,15 +114,15 @@ export async function generateMetadata({
     p.seo_description ||
       p.short_description ||
       p.description ||
-      `Shop ${p.name}${category ? ` (${category})` : ''} at ${SITE_NAME}. Quality, affordable fashion with nationwide delivery across Ghana.`,
+      `Shop ${p.name}${category ? ` (${category})` : ''} at ${SITE_NAME}. Free store pickup or delivery across Ghana within 48 hours.`,
     160
   );
 
   return pageMetadata({
-    title: p.seo_title || p.name,
+    title: cleanTitle(p.seo_title) || p.name,
     description,
     path: `/product/${p.slug || slug}`,
-    images: productImages(p),
+    images: [p.metadata?.og_image, ...productImages(p)].filter((u, i, a): u is string => !!u && a.indexOf(u) === i),
     type: 'product',
     keywords: [p.name, category, p.brand, ...(p.tags || [])].filter(Boolean) as string[],
   });
@@ -101,6 +135,14 @@ export default async function ProductDetailPage({
 }) {
   const { slug } = await params;
   const p = await getProduct(slug);
+  if (!p) {
+    // Old address after a rename: send people (and Google) to the new one
+    const moved = await renamedSlug(slug);
+    if (moved) permanentRedirect(`/product/${moved}`);
+    // Links by product id are still handled by the page itself
+    const isId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
+    if (!isId && process.env.SUPABASE_SERVICE_ROLE_KEY) notFound();
+  }
 
   let schemas: unknown[] = [];
   if (p) {
@@ -111,8 +153,10 @@ export default async function ProductDetailPage({
         name: p.name,
         description: p.short_description || p.description || '',
         images: productImages(p),
-        price: p.price,
+        price: priceRange(p).low,
+        highPrice: priceRange(p).high,
         compareAtPrice: p.compare_at_price,
+        preorder: p.metadata?.availability === 'preorder',
         currency: 'GHS',
         sku: p.sku || undefined,
         inStock: isInStock(p),

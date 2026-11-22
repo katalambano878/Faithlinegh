@@ -64,11 +64,24 @@ const PG_IDENT = /^[a-z_][a-z0-9_]*$/i;
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+const JSON_KEY = /^[a-z0-9_]+$/i;
+
+/** Quote a column name. Also accepts PostgREST JSON paths such as
+ *  metadata->>source or metadata->shipping->>city (keys are plain words only,
+ *  so nothing from a URL can reach the SQL unquoted). */
 function ident(name: string): string {
-  if (!PG_IDENT.test(name)) {
-    throw new Error(`Unsafe SQL identifier: ${name}`);
+  if (PG_IDENT.test(name)) return `"${name}"`;
+  const m = /^([a-z_][a-z0-9_]*)((?:->>?[a-z0-9_]+)+)$/i.exec(name);
+  if (m) {
+    const parts = m[2].match(/->>?[a-z0-9_]+/gi) || [];
+    if (parts.every((p) => JSON_KEY.test(p.replace(/^->>?/, "")))) {
+      return `"${m[1]}"` + parts.map((p) => {
+        const arrow = p.startsWith("->>") ? "->>" : "->";
+        return `${arrow}'${p.slice(arrow.length)}'`;
+      }).join("");
+    }
   }
-  return `"${name}"`;
+  throw new Error(`Unsafe SQL identifier: ${name}`);
 }
 
 /** Cast uuid-like columns to text when the filter value is not a UUID. */

@@ -132,7 +132,6 @@ export default function Footer() {
             <FooterSection title="Company">
               <ul className="space-y-3 text-sm text-brand-brown/75">
                 <li><Link href="/about" className="hover:text-brand-brown transition-colors flex items-center gap-2"><i className="ri-arrow-right-s-line opacity-50"></i> Our Story</Link></li>
-                <li><Link href="/blog" className="hover:text-brand-brown transition-colors flex items-center gap-2"><i className="ri-arrow-right-s-line opacity-50"></i> Blog</Link></li>
                 <li><Link href="/privacy" className="hover:text-brand-brown transition-colors flex items-center gap-2"><i className="ri-arrow-right-s-line opacity-50"></i> Privacy Policy</Link></li>
                 <li><Link href="/terms" className="hover:text-brand-brown transition-colors flex items-center gap-2"><i className="ri-arrow-right-s-line opacity-50"></i> Terms of Service</Link></li>
               </ul>

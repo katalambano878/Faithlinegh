@@ -27,12 +27,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.6,
-    },
-    {
       url: `${baseUrl}/shipping`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -116,13 +110,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('Error generating sitemap:', error);
   }
 
-  // Blog posts
-  const blogPages: MetadataRoute.Sitemap = ['1', '2', '3'].map((id) => ({
-    url: `${baseUrl}/blog/${id}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.5,
-  }));
+  // Blog posts published from the admin (none yet)
+  let blogPages: MetadataRoute.Sitemap = [];
+  try {
+    const { data: posts } = await dbAdmin
+      .from('blog_posts')
+      .select('id, slug, updated_at')
+      .eq('status', 'published');
+    blogPages = (posts || []).map((p: any) => ({
+      url: `${baseUrl}/blog/${p.slug || p.id}`,
+      lastModified: new Date(p.updated_at || Date.now()),
+      changeFrequency: 'monthly' as const,
+      priority: 0.5,
+    }));
+  } catch {
+    blogPages = [];
+  }
 
+  if (blogPages.length) {
+    blogPages.unshift({ url: `${baseUrl}/blog`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.6 });
+  }
   return [...staticPages, ...productPages, ...categoryPages, ...blogPages];
 }

@@ -35,10 +35,23 @@ export default function ForgotPasswordPage() {
       return;
     }
 
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        setError(j.error || 'Could not send the reset link. Please try again.');
+        return;
+      }
       setIsSubmitted(true);
-    }, 1500);
+    } catch {
+      setError('Could not reach the server. Check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isSubmitted) {
@@ -51,10 +64,10 @@ export default function ForgotPasswordPage() {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">Check Your Email</h1>
             <p className="text-gray-600 mb-6">
-              We've sent a password reset link to <strong>{email}</strong>
+              If <strong>{email}</strong> has a Faithlinegh account, we've sent it a link to reset your password.
             </p>
             <p className="text-sm text-gray-500 mb-8">
-              If you don't receive an email within a few minutes, please check your spam folder.
+              The link expires in 1 hour. If it doesn't arrive within a few minutes, check your spam folder.
             </p>
             <Link
               href="/auth/login"

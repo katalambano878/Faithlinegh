@@ -1,279 +1,80 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import JsonLd from '@/components/JsonLd';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { pageMetadata, breadcrumbSchema, collectionPageSchema, SITE_NAME } from '@/lib/seo';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = pageMetadata({
-  title: 'Fashion Blog — Style Tips & Shopping Guides',
-  description: `Style tips, fashion inspiration and shopping guides from ${SITE_NAME}. Learn how to style bags, basics and dresses, and shop smarter in Ghana.`,
+  title: 'Style Notes',
+  description: `Style tips and new-in notes from ${SITE_NAME}: how to wear our bags, basics and dresses.`,
   path: '/blog',
   type: 'website',
-  keywords: ['fashion blog Ghana', 'style tips', 'how to style bags', 'dress styling Ghana'],
 });
 
-export default function BlogPage() {
-  const featuredPost = {
-    id: '1',
-    title: 'The Ultimate Guide to Online Shopping in Ghana',
-    excerpt: 'Everything you need to know about safe, convenient online shopping in Ghana. From payment methods to delivery options, we cover it all.',
-    image: '/placeholder-product.svg',
-    category: 'Shopping Tips',
-    date: 'December 15, 2024',
-    readTime: '8 min read',
-    author: 'Faithlinegh'
-  };
+type Post = { id: string; slug: string | null; title: string; excerpt: string | null; featured_image: string | null; published_at: string | null };
 
-  const posts = [
-    {
-      id: '2',
-      title: '10 Must-Have Products for Your Home This Season',
-      excerpt: 'Discover the trending products that will elevate your living space and make your home more comfortable and stylish.',
-      image: '/placeholder-product.svg',
-      category: 'Home & Living',
-      date: 'December 12, 2024',
-      readTime: '6 min read',
-      author: 'Faithlinegh'
-    },
-    {
-      id: '3',
-      title: 'How to Choose Quality Products: A Buyer\'s Guide',
-      excerpt: 'Learn the key indicators of quality products and how to make informed purchasing decisions that offer the best value for your money.',
-      image: '/placeholder-product.svg',
-      category: 'Buying Guide',
-      date: 'December 10, 2024',
-      readTime: '7 min read',
-      author: 'Faithlinegh'
-    },
-    {
-      id: '1',
-      title: 'The Ultimate Guide to Online Shopping in Ghana',
-      excerpt: 'Everything you need to know about safe, convenient online shopping in Ghana. From payment methods to delivery options.',
-      image: '/placeholder-product.svg',
-      category: 'Shopping Tips',
-      date: 'December 15, 2024',
-      readTime: '8 min read',
-      author: 'Faithlinegh'
-    }
-  ];
+/** Posts published from the admin Blog module. */
+async function getPosts(): Promise<Post[]> {
+  try {
+    const { data } = await supabaseAdmin
+      .from('blog_posts')
+      .select('id, slug, title, excerpt, featured_image, published_at')
+      .eq('status', 'published')
+      .order('published_at', { ascending: false })
+      .limit(60);
+    return (data as Post[]) || [];
+  } catch {
+    return [];
+  }
+}
 
-  const categories = [
-    { name: 'All Posts', count: 12, icon: 'ri-article-line' },
-    { name: 'Shopping Tips', count: 5, icon: 'ri-shopping-bag-line' },
-    { name: 'Product Reviews', count: 4, icon: 'ri-star-line' },
-    { name: 'Home & Living', count: 3, icon: 'ri-home-line' },
-    { name: 'Buying Guide', count: 6, icon: 'ri-guide-line' },
-    { name: 'News', count: 2, icon: 'ri-newspaper-line' }
-  ];
+const fmt = (d: string | null) =>
+  d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
+export default async function BlogPage() {
+  const posts = await getPosts();
 
   return (
-    <div className="min-h-screen bg-white">
+    <main className="min-h-screen bg-white text-[#2B211B]">
       <JsonLd
         data={[
-          collectionPageSchema({
-            name: `${SITE_NAME} Blog`,
-            description: 'Style tips, fashion inspiration and shopping guides.',
-            url: '/blog',
-          }),
-          breadcrumbSchema([
-            { name: 'Home', url: '/' },
-            { name: 'Blog', url: '/blog' },
-          ]),
+          collectionPageSchema({ name: `Style Notes — ${SITE_NAME}`, description: 'Style tips and new-in notes.', url: '/blog' }),
+          breadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Style Notes', url: '/blog' }]),
         ]}
       />
-      <div className="bg-gradient-to-br from-white via-white to-white/40 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">Our Blog</h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
-              Shopping tips, style guides, and fashion inspiration to help you look and feel your best.
-            </p>
-          </div>
-        </div>
-      </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <h1 className="font-serif text-4xl lg:text-5xl font-medium">Style Notes</h1>
+        <p className="mt-3 text-[#4E423A] max-w-[60ch]">How to wear our bags, basics and dresses, plus what&apos;s new in store.</p>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <Link href={`/blog/${featuredPost.id}`} className="block mb-16 hover:opacity-90 transition-opacity cursor-pointer">
-          <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow">
-            <div className="grid md:grid-cols-2 gap-0">
-              <div className="relative h-96 md:h-auto">
-                <img
-                  src={featuredPost.image}
-                  alt={featuredPost.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-6 left-6">
-                  <span className="bg-gray-900 text-white px-4 py-2 rounded-full text-sm font-medium">
-                    Featured
-                  </span>
-                </div>
-              </div>
-              <div className="p-12 flex flex-col justify-center">
-                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                  <span className="bg-[#E6DFD5] text-[#5B4436] px-3 py-1 rounded-full font-medium">
-                    {featuredPost.category}
-                  </span>
-                  <span>{featuredPost.date}</span>
-                  <span className="flex items-center gap-1">
-                    <i className="ri-time-line"></i>
-                    {featuredPost.readTime}
-                  </span>
-                </div>
-                <h2 className="text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                  {featuredPost.title}
-                </h2>
-                <p className="text-gray-600 text-lg leading-relaxed mb-6">
-                  {featuredPost.excerpt}
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                    <i className="ri-user-line text-gray-900"></i>
-                  </div>
-                  <span className="text-gray-900 font-medium">{featuredPost.author}</span>
-                </div>
-              </div>
-            </div>
+        {posts.length === 0 ? (
+          <div className="mt-12 rounded-2xl bg-[#F7F4EF] p-8 sm:p-10 max-w-2xl">
+            <h2 className="font-serif text-2xl font-medium">No posts yet</h2>
+            <p className="mt-2 text-[#4E423A]">We&apos;re working on our first style notes. In the meantime, see what just landed.</p>
+            <Link href="/shop?sort=new" className="mt-5 inline-flex h-12 px-6 items-center rounded-[14px] bg-[#5B4436] hover:bg-[#47362C] text-white font-semibold transition-colors">
+              Shop new arrivals
+            </Link>
           </div>
-        </Link>
-
-        <div className="grid lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Latest Articles</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {posts.map((post) => (
-                <Link
-                  key={post.id}
-                  href={`/blog/${post.id}`}
-                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer"
-                >
-                  <div className="relative h-64">
-                    <img
-                      src={post.image}
-                      alt={post.title}
-                      className="w-full h-full object-cover"
-                    />
+        ) : (
+          <ul className="mt-10 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((p) => (
+              <li key={p.id}>
+                <Link href={`/blog/${p.slug || p.id}`} className="group block">
+                  <div className="aspect-[4/3] rounded-2xl bg-[#F7F4EF] overflow-hidden">
+                    {p.featured_image && (
+                      <img src={p.featured_image} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
+                    )}
                   </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 text-sm text-gray-500 mb-3">
-                      <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-full font-medium text-xs">
-                        {post.category}
-                      </span>
-                      <span className="text-xs">{post.date}</span>
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-3 leading-tight">
-                      {post.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4 leading-relaxed text-sm">
-                      {post.excerpt}
-                    </p>
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                          <i className="ri-user-line text-gray-600 text-sm"></i>
-                        </div>
-                        <span className="text-sm text-gray-900 font-medium">{post.author}</span>
-                      </div>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <i className="ri-time-line"></i>
-                        {post.readTime}
-                      </span>
-                    </div>
-                  </div>
+                  <p className="mt-3 text-xs text-[#6E6158]">{fmt(p.published_at)}</p>
+                  <h2 className="mt-1 font-serif text-xl font-medium group-hover:underline underline-offset-4">{p.title}</h2>
+                  {p.excerpt && <p className="mt-1 text-sm text-[#4E423A] line-clamp-3">{p.excerpt}</p>}
                 </Link>
-              ))}
-            </div>
-
-            <div className="mt-12 flex justify-center">
-              <nav className="flex items-center gap-2">
-                <button className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <i className="ri-arrow-left-s-line text-gray-600"></i>
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center bg-gray-900 text-white rounded-lg cursor-pointer">
-                  1
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  2
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  3
-                </button>
-                <button className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <i className="ri-arrow-right-s-line text-gray-600"></i>
-                </button>
-              </nav>
-            </div>
-          </div>
-
-          <div>
-            <div className="bg-gray-50 rounded-2xl p-6 mb-8 sticky top-24">
-              <h3 className="text-xl font-bold text-gray-900 mb-6">Categories</h3>
-              <div className="space-y-2">
-                {categories.map((category, index) => (
-                  <button
-                    key={index}
-                    className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <i className={`${category.icon} text-gray-900`}></i>
-                      <span className="text-gray-900 font-medium">{category.name}</span>
-                    </div>
-                    <span className="text-sm text-gray-500">{category.count}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Newsletter</h3>
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                  Get the latest articles and shopping tips delivered to your inbox weekly.
-                </p>
-                <form className="space-y-3">
-                  <input
-                    type="email"
-                    placeholder="Your email address"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-gray-600 focus:border-transparent text-sm"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full bg-gray-900 text-white py-3 rounded-xl font-medium hover:bg-brand-bag-dark transition-colors whitespace-nowrap"
-                  >
-                    Subscribe
-                  </button>
-                </form>
-              </div>
-
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <h3 className="text-xl font-bold text-gray-900 mb-6">Popular Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {['Shopping', 'Quality', 'Reviews', 'Ghana', 'Delivery', 'Tips', 'Home', 'Style'].map((tag, index) => (
-                    <button
-                      key={index}
-                      className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:border-gray-600 hover:text-gray-900 transition-colors cursor-pointer whitespace-nowrap"
-                    >
-                      #{tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-
-      <div className="bg-gradient-to-br from-gray-900 to-gray-900 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">Ready to Start Shopping?</h2>
-          <p className="text-xl text-gray-100 mb-8 leading-relaxed">
-            Browse our curated collection of premium products
-          </p>
-          <Link
-            href="/shop"
-            className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-full font-medium hover:bg-gray-50 transition-colors whitespace-nowrap"
-          >
-            Explore Products
-            <i className="ri-arrow-right-line"></i>
-          </Link>
-        </div>
-      </div>
-    </div>
+    </main>
   );
 }

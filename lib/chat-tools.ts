@@ -404,7 +404,7 @@ export async function getRecommendations(
 const STORE_INFO: Record<string, string> = {
   shipping: `Three ways to get your order: free store pickup (ready within 24 hours), doorstep delivery in Accra, or delivery anywhere else in Ghana (both within 48 hours). The delivery fee depends on where you are; the team contacts you with it after you order. Pickup is free.`,
   returns: `Items can be returned within 7 days. If something arrives damaged or wrong, contact us within 48 hours with photos. See the returns page for details, or I can create a support ticket for you.`,
-  payment: `Payment is online through Moolre, with Mobile Money or card. There is no cash on delivery.`,
+  payment: `Payment is online through Moolre, with Mobile Money or card, in full when you order. There is no cash on delivery and no instalment or part-payment option.`,
   contact: `You can reach us through:\n- This chat\n- Phone/WhatsApp: 0541770961\n- Instagram & TikTok: faithline.gh\n- Support ticket: I can create one for you right now`,
   about: `Faithlinegh is a Ghanaian fashion store offering quality, affordable bags, basics and dresses for women, with store pickup and delivery across Ghana.`,
   delivery_times: `Pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.`,

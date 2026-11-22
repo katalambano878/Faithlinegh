@@ -210,14 +210,6 @@ export default function PrivacySettingsPage() {
                       </li>
                       <li className="flex items-start gap-2">
                         <i className="ri-alert-line text-[#5B4436] mt-0.5 flex-shrink-0"></i>
-                        <span>Your loyalty points and rewards will be forfeited</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <i className="ri-alert-line text-[#5B4436] mt-0.5 flex-shrink-0"></i>
-                        <span>Active subscriptions will be cancelled</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <i className="ri-alert-line text-[#5B4436] mt-0.5 flex-shrink-0"></i>
                         <span>This action cannot be reversed</span>
                       </li>
                     </ul>

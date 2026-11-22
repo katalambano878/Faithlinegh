@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
-import { randomUUID } from "crypto";
+import { randomUUID, createHash, randomBytes } from "crypto";
 import { query } from "./pool";
 import { authJwtSecret } from "./mode";
 
@@ -299,4 +299,61 @@ export async function updateUserMetadata(
   }
   const user = await getUserById(userId);
   return { user, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// Password reset. The emailed token is random; only its SHA-256 is stored
+// (auth.users.recovery_token), and it works once, for one hour.
+// ---------------------------------------------------------------------------
+
+const RECOVERY_TTL_MIN = 60;
+const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
+
+/** Make a reset token for this email. Null when there is no such user, or one
+ *  was sent in the last minute (stops inbox flooding). */
+export async function createRecoveryToken(
+  emailRaw: string
+): Promise<{ token: string; email: string } | null> {
+  const email = String(emailRaw || "").trim().toLowerCase();
+  if (!email) return null;
+  const { rows } = await query(
+    `SELECT id, email, recovery_sent_at FROM auth.users
+      WHERE lower(email) = $1 AND deleted_at IS NULL LIMIT 1`,
+    [email]
+  );
+  const user = rows[0];
+  if (!user) return null;
+  if (user.recovery_sent_at && Date.now() - new Date(user.recovery_sent_at).getTime() < 60_000) {
+    return null;
+  }
+  const token = randomBytes(32).toString("base64url");
+  await query(
+    `UPDATE auth.users SET recovery_token = $1, recovery_sent_at = now(), updated_at = now() WHERE id = $2`,
+    [sha256(token), user.id]
+  );
+  return { token, email: user.email };
+}
+
+/** Set a new password using an emailed token. The token is cleared on use. */
+export async function resetPasswordWithToken(
+  token: string,
+  password: string
+): Promise<{ ok: boolean; error: string | null }> {
+  if (!token || token.length < 20) return { ok: false, error: "This reset link is not valid." };
+  if (!password || password.length < 6) {
+    return { ok: false, error: "Password must be at least 6 characters" };
+  }
+  const { rows } = await query(
+    `UPDATE auth.users
+        SET encrypted_password = $1, recovery_token = '', recovery_sent_at = NULL, updated_at = now()
+      WHERE recovery_token = $2
+        AND recovery_sent_at > now() - ($3 || ' minutes')::interval
+        AND deleted_at IS NULL
+      RETURNING id`,
+    [bcrypt.hashSync(password, 10), sha256(token), String(RECOVERY_TTL_MIN)]
+  );
+  if (!rows[0]) {
+    return { ok: false, error: "This reset link has expired or was already used. Ask for a new one." };
+  }
+  return { ok: true, error: null };
 }

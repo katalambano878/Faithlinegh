@@ -178,7 +178,7 @@ export function localBusinessSchema() {
     telephone: CONTACT_PHONE,
     priceRange: '₵₵',
     currenciesAccepted: 'GHS',
-    paymentAccepted: 'Mobile Money, Credit Card, Debit Card, Cash on Delivery',
+    paymentAccepted: 'Mobile Money, Credit Card, Debit Card',
     address: {
       '@type': 'PostalAddress',
       addressLocality: 'Accra',

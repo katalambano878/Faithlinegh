@@ -137,18 +137,14 @@ function ShopContent() {
             }
 
             if (selectedCategory !== 'all') {
+              // Filter on the product's own category_id (the category and its
+              // sub-categories). Filtering on the joined categories.slug is
+              // not supported by the database layer.
               const categoryObj = categories.find(c => c.slug === selectedCategory);
-
-              if (categoryObj) {
-                const targetSlugs = [selectedCategory];
-                const childSlugs = categories
-                  .filter(c => c.parent_id === categoryObj.id)
-                  .map(c => c.slug);
-                targetSlugs.push(...childSlugs);
-                query = query.in('categories.slug', targetSlugs);
-              } else {
-                query = query.eq('categories.slug', selectedCategory);
-              }
+              const ids = categoryObj
+                ? [categoryObj.id, ...categories.filter(c => c.parent_id === categoryObj.id).map(c => c.id)]
+                : ['00000000-0000-0000-0000-000000000000'];
+              query = query.in('category_id', ids);
             }
 
             if (priceRange[1] < 5000) {
@@ -208,7 +204,9 @@ function ShopContent() {
       }
     }
 
-    if (categories.length > 0 || selectedCategory === 'all') {
+    // A category from the URL needs the category list first to resolve it.
+    const categoriesLoaded = categories.some(c => c.id && c.id !== 'all');
+    if (selectedCategory === 'all' || categoriesLoaded) {
       fetchProducts();
     }
   }, [selectedCategory, priceRange, selectedRating, sortBy, page, searchQuery, categories]);
@@ -488,11 +486,19 @@ function ShopContent() {
                   {/* Infinite scroll sentinel */}
                   {hasMore && products.length > 0 && (
                     <div ref={loadMoreRef} className="mt-10 flex justify-center py-6">
-                      {loadingMore && (
-                        <div className="flex items-center gap-2 text-brand-brown/70 text-sm">
+                      {loadingMore ? (
+                        <div className="flex items-center gap-2 text-brand-brown/70 text-sm" role="status">
                           <div className="w-5 h-5 border-2 border-brand-brown border-t-transparent rounded-full animate-spin" />
                           Loading more products…
                         </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPage((p) => p + 1)}
+                          className="h-12 px-6 rounded-[14px] border border-brand-brown/30 text-brand-brown font-semibold hover:bg-brand-brown/5 transition-colors"
+                        >
+                          Show more products ({totalProducts - products.length} left)
+                        </button>
                       )}
                     </div>
                   )}

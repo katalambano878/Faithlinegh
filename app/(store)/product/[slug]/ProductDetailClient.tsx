@@ -545,6 +545,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                             onClick={() => pickVariant(variant)}
                             disabled={out}
                             aria-pressed={selected}
+                            aria-label={`Size ${variant.name}${showPrice ? `, ${money(variant.price || product.price)}` : ''}${out ? ', sold out' : ''}`}
                             className={`min-h-[50px] px-2 py-1.5 rounded-xl text-[15px] font-semibold transition-colors flex flex-col items-center justify-center leading-tight cursor-pointer disabled:cursor-not-allowed ${selected
                               ? 'border-[1.5px] border-[#5B4436] bg-[#5B4436] text-white'
                               : out

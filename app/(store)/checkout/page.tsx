@@ -304,7 +304,7 @@ export default function CheckoutPage() {
       </dl>
       <div className="flex justify-between items-baseline border-t border-[#E4DDD3] pt-4">
         <span className="font-semibold text-base">Total</span>
-        <span className="tabular-nums"><span className="text-xs text-[#6E6158] mr-1.5">GHS</span><span className="text-[26px] font-bold">{money(total)}</span></span>
+        <span className="tabular-nums text-[26px] font-bold">{money(total)}</span>
       </div>
     </>
   );

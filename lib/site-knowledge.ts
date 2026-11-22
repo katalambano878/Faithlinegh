@@ -58,23 +58,25 @@ Customers receive order updates and can track orders using order number and emai
     title: "Returns & Refunds Policy",
     path: "/returns",
     category: "returns",
-    content: `Returns are accepted for eligible unused items in original condition within 30 days of delivery.
+    content: `Unused items in their original condition can be returned within 7 days of delivery.
 
-Custom or altered items may not be returnable unless there is a quality issue.
+If something arrives damaged or wrong, contact us within 48 hours with photos and we put it right at no cost.
 
-Refunds are processed after item inspection.`,
-    keywords: ["returns", "refund", "exchange", "worn", "condition", "30 days"],
+Items with signs of use, or custom/altered items, may not be returnable unless there is a quality issue.
+
+Refunds go back to the original payment method after we receive and check the item.`,
+    keywords: ["returns", "refund", "exchange", "worn", "condition", "7 days", "damaged", "wrong item"],
   },
   {
     id: "payment-methods",
     title: "Payment Methods",
     path: "/checkout",
     category: "payment",
-    content: `Secure payments are processed by Moolre. Customers can pay with mobile money (MTN, Telecel, AirtelTigo), debit/credit cards, or bank transfer at checkout.
+    content: `Secure payments are processed by Moolre. Customers pay with Mobile Money (MTN, Telecel, AirtelTigo) or a Visa/Mastercard card at checkout.
 
-Cash on Delivery is available for eligible orders within the local delivery area.
-All prices are shown in ₵ (GHS, Ghana Cedis) unless otherwise stated.`,
-    keywords: ["payment", "moolre", "mobile money", "momo", "card", "bank transfer", "checkout", "secure", "ghs", "cedis"],
+Every order is paid in full when it is placed. There is no cash on delivery, no bank transfer and no instalment or part-payment option.
+All prices are shown in ₵ (GHS, Ghana Cedis).`,
+    keywords: ["payment", "moolre", "mobile money", "momo", "card", "checkout", "secure", "ghs", "cedis", "instalment", "installment", "cash on delivery", "bank transfer"],
   },
   {
     id: "order-tracking-guide",
@@ -184,7 +186,7 @@ export function getSiteMapSummary(): string {
 - /cart — Shopping cart with coupon support
 - /checkout — Checkout flow (shipping → delivery → payment)
 - /order-tracking — Track orders by order number + email
-- /returns — Start a return request (30-day policy)
+- /returns — Start a return request (7-day policy)
 - /account — Profile, order history, addresses, security settings
 - /wishlist — Saved products
 - /about — Faithlinegh story and mission

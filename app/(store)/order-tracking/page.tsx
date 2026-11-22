@@ -92,29 +92,33 @@ function OrderTrackingContent() {
     const status = order.status || 'pending';
     const paymentStatus = order.payment_status || 'pending';
 
-    const statusOrder = ['pending', 'processing', 'shipped', 'dispatched_to_rider', 'delivered'];
+    const isPickupOrder = order.shipping_method === 'pickup';
+    const isPaid = paymentStatus === 'paid';
+    // Pickup orders skip the rider step (same as the admin status menu)
+    const statusOrder = isPickupOrder
+      ? ['pending', 'processing', 'shipped', 'delivered']
+      : ['pending', 'processing', 'shipped', 'dispatched_to_rider', 'delivered'];
     const currentIndex = statusOrder.indexOf(status);
+    const fmt = (d: string) => new Date(d).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const stepState = (i: number) =>
+      currentIndex >= i ? 'completed' as const : currentIndex === i - 1 && (i > 1 || isPaid) ? 'active' as const : 'pending' as const;
 
     const steps = [
       {
         key: 'placed',
         title: 'Order Placed',
-        description: 'Your order has been confirmed',
-        date: new Date(order.created_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+        description: isPaid ? 'We have your order' : 'We have your order. It is confirmed once payment comes through',
+        date: fmt(order.created_at),
         icon: 'ri-checkbox-circle-line',
         status: 'completed' as const
       },
       {
         key: 'payment',
         title: 'Payment',
-        description: paymentStatus === 'paid' ? 'Payment confirmed' : 'Awaiting payment',
-        date: paymentStatus === 'paid' 
-          ? (order.metadata?.payment_verified_at 
-            ? new Date(order.metadata.payment_verified_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-            : 'Confirmed')
-          : 'Pending',
+        description: isPaid ? 'Payment received' : 'Awaiting payment',
+        date: isPaid ? (order.metadata?.payment_verified_at ? fmt(order.metadata.payment_verified_at) : 'Received') : 'Pending',
         icon: 'ri-bank-card-line',
-        status: paymentStatus === 'paid' ? 'completed' as const : 'pending' as const
+        status: isPaid ? 'completed' as const : 'pending' as const
       },
       {
         key: 'processing',
@@ -122,31 +126,31 @@ function OrderTrackingContent() {
         description: 'Your order is being prepared',
         date: currentIndex >= 1 ? 'In progress' : 'Pending',
         icon: 'ri-box-3-line',
-        status: currentIndex >= 1 ? 'completed' as const : currentIndex === 0 && paymentStatus === 'paid' ? 'active' as const : 'pending' as const
+        status: stepState(1)
       },
       {
         key: 'shipped',
-        title: 'Packaged',
-        description: 'Your order has been packaged',
-        date: currentIndex >= 2 ? 'Packaged' : 'Pending',
-        icon: 'ri-truck-line',
-        status: currentIndex >= 2 ? 'completed' as const : currentIndex === 1 ? 'active' as const : 'pending' as const
+        title: isPickupOrder ? 'Ready to collect' : 'Packaged',
+        description: isPickupOrder ? 'Your order is ready at our store' : 'Your order has been packaged',
+        date: currentIndex >= 2 ? (isPickupOrder ? 'Ready' : 'Packaged') : 'Pending',
+        icon: isPickupOrder ? 'ri-store-2-line' : 'ri-truck-line',
+        status: stepState(2)
       },
-      {
+      ...(isPickupOrder ? [] : [{
         key: 'dispatched_to_rider',
         title: 'Dispatched To Rider',
         description: 'Your package has been sent to the rider for delivery',
         date: currentIndex >= 3 ? 'With rider' : 'Pending',
         icon: 'ri-user-follow-line',
-        status: currentIndex >= 3 ? 'completed' as const : currentIndex === 2 ? 'active' as const : 'pending' as const
-      },
+        status: stepState(3)
+      }]),
       {
         key: 'delivered',
-        title: 'Delivered',
-        description: 'Your order has been delivered',
-        date: currentIndex >= 4 ? 'Delivered' : 'Pending',
+        title: isPickupOrder ? 'Collected' : 'Delivered',
+        description: isPickupOrder ? 'You collected your order' : 'Your order has been delivered',
+        date: currentIndex >= statusOrder.length - 1 ? (isPickupOrder ? 'Collected' : 'Delivered') : 'Pending',
         icon: 'ri-home-smile-line',
-        status: currentIndex >= 4 ? 'completed' as const : currentIndex === 3 ? 'active' as const : 'pending' as const
+        status: stepState(statusOrder.length - 1)
       }
     ];
 

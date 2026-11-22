@@ -368,12 +368,16 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
     return this;
   }
   limit(n: number) {
-    this.limitN = n;
+    const v = Math.floor(Number(n));
+    this.limitN = Number.isFinite(v) && v >= 0 ? Math.min(v, 10000) : null;
     return this;
   }
   range(from: number, to: number) {
-    this.rangeFrom = from;
-    this.rangeTo = to;
+    const f = Math.floor(Number(from)), t = Math.floor(Number(to));
+    if (Number.isFinite(f) && Number.isFinite(t) && f >= 0 && t >= f) {
+      this.rangeFrom = f;
+      this.rangeTo = t;
+    }
     return this;
   }
   single() {
@@ -441,7 +445,10 @@ class QueryBuilder implements PromiseLike<{ data: any; error: any; count: number
     if (value === null || value === "null") return `${ident(col)} IS NULL`;
     if (value === true || value === "true") return `${ident(col)} IS TRUE`;
     if (value === false || value === "false") return `${ident(col)} IS FALSE`;
-    return `${ident(col)} IS NOT DISTINCT FROM ${value}`;
+    if (value === "unknown") return `${ident(col)} IS UNKNOWN`;
+    // PostgREST only allows null/true/false/unknown here. Never put the raw
+    // value into SQL (it comes straight from the request URL).
+    throw new Error(`Unsupported is() value`);
   }
 
   private cmpClause(col: string, op: string, value: any, params: any[]): string {
@@ -1082,15 +1089,50 @@ export function applyPostgrestParams(
     else if (op === "ilike") qb.ilike(key, value);
     else if (op === "is") qb.is(key, value === "null" ? null : coerce(value));
     else if (op === "in") {
-      const inner = value.replace(/^\(/, "").replace(/\)$/, "");
-      const vals = inner.split(",").map((s) => coerce(s.trim()));
-      qb.in(key, vals);
-    }     else {
+      qb.in(key, splitList(value.replace(/^\(/, "").replace(/\)$/, "")).map((s) => coerce(s)));
+    } else if (op === "cs") {
+      // jsonb: cs.{"a":1}  arrays: cs.{a,b}
+      let parsed: any;
+      try { parsed = JSON.parse(value); } catch { parsed = undefined; }
+      if (parsed === undefined || (typeof parsed !== "object")) {
+        parsed = splitList(value.replace(/^\{/, "").replace(/\}$/, ""));
+      }
+      qb.contains(key, parsed);
+    } else if (op === "not") {
+      const d2 = value.indexOf(".");
+      if (d2 === -1) continue;
+      const subOp = value.slice(0, d2);
+      const subVal = value.slice(d2 + 1);
+      qb.not(key, subOp, subOp === "is" ? subVal : subVal);
+    } else {
       qb.filter(key, op, value);
     }
   }
   if (opts?.preferSingle) qb.single();
   return qb;
+}
+
+/** Split a PostgREST list ("a,b" or with "quoted, values") into items. */
+function splitList(inner: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let quoted = false;
+  for (let i = 0; i < inner.length; i++) {
+    const ch = inner[i];
+    if (quoted) {
+      if (ch === "\\" && i + 1 < inner.length) { cur += inner[++i]; continue; }
+      if (ch === '"') { quoted = false; continue; }
+      cur += ch;
+    } else if (ch === '"') {
+      quoted = true;
+    } else if (ch === ",") {
+      out.push(cur.trim()); cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur.trim() !== "" || out.length) out.push(cur.trim());
+  return out.filter((s) => s !== "");
 }
 
 function coerce(v: string): any {

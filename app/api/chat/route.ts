@@ -345,7 +345,7 @@ WHEN CREATING SUPPORT TICKETS:
 STORE POLICIES (quick reference):
 - Delivery: free store pickup (ready within 24 hours), doorstep delivery in Accra, or delivery anywhere else in Ghana (within 48 hours). The delivery fee depends on the location and the team contacts the customer with it after the order. Never quote a delivery fee.
 - Returns: within 7 days; damaged or wrong items must be reported within 48 hours with photos
-- Payment: online through Moolre with Mobile Money or card. There is NO cash on delivery.
+- Payment: online through Moolre with Mobile Money or card, paid in full. There is NO cash on delivery and NO instalments or part-payment. Never offer them.
 - Support hours: Mon-Sat, 9 AM - 6 PM GMT
 
 CAPABILITIES (what you CAN do):

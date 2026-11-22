@@ -72,7 +72,7 @@ export default function FAQsPage() {
     {
       category: 'returns',
       question: 'Who pays for return shipping?',
-      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, customers pay return shipping at our standard flat rate.'
+      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, you cover the cost of sending the item back to us.'
     },
     {
       category: 'returns',
@@ -82,7 +82,7 @@ export default function FAQsPage() {
     {
       category: 'payment',
       question: 'What payment methods do you accept?',
-      answer: 'We accept Mobile Money, Visa/Mastercard credit and debit cards, bank transfers, and Cash on Delivery for eligible orders within Accra. All payments are processed securely.'
+      answer: 'We accept Mobile Money (MTN, Telecel and AirtelTigo) and Visa/Mastercard cards, paid securely through Moolre at checkout. Every order is paid in full when you place it. We do not take cash on delivery, bank transfers or instalments.'
     },
     {
       category: 'payment',
@@ -91,13 +91,8 @@ export default function FAQsPage() {
     },
     {
       category: 'payment',
-      question: 'Can I pay in instalments?',
-      answer: 'Installment options depend on available payment providers at checkout. If enabled, options are shown before you complete payment.'
-    },
-    {
-      category: 'payment',
       question: 'When will my payment be charged?',
-      answer: 'For card and mobile money payments, you\'re charged immediately. For Cash on Delivery, you pay when you receive your order. If an item is out of stock, we\'ll refund you within 24 hours.'
+      answer: 'You pay the full amount when you place your order. Your order is confirmed as soon as the payment comes through. If an item turns out to be unavailable, we contact you and refund you.'
     },
     {
       category: 'payment',
@@ -122,12 +117,7 @@ export default function FAQsPage() {
     {
       category: 'account',
       question: 'How do I update my account information?',
-      answer: 'Log in to your account and go to "Account Settings". You can update your name, email, phone number, password, and saved addresses. Changes are saved instantly and you\'ll receive a confirmation email.'
-    },
-    {
-      category: 'account',
-      question: 'What are loyalty points and how do they work?',
-      answer: 'Earn 1 point for every ₵10 spent. 100 points = ₵10 discount on your next purchase. Points are automatically added to your account after each order. Check your points balance in your account dashboard.'
+      answer: 'Log in to your account and go to "Account Settings". You can update your name, email, phone number, password, and saved addresses. Changes are saved straight away.'
     }
   ];
 

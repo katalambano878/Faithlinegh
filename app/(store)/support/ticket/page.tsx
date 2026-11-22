@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 
 export default function SupportTicketPage() {
@@ -88,7 +86,6 @@ export default function SupportTicketPage() {
   if (showSuccess) {
     return (
       <>
-        <Header />
         <main className="min-h-screen bg-white flex items-center justify-center py-12">
           <div className="max-w-md mx-auto px-4 text-center">
             <div className="bg-white rounded-xl shadow-lg p-8">
@@ -115,31 +112,29 @@ export default function SupportTicketPage() {
                   View My Tickets
                 </Link>
                 <Link
-                  href="/help"
+                  href="/faqs"
                   className="block text-gray-900 hover:text-gray-800 font-semibold whitespace-nowrap"
                 >
-                  Back to Help Center
+                  Back to FAQs
                 </Link>
               </div>
             </div>
           </div>
         </main>
-        <Footer />
       </>
     );
   }
 
   return (
     <>
-      <Header />
       <main className="min-h-screen bg-white py-12">
         <div className="max-w-4xl mx-auto px-4">
           <Link
-            href="/help"
+            href="/faqs"
             className="inline-flex items-center text-gray-900 hover:text-gray-800 font-semibold mb-6 whitespace-nowrap"
           >
             <i className="ri-arrow-left-line mr-2"></i>
-            Back to Help Center
+            Back to FAQs
           </Link>
 
           <div className="bg-white rounded-xl shadow-sm p-8">
@@ -315,7 +310,7 @@ export default function SupportTicketPage() {
               <div className="flex space-x-4 pt-6">
                 <button
                   type="button"
-                  onClick={() => router.push('/help')}
+                  onClick={() => router.push('/faqs')}
                   className="flex-1 py-4 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors whitespace-nowrap"
                 >
                   Cancel
@@ -344,7 +339,7 @@ export default function SupportTicketPage() {
               <div>
                 <p className="font-semibold text-[#5B4436] mb-2">Before submitting a ticket</p>
                 <ul className="text-sm text-[#5B4436] space-y-1">
-                  <li>• Check our <Link href="/help" className="underline hover:text-[#5B4436]">Help Center</Link> for quick answers</li>
+                  <li>• Check our <Link href="/faqs" className="underline hover:text-[#5B4436]">FAQs</Link> for quick answers</li>
                   <li>• Average response time: 24 hours</li>
                   <li>• Include your order number for faster assistance</li>
                 </ul>
@@ -353,7 +348,6 @@ export default function SupportTicketPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

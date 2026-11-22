@@ -117,11 +117,18 @@ function emitAuth(event: string, session: Session | null) {
   }
 }
 
+// URLSearchParams does the URL encoding; encoding here too garbled values
+// with @, %, spaces etc. (they reached the server still percent-encoded).
 function encodeFilterValue(v: unknown): string {
   if (v === null) return "null";
   if (typeof v === "boolean") return v ? "true" : "false";
-  if (typeof v === "number") return String(v);
-  return encodeURIComponent(String(v));
+  return String(v);
+}
+
+/** One value inside in.(...) / cs.{...}: quoted when it holds , ( ) { } or " */
+function listItem(v: unknown): string {
+  const s = encodeFilterValue(v);
+  return /[,(){}"\\\s]/.test(s) ? `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"` : s;
 }
 
 class QueryBuilder {
@@ -213,8 +220,26 @@ class QueryBuilder {
     return this;
   }
   in(col: string, vals: unknown[]) {
-    const inner = vals.map((v) => encodeFilterValue(v)).join(",");
+    const inner = vals.map((v) => listItem(v)).join(",");
     this.params.append(col, `in.(${inner})`);
+    return this;
+  }
+  /** jsonb / array column contains the value (PostgREST cs) */
+  contains(col: string, val: unknown) {
+    const v = Array.isArray(val) ? `{${val.map((x) => listItem(x)).join(",")}}` : JSON.stringify(val);
+    this.params.append(col, `cs.${v}`);
+    return this;
+  }
+  not(col: string, op: string, val: unknown) {
+    this.params.append(col, `not.${op}.${val === null ? "null" : encodeFilterValue(val)}`);
+    return this;
+  }
+  filter(col: string, op: string, val: unknown) {
+    this.params.append(col, `${op}.${val === null ? "null" : encodeFilterValue(val)}`);
+    return this;
+  }
+  match(query: Record<string, unknown>) {
+    for (const [k, v] of Object.entries(query)) this.eq(k, v);
     return this;
   }
   or(filter: string) {

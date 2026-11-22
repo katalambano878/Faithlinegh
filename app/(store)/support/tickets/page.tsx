@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { supabase } from '@/lib/supabase';
 
 interface Ticket {
@@ -84,7 +82,6 @@ export default function MyTicketsPage() {
 
   return (
     <>
-      <Header />
       <main className="min-h-screen bg-white py-12">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
@@ -224,7 +221,6 @@ export default function MyTicketsPage() {
           </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }

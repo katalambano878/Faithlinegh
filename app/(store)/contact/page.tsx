@@ -126,19 +126,19 @@ export default function ContactPage() {
   const faqs = [
     {
       question: 'What are your delivery times?',
-      answer: "Worldwide delivery is available. Delivery timelines depend on destination and are confirmed at checkout.",
+      answer: "Store pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.",
     },
     {
-      question: 'Do you offer international shipping?',
-      answer: "Yes. We offer nationwide delivery across Ghana.",
+      question: 'Where do you deliver?',
+      answer: "Anywhere in Ghana. Doorstep delivery in Accra, bus station or courier delivery elsewhere, or free pickup from our store. We don't ship outside Ghana.",
     },
     {
       question: 'What payment methods do you accept?',
-      answer: "We accept secure payment options at checkout, including bank transfers and card payments.",
+      answer: "Mobile Money (MTN, Telecel, AirtelTigo) and Visa/Mastercard, paid in full through our secure Moolre checkout. No cash on delivery, bank transfers or instalments.",
     },
     {
       question: 'How do I track my order?',
-      answer: "After your order ships, you'll receive tracking details via email and SMS. You can also check the Order Tracking page anytime.",
+      answer: "Your order number and tracking code come by SMS and email once your payment goes through. Enter either on the Order Tracking page to see where your order is.",
     }
   ];
 

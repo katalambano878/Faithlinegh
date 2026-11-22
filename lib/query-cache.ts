@@ -55,3 +55,8 @@ export function invalidateCachePrefix(prefix: string) {
 export function clearCache() {
   cache.clear();
 }
+
+/** Seed the cache with data the server already sent with the page. */
+export function primeCache<T>(key: string, data: T) {
+  cache.set(key, { data, timestamp: Date.now() });
+}

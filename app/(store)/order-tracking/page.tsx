@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { imgSrc } from '@/lib/img';
 
 function OrderTrackingContent() {
   const searchParams = useSearchParams();
@@ -395,7 +396,7 @@ function OrderTrackingContent() {
                 <div className="w-20 h-20 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
                   {item.products?.product_images?.[0]?.url || item.metadata?.image ? (
                     <img
-                      src={item.products?.product_images?.[0]?.url || item.metadata?.image}
+                      {...imgSrc(item.products?.product_images?.[0]?.url || item.metadata?.image, '80px', 256)} loading="lazy" decoding="async"
                       alt={item.product_name}
                       className="w-full h-full object-cover"
                     />

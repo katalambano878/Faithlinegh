@@ -52,6 +52,24 @@ const OWN_ROWS: Record<string, string> = {
   return_requests: "user_id",
 };
 
+/** Columns only staff may see. Removed from every read (including embedded
+ *  rows) and refused as filters for everyone else. */
+export const PRIVATE_COLUMNS = new Set(["cost_per_item"]);
+
+export function stripPrivate<T>(data: T): T {
+  const walk = (v: any): any => {
+    if (Array.isArray(v)) { v.forEach(walk); return v; }
+    if (v && typeof v === "object") {
+      for (const k of Object.keys(v)) {
+        if (PRIVATE_COLUMNS.has(k)) delete v[k];
+        else walk(v[k]);
+      }
+    }
+    return v;
+  };
+  return walk(data);
+}
+
 /** RPCs anyone may call (the function itself checks the email). */
 const PUBLIC_RPC = new Set(["get_order_for_tracking"]);
 

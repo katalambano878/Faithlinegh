@@ -1,4 +1,5 @@
 import React from 'react';
+import { imgSrc } from '@/lib/img';
 
 interface PageHeroProps {
   title: string;
@@ -12,7 +13,7 @@ export default function PageHero({ title, subtitle, image }: PageHeroProps) {
       {image ? (
         <>
           <img
-            src={image}
+            {...imgSrc(image, '100vw', 1920)} decoding="async"
             alt={title}
             className="absolute inset-0 h-full w-full object-cover"
           />

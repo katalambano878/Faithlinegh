@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
+import { imgSrc } from '@/lib/img';
 
 const money = (n: number) => `₵${Number(n || 0).toFixed(2)}`;
 const HOUR = 60 * 60 * 1000;
@@ -243,7 +244,7 @@ function OrderSuccessContent() {
           {items.map((item: any) => (
             <div key={item.id} className="flex gap-3.5 items-center">
               <div className="w-14 h-[66px] flex-none bg-[#F7F4EF] rounded-[10px] overflow-hidden">
-                {item.metadata?.image && <img src={item.metadata.image} alt="" className="w-full h-full object-cover" />}
+                {item.metadata?.image && <img {...imgSrc(item.metadata.image, '80px', 256)} loading="lazy" decoding="async" alt="" className="w-full h-full object-cover" />}
               </div>
               <div className="flex-1 min-w-0 text-sm">
                 <p className="font-semibold line-clamp-1">{item.product_name}</p>

@@ -5,6 +5,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useCart } from '@/context/CartContext';
 import { computeBundlePrice } from '@/lib/bundle-pricing';
+import { imgSrc } from '@/lib/img';
 
 interface MiniCartProps {
   isOpen: boolean;
@@ -115,7 +116,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                 <div key={`${item.id}-${item.variant}`} className="flex gap-4">
                   <Link href={`/product/${item.slug}`} onClick={onClose} className="w-[84px] h-[100px] bg-[#F7F4EF] rounded-xl overflow-hidden flex-shrink-0">
                     {item.image ? (
-                      <img src={item.image} alt="" className="w-full h-full object-cover" />
+                      <img {...imgSrc(item.image, '80px', 256)} loading="lazy" decoding="async" alt="" className="w-full h-full object-cover" />
                     ) : (
                       <span className="w-full h-full flex items-center justify-center text-[#C9BEB1]"><i className="ri-image-line text-2xl"></i></span>
                     )}

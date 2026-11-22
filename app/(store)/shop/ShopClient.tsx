@@ -1,0 +1,545 @@
+'use client';
+
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { usePageTitle } from '@/hooks/usePageTitle';
+import ProductCard, { type ColorVariant } from '@/components/ProductCard';
+import { getColorHex } from '@/components/ProductCard';
+import { supabase } from '@/lib/supabase';
+import { cachedQuery, primeCache } from '@/lib/query-cache';
+import PageHero from '@/components/PageHero';
+import JsonLd from '@/components/JsonLd';
+import { collectionPageSchema, breadcrumbSchema, SITE_NAME } from '@/lib/seo';
+import { parseBundleTiers, formatBundleLabel } from '@/lib/bundle-pricing';
+import type { ShopInitial } from './shop-key';
+
+function formatProduct(p: any) {
+  const variants = p.product_variants || [];
+  const hasVariants = variants.length > 0;
+  const minVariantPrice = hasVariants ? Math.min(...variants.map((v: any) => v.price || p.price)) : undefined;
+  const totalVariantStock = hasVariants ? variants.reduce((sum: number, v: any) => sum + (v.quantity || 0), 0) : 0;
+  const effectiveStock = hasVariants ? totalVariantStock : p.quantity;
+  const colorVariants: ColorVariant[] = [];
+  const seenColors = new Set<string>();
+  for (const v of variants) {
+    const colorName = v.option2;
+    if (colorName && !seenColors.has(colorName.toLowerCase().trim())) {
+      const hex = getColorHex(colorName);
+      if (hex) {
+        seenColors.add(colorName.toLowerCase().trim());
+        colorVariants.push({ name: colorName.trim(), hex });
+      }
+    }
+  }
+  const bundleTiers = parseBundleTiers(p.metadata?.bundle_pricing);
+  const bestBundle = bundleTiers.filter(t => t.qty > 1)[0];
+  return {
+    id: p.id,
+    slug: p.slug,
+    name: p.name,
+    price: p.price,
+    originalPrice: p.compare_at_price,
+    image: p.product_images?.[0]?.url || 'https://via.placeholder.com/800x800?text=No+Image',
+    rating: p.rating_avg || 0,
+    reviewCount: 0,
+    badge: p.compare_at_price > p.price ? 'Sale' : undefined,
+    inStock: effectiveStock > 0,
+    maxStock: effectiveStock || 50,
+    moq: p.moq || 1,
+    category: p.categories?.name,
+    hasVariants,
+    minVariantPrice,
+    colorVariants,
+    bundleLabel: bestBundle ? formatBundleLabel(bestBundle) : undefined,
+    bundlePricing: bundleTiers.length > 0 ? bundleTiers : null,
+  };
+}
+
+
+function ShopContent({ initial }: { initial?: ShopInitial }) {
+  usePageTitle('Shop Bags, Basics & Dresses');
+  // Products and categories sent with the page: seed the cache once so the
+  // first render needs no extra trip to the server.
+  useState(() => {
+    if (initial?.products) {
+      primeCache(initial.products.key, { data: initial.products.data, count: initial.products.count, error: null });
+    }
+    return null;
+  });
+  const searchParams = useSearchParams();
+
+  // State
+  const [products, setProducts] = useState<any[]>(() => (initial?.products ? initial.products.data.map(formatProduct) : []));
+  const [categories, setCategories] = useState<any[]>(initial?.categories || [{ id: 'all', name: 'All Products', count: 0 }]);
+  const [loading, setLoading] = useState(!initial?.products);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(() => (initial?.products ? initial.products.data.length < initial.products.count : true));
+  const [totalProducts, setTotalProducts] = useState(initial?.products?.count || 0);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // Filters
+  const [selectedCategory, setSelectedCategory] = useState(() => searchParams.get('category') || 'all');
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [sortBy, setSortBy] = useState(() => searchParams.get('sort') || 'popular');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const productsPerPage = 9;
+
+  const resetProducts = useCallback(() => {
+    setPage(1);
+    setProducts([]);
+    setHasMore(true);
+  }, []);
+
+  // Initialize from URL params. On first load the server already sent the
+  // right first page, so don't clear it.
+  const firstParamsRun = useRef(true);
+  useEffect(() => {
+    const category = searchParams.get('category');
+    const sort = searchParams.get('sort');
+
+    if (category) setSelectedCategory(category);
+    if (sort) setSortBy(sort);
+    if (firstParamsRun.current && initial?.products) {
+      firstParamsRun.current = false;
+      return;
+    }
+    firstParamsRun.current = false;
+    resetProducts();
+  }, [searchParams, resetProducts]);
+
+  // Fetch Categories from cached API
+  useEffect(() => {
+    if (initial?.categories) return;
+    async function fetchCategories() {
+      try {
+        const res = await fetch('/api/storefront/categories');
+        if (res.ok) {
+          const data = await res.json();
+          if (data) setCategories(data);
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
+    }
+    fetchCategories();
+  }, []);
+
+  const searchQuery = searchParams.get('search') || '';
+
+  // Fetch Products
+  useEffect(() => {
+    async function fetchProducts() {
+      const isFirstPage = page === 1;
+      if (isFirstPage) setLoading(true);
+      else setLoadingMore(true);
+
+      try {
+        const cacheKey = `shop:${selectedCategory}:${searchQuery}:${priceRange.join('-')}:${selectedRating}:${sortBy}:${page}`;
+        const { data, count, error } = await cachedQuery<{ data: any; count: any; error: any }>(
+          cacheKey,
+          async () => {
+            let query = supabase
+              .from('products')
+              .select(`
+                *,
+                categories!inner(name, slug),
+                product_images!product_id(url, position),
+                product_variants(id, name, price, quantity, option1, option2, image_url)
+              `, { count: 'exact' })
+              .order('position', { foreignTable: 'product_images', ascending: true });
+
+            if (searchQuery) {
+              query = query.ilike('name', `%${searchQuery}%`);
+            }
+
+            if (selectedCategory !== 'all') {
+              // Filter on the product's own category_id (the category and its
+              // sub-categories). Filtering on the joined categories.slug is
+              // not supported by the database layer.
+              const categoryObj = categories.find(c => c.slug === selectedCategory);
+              const ids = categoryObj
+                ? [categoryObj.id, ...categories.filter(c => c.parent_id === categoryObj.id).map(c => c.id)]
+                : ['00000000-0000-0000-0000-000000000000'];
+              query = query.in('category_id', ids);
+            }
+
+            if (priceRange[1] < 5000) {
+              query = query.gte('price', priceRange[0]).lte('price', priceRange[1]);
+            }
+
+            if (selectedRating > 0) {
+              query = query.gte('rating_avg', selectedRating);
+            }
+
+            switch (sortBy) {
+              case 'price-low':
+                query = query.order('price', { ascending: true });
+                break;
+              case 'price-high':
+                query = query.order('price', { ascending: false });
+                break;
+              case 'rating':
+                query = query.order('rating_avg', { ascending: false });
+                break;
+              case 'new':
+                query = query.order('created_at', { ascending: false });
+                break;
+              case 'popular':
+              default:
+                query = query.order('created_at', { ascending: false });
+                break;
+            }
+
+            const from = (page - 1) * productsPerPage;
+            const to = from + productsPerPage - 1;
+            query = query.range(from, to);
+
+            return query as any;
+          },
+          2 * 60 * 1000
+        );
+
+        if (error) throw error;
+
+        if (data) {
+          const formattedProducts = data.map(formatProduct);
+          const total = count || 0;
+
+          setProducts((prev) => {
+            const next = isFirstPage ? formattedProducts : [...prev, ...formattedProducts];
+            setHasMore(next.length < total);
+            return next;
+          });
+          setTotalProducts(total);
+        }
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    }
+
+    // A category from the URL needs the category list first to resolve it.
+    const categoriesLoaded = categories.some(c => c.id && c.id !== 'all');
+    if (selectedCategory === 'all' || categoriesLoaded) {
+      fetchProducts();
+    }
+  }, [selectedCategory, priceRange, selectedRating, sortBy, page, searchQuery, categories]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel || !hasMore || loading || loadingMore) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasMore && !loading && !loadingMore) {
+          setPage((p) => p + 1);
+        }
+      },
+      { rootMargin: '300px' }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, loadingMore, products.length]);
+
+  return (
+    <main className="min-h-screen bg-white">
+      <JsonLd
+        data={[
+          collectionPageSchema({
+            name: `Shop — ${SITE_NAME}`,
+            description: 'Shop quality, affordable bags, basics and dresses with nationwide delivery across Ghana.',
+            url: '/shop',
+          }),
+          breadcrumbSchema([
+            { name: 'Home', url: '/' },
+            { name: 'Shop', url: '/shop' },
+          ]),
+        ]}
+      />
+      <PageHero
+        title="Browse Our Collections"
+        subtitle="Explore quality, affordable bags, basics and dresses — pieces you'll love, delivered to your doorstep anywhere in Ghana."
+        image="/hero-2.webp"
+      />
+
+      {/* Mobile Filter Toggle */}
+      <div className="lg:hidden bg-white/95 backdrop-blur-md border-b border-brand-carton/20 py-4 px-4 sticky top-[72px] z-20">
+        <div className="flex justify-between items-center">
+          <button
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className="inline-flex items-center space-x-2 text-brand-brown font-semibold"
+          >
+            <i className="ri-filter-3-line text-xl"></i>
+            <span>Filters & Sort</span>
+          </button>
+          <span className="text-sm text-brand-brown">{totalProducts} Products</span>
+        </div>
+      </div>
+
+      <section className="py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="flex gap-8">
+            <aside className={`${isFilterOpen ? 'fixed inset-0 z-50 bg-white overflow-y-auto' : 'hidden'} lg:block lg:w-72 lg:flex-shrink-0`}>
+              <div className="lg:sticky lg:top-24">
+                <div className="bg-white lg:bg-brand-cream/55 lg:border lg:border-brand-carton/20 lg:rounded-3xl p-6">
+                  <div className="flex items-center justify-between mb-6 lg:hidden">
+                    <h2 className="text-xl font-bold text-brand-brown">Filters</h2>
+                    <button
+                      onClick={() => setIsFilterOpen(false)}
+                      className="w-10 h-10 flex items-center justify-center text-brand-brown"
+                    >
+                      <i className="ri-close-line text-2xl"></i>
+                    </button>
+                  </div>
+
+                  <div className="space-y-8">
+                    {/* Categories */}
+                    <div>
+                      <h3 className="font-semibold text-sm text-brand-brown mb-4">Categories</h3>
+                      <div className="space-y-1">
+                        <button
+                          onClick={() => {
+                            setSelectedCategory('all');
+                            resetProducts();
+                            setIsFilterOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${selectedCategory === 'all'
+                            ? 'bg-brand-cream text-brand-brown font-medium'
+                            : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                        >
+                          All Products
+                        </button>
+
+                        {/* Parent Categories */}
+                        {categories.filter(c => !c.parent_id && c.id !== 'all').map(parent => {
+                          const subcategories = categories.filter(c => c.parent_id === parent.id);
+                          const isSelected = selectedCategory === parent.slug;
+                          const isChildSelected = subcategories.some(sub => sub.slug === selectedCategory);
+                          const isOpen = isSelected || isChildSelected; // Auto-expand if selected
+
+                          return (
+                            <div key={parent.id} className="space-y-1">
+                              <button
+                                onClick={() => {
+                                  setSelectedCategory(parent.slug);
+                                  resetProducts();
+                                }}
+                                className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors flex justify-between items-center ${isSelected
+                                  ? 'bg-brand-cream text-brand-brown font-medium'
+                                  : 'text-gray-700 hover:bg-gray-100'
+                                  }`}
+                              >
+                                <span>{parent.name}</span>
+                              </button>
+
+                              {/* Subcategories */}
+                              {subcategories.length > 0 && (
+                                <div className="ml-4 border-l-2 border-gray-100 pl-2 space-y-1">
+                                  {subcategories.map(child => (
+                                    <button
+                                      key={child.id}
+                                      onClick={() => {
+                                        setSelectedCategory(child.slug);
+                                        resetProducts();
+                                        setIsFilterOpen(false);
+                                      }}
+                                      className={`w-full text-left px-4 py-1.5 rounded-lg text-xs transition-colors ${selectedCategory === child.slug
+                                        ? 'text-brand-brown font-medium bg-brand-cream'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                        }`}
+                                    >
+                                      {child.name}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Price Range */}
+                    <div className="border-t border-brand-carton/20 pt-8">
+                      <h3 className="font-semibold text-brand-brown mb-4">Max Price: ₵{priceRange[1]}</h3>
+                      <div className="space-y-4">
+                        <input
+                          type="range"
+                          min="0"
+                          max="5000"
+                          step="50"
+                          value={priceRange[1]}
+                          onChange={(e) => {
+                            setPriceRange([0, parseInt(e.target.value)]);
+                            resetProducts();
+                          }}
+                          className="w-full h-2 bg-brand-cream rounded-lg appearance-none cursor-pointer accent-brand-brown"
+                        />
+                        <div className="flex items-center justify-between text-sm text-brand-brown/80">
+                          <span>₵0</span>
+                          <span>₵5000+</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Rating */}
+                    <div className="border-t border-brand-carton/20 pt-8">
+                      <h3 className="font-semibold text-brand-brown mb-4">Rating</h3>
+                      <div className="space-y-2">
+                        {[4, 3, 2, 1].map(rating => (
+                          <button
+                            key={rating}
+                            onClick={() => {
+                              setSelectedRating(rating === selectedRating ? 0 : rating);
+                              resetProducts();
+                            }}
+                            className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${selectedRating === rating
+                              ? 'bg-brand-cream text-brand-brown'
+                              : 'text-gray-700 hover:bg-gray-100'
+                              }`}
+                          >
+                            <div className="flex items-center space-x-2">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <i
+                                  key={star}
+                                  className={`${star <= rating ? 'ri-star-fill text-brand-gold' : 'ri-star-line text-gray-300'} text-sm`}
+                                ></i>
+                              ))}
+                              <span className="text-sm">& Up</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setIsFilterOpen(false);
+                      }}
+                      className="w-full bg-brand-carton hover:bg-brand-brown text-white py-3 rounded-xl font-semibold transition-colors whitespace-nowrap"
+                    >
+                      Show Results
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </aside>
+
+            <div className="flex-1">
+              <div className="mb-8 rounded-2xl border border-brand-carton/20 bg-white p-4 sm:p-5 shadow-sm">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="text-brand-brown text-xs font-semibold tracking-[0.2em] uppercase">Collection View</p>
+                    <p className="mt-1 text-gray-700">
+                      Showing <span className="font-bold text-brand-brown">{products.length}</span> of <span className="font-bold text-brand-brown">{totalProducts}</span> products
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <label className="text-sm text-gray-600 whitespace-nowrap">Sort by:</label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => {
+                        setSortBy(e.target.value);
+                        resetProducts();
+                      }}
+                      className="px-4 py-2 pr-8 border border-brand-carton/30 rounded-xl focus:ring-2 focus:ring-brand-carton focus:border-brand-carton text-sm bg-white cursor-pointer"
+                    >
+                      <option value="popular">Most Popular</option>
+                      <option value="new">Newest</option>
+                      <option value="price-low">Price: Low to High</option>
+                      <option value="price-high">Price: High to Low</option>
+                      <option value="rating">Highest Rated</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {loading && products.length === 0 ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="rounded-2xl border border-brand-carton/20 bg-white p-3">
+                      <div className="bg-brand-cream rounded-xl aspect-[4/5] animate-pulse"></div>
+                      <div className="mt-3 h-4 w-3/4 rounded bg-brand-carton/20 animate-pulse"></div>
+                      <div className="mt-2 h-4 w-1/2 rounded bg-brand-carton/20 animate-pulse"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-product-shop>
+                    {products.map(product => (
+                      <ProductCard key={product.id} {...product} />
+                    ))}
+                  </div>
+
+                  {products.length === 0 && !loading && (
+                    <div className="text-center py-20 px-6 mt-4 rounded-3xl border border-brand-carton/20 bg-brand-cream/40">
+                      <div className="w-20 h-20 flex items-center justify-center mx-auto mb-6 bg-white rounded-full border border-brand-carton/20 shadow-sm">
+                        <i className="ri-inbox-line text-4xl text-brand-carton"></i>
+                      </div>
+                      <h3 className="text-2xl font-bold text-brand-brown mb-2">No Products Found</h3>
+                      <p className="text-brand-brown/80 mb-8">Try adjusting your filters to discover more fashion pieces</p>
+                      <button
+                        onClick={() => {
+                          setSelectedCategory('all');
+                          setPriceRange([0, 5000]);
+                          setSelectedRating(0);
+                          resetProducts();
+                        }}
+                        className="inline-flex items-center bg-brand-carton hover:bg-brand-brown text-white px-6 py-3 rounded-xl font-semibold transition-colors whitespace-nowrap"
+                      >
+                        Clear All Filters
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Infinite scroll sentinel */}
+                  {hasMore && products.length > 0 && (
+                    <div ref={loadMoreRef} className="mt-10 flex justify-center py-6">
+                      {loadingMore ? (
+                        <div className="flex items-center gap-2 text-brand-brown/70 text-sm" role="status">
+                          <div className="w-5 h-5 border-2 border-brand-brown border-t-transparent rounded-full animate-spin" />
+                          Loading more products…
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setPage((p) => p + 1)}
+                          className="h-12 px-6 rounded-[14px] border border-brand-brown/30 text-brand-brown font-semibold hover:bg-brand-brown/5 transition-colors"
+                        >
+                          Show more products ({totalProducts - products.length} left)
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {!hasMore && products.length > 0 && (
+                    <p className="mt-10 text-center text-sm text-brand-brown/50">
+                      You&apos;ve seen all {totalProducts} products
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+export default function ShopPage({ initial }: { initial?: ShopInitial }) {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div></div>}>
+      <ShopContent initial={initial} />
+    </Suspense>
+  );
+}

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import JsonLd from '@/components/JsonLd';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { pageMetadata, breadcrumbSchema, collectionPageSchema, SITE_NAME } from '@/lib/seo';
+import { imgSrc } from '@/lib/img';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,7 +64,7 @@ export default async function BlogPage() {
                 <Link href={`/blog/${p.slug || p.id}`} className="group block">
                   <div className="aspect-[4/3] rounded-2xl bg-[#F7F4EF] overflow-hidden">
                     {p.featured_image && (
-                      <img src={p.featured_image} alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
+                      <img {...imgSrc(p.featured_image, '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw', 828)} decoding="async" alt="" className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
                     )}
                   </div>
                   <p className="mt-3 text-xs text-[#6E6158]">{fmt(p.published_at)}</p>

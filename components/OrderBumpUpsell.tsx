@@ -1,4 +1,5 @@
 'use client';
+import { imgSrc } from '@/lib/img';
 
 interface UpsellProduct {
   id: string;
@@ -51,7 +52,7 @@ export default function OrderBumpUpsell({ products, onToggle }: OrderBumpUpsellP
               
               <div className="w-20 h-20 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
                 <img 
-                  src={product.image} 
+                  {...imgSrc(product.image, '96px', 256)} loading="lazy" decoding="async" 
                   alt={product.name}
                   className="w-full h-full object-cover object-top"
                 />

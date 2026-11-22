@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { imgSrc } from '@/lib/img';
 
 interface MediaItem {
   url: string;
@@ -102,7 +103,7 @@ export default function ImageZoom({ images, media, isOpen, onClose, initialIndex
             />
           ) : (
             <img
-              src={images[currentIndex]}
+              {...imgSrc(images[currentIndex], '100vw', 1920)} decoding="async"
               alt={`Product ${currentIndex + 1}`}
               className="max-w-full max-h-full object-contain transition-transform duration-200"
               style={{

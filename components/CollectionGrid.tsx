@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { imgSrc } from '@/lib/img';
 
 export interface CollectionCard {
   name: string;
@@ -51,7 +52,7 @@ export default function CollectionGrid({ categories = [] }: CollectionGridProps)
         >
           {card.image ? (
             <img
-              src={card.image}
+              {...imgSrc(card.image, '(max-width: 768px) 50vw, 33vw', 1080)} loading="lazy" decoding="async"
               alt={card.name}
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />

@@ -5,6 +5,7 @@ import JsonLd from '@/components/JsonLd';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { pageMetadata, breadcrumbSchema, toPlainText } from '@/lib/seo';
 import { sanitizeHtml } from '@/lib/sanitize';
+import { imgSrc } from '@/lib/img';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,7 +61,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ id: s
         <h1 className="mt-4 font-serif text-4xl lg:text-5xl font-medium leading-tight">{post.title}</h1>
         {date && <p className="mt-3 text-sm text-[#6E6158]">{date}</p>}
         {post.featured_image && (
-          <img src={post.featured_image} alt="" className="mt-8 w-full rounded-2xl object-cover max-h-[520px]" />
+          <img {...imgSrc(post.featured_image, '(max-width: 768px) 100vw, 768px', 1200)} decoding="async" alt="" className="mt-8 w-full rounded-2xl object-cover max-h-[520px]" />
         )}
         {looksHtml ? (
           <div className="prose prose-stone max-w-none mt-8" dangerouslySetInnerHTML={{ __html: sanitizeHtml(post.content || '') }} />

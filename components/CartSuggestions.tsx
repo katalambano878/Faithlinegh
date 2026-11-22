@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { imgSrc } from '@/lib/img';
 
 interface Product {
   id: string;
@@ -59,7 +60,7 @@ export default function CartSuggestions() {
             <Link href={`/product/${product.id}`}>
               <div className="aspect-square bg-gray-100 overflow-hidden">
                 <img
-                  src={product.image}
+                  {...imgSrc(product.image, '(max-width: 640px) 50vw, 25vw', 640)} loading="lazy" decoding="async"
                   alt={product.name}
                   className="w-full h-full object-cover object-top hover:scale-105 transition-transform duration-300"
                 />

@@ -5,7 +5,7 @@ import {
 } from "@/lib/db/query-builder";
 import { isPlainPostgres } from "@/lib/db/mode";
 import { resolveRestActor } from "@/lib/db/rest-auth";
-import { authorizeRestTable, type RestMethod } from "@/lib/db/rest-acl";
+import { authorizeRestTable, PRIVATE_COLUMNS, stripPrivate, type RestMethod } from "@/lib/db/rest-acl";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -72,8 +72,19 @@ export async function GET(
   const { table } = await ctx.params;
   if (!PG_IDENT.test(table)) return jsonError("Invalid table");
 
-  const { decision } = await gate(req, table, "GET");
+  const { actor, decision } = await gate(req, table, "GET");
   if (!decision.allow) return jsonError(decision.message, decision.status);
+  const isPrivileged = actor.isStaff || actor.isServiceRole;
+  if (!isPrivileged) {
+    // Don't let shoppers read or probe private columns (e.g. cost prices)
+    for (const k of req.nextUrl.searchParams.keys()) {
+      if (PRIVATE_COLUMNS.has(k.split("->")[0])) return jsonError("Not allowed", 403);
+    }
+    const sel = req.nextUrl.searchParams.get("select") || "";
+    if (/(^|[,(\s])cost_per_item([,)\s]|$)/.test(sel)) return jsonError("Not allowed", 403);
+    const order = req.nextUrl.searchParams.get("order") || "";
+    if (/cost_per_item/.test(order)) return jsonError("Not allowed", 403);
+  }
 
   const client = createClient();
   let qb: any = client.from(table);
@@ -113,10 +124,11 @@ export async function GET(
     );
   }
 
+  const body = isPrivileged ? result.data : stripPrivate(result.data);
   if (preferSingle(req)) {
-    return NextResponse.json(result.data, { status: 200, headers });
+    return NextResponse.json(body, { status: 200, headers });
   }
-  return NextResponse.json(result.data ?? [], { status: 200, headers });
+  return NextResponse.json(body ?? [], { status: 200, headers });
 }
 
 export async function POST(

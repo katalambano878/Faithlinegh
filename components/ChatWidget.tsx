@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import type { CartItem } from '@/context/CartContext';
 import MarkdownMessage from '@/components/MarkdownMessage';
+import { imgSrc } from '@/lib/img';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -903,7 +904,7 @@ function ProductCard({ product, onAddToCart }: { product: ChatProduct; onAddToCa
       <div className="flex items-center gap-2.5 p-2.5 sm:p-3">
         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
           {product.image ? (
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+            <img {...imgSrc(product.image, '64px', 256)} loading="lazy" decoding="async" alt={product.name} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-gray-300">
               <i className="ri-image-line text-xl" />

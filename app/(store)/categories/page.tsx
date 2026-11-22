@@ -10,6 +10,7 @@ import {
   breadcrumbSchema,
   SITE_NAME,
 } from '@/lib/seo';
+import { imgSrc } from '@/lib/img';
 
 export const revalidate = 0; // Ensure fresh data on every visit
 
@@ -113,7 +114,7 @@ export default async function CategoriesPage() {
                   className="group relative block aspect-[16/11] overflow-hidden rounded-xl bg-brand-cream shadow-[0_2px_12px_-8px_rgba(61,43,33,0.4)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(61,43,33,0.5)]"
                 >
                   <img
-                    src={category.image}
+                    {...imgSrc(category.image, '(max-width: 640px) 50vw, 25vw', 828)} loading="lazy" decoding="async"
                     alt={category.name}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                   />

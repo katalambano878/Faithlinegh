@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
 import { AppliedCoupon, computeCouponDiscount, loadStoredCoupon, clearStoredCoupon } from '@/lib/coupons';
+import { imgSrc } from '@/lib/img';
 
 type DeliveryMethod = 'pickup' | 'doorstep' | 'outside_accra';
 type PaymentChannel = 'momo' | 'card';
@@ -266,7 +267,7 @@ export default function CheckoutPage() {
         {cart.map(item => (
           <li key={`${item.id}-${item.variant}`} className="flex gap-3.5 items-center">
             <div className="relative w-16 h-[76px] flex-none bg-white rounded-[10px]">
-              {item.image && <img src={item.image} alt="" className="w-full h-full object-cover rounded-[10px]" />}
+              {item.image && <img {...imgSrc(item.image, '72px', 256)} loading="lazy" decoding="async" alt="" className="w-full h-full object-cover rounded-[10px]" />}
               <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1 rounded-full bg-[#2B211B] text-white text-xs font-semibold flex items-center justify-center tabular-nums">{item.quantity}</span>
             </div>
             <div className="flex-1 min-w-0 flex flex-col">

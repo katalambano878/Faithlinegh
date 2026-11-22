@@ -1,3 +1,4 @@
+import { imgSrc } from '@/lib/img';
 interface OrderItem {
   id: string;
   name: string;
@@ -31,7 +32,7 @@ export default function OrderSummary({ items, subtotal, shipping, tax, total, bu
           <div key={`${item.id}-${item.variant || 'novar'}`} className="flex space-x-4">
             <div className="relative w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
               <img
-                src={item.image}
+                {...imgSrc(item.image, '64px', 256)} loading="lazy" decoding="async"
                 alt={item.name}
                 className="w-full h-full object-cover"
               />

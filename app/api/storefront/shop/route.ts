@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { stripPrivate } from '@/lib/db/rest-acl';
 
 const SEARCH_STOP_WORDS = new Set([
   'the',
@@ -174,7 +175,7 @@ export async function GET(request: Request) {
 
               if (!fallbackError && (fallbackCount ?? 0) > 0) {
                 return NextResponse.json(
-                  { data: fallbackData || [], count: fallbackCount ?? 0, searchFallback: 'category' },
+                  { data: stripPrivate(fallbackData || []), count: fallbackCount ?? 0, searchFallback: 'category' },
                   {
                     headers: {
                       'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
@@ -189,7 +190,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(
-      { data: data || [], count: count ?? 0 },
+      { data: stripPrivate(data || []), count: count ?? 0 },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',

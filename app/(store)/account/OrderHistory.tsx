@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { imgSrc } from '@/lib/img';
 
 interface Order {
   id: string;
@@ -158,7 +159,7 @@ export default function OrderHistory() {
                   <div key={item.id} className="flex space-x-4">
                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
                       <img
-                        src={item.image}
+                        {...imgSrc(item.image, '80px', 256)} loading="lazy" decoding="async"
                         alt={item.name}
                         className="w-full h-full object-cover object-center"
                       />

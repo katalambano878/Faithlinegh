@@ -204,7 +204,7 @@ function OrderSuccessContent() {
                 {address.address && <span className="text-[#4E423A]">{address.address}</span>}
                 {(address.city || address.region) && <span className="text-[#4E423A]">{[address.city, address.region].map((v: any) => String(v || '').trim()).filter(Boolean).join(', ')}</span>}
                 {address.gpsAddress && <span className="text-[#4E423A]">GPS {address.gpsAddress}</span>}
-                {feePending && <span className="text-[#8A4B1F]">We text you the delivery fee before we send it.</span>}
+                {feePending && <span className="text-[#8A4B1F]">We’ll contact you with the delivery fee before we send it.</span>}
               </>
             )}
           </div>
@@ -233,7 +233,7 @@ function OrderSuccessContent() {
           <dl className="flex flex-col gap-2 text-sm tabular-nums border-t border-[#EFEAE3] pt-3.5">
             <div className="flex justify-between"><dt className="text-[#4E423A]">Subtotal</dt><dd>{money(order.subtotal)}</dd></div>
             {Number(order.discount_total) > 0 && <div className="flex justify-between text-[#1F5A37]"><dt>Savings</dt><dd>−{money(order.discount_total)}</dd></div>}
-            <div className="flex justify-between"><dt className="text-[#4E423A]">{isPickup ? 'Store pickup' : 'Delivery'}</dt><dd>{feePending ? 'Fee by text' : Number(order.shipping_total) > 0 ? money(order.shipping_total) : 'Free'}</dd></div>
+            <div className="flex justify-between"><dt className="text-[#4E423A]">{isPickup ? 'Store pickup' : 'Delivery'}</dt><dd>{feePending ? 'To be confirmed' : Number(order.shipping_total) > 0 ? money(order.shipping_total) : 'Free'}</dd></div>
             <div className="flex justify-between text-base font-bold border-t border-[#EFEAE3] pt-3"><dt>{isPaid ? 'Total paid' : 'Total'}</dt><dd>{money(order.total)}</dd></div>
           </dl>
         </div>

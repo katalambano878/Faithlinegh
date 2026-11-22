@@ -17,7 +17,8 @@ type PaymentChannel = 'momo' | 'card';
 
 /**
  * Delivery fees in cedis. `null` means the fee is not fixed yet: the order goes
- * through without it and the team texts the customer the fee (today's process).
+ * through without it and the team tells the customer the fee (the admin's
+ * chosen process, confirmed 2026-11-22).
  * Set a number here once the admin confirms the price.
  */
 const DELIVERY_FEES: Record<DeliveryMethod, number | null> = {
@@ -124,7 +125,7 @@ export default function CheckoutPage() {
   const feeLabel = (id: DeliveryMethod) => {
     if (id === 'pickup' || freeDelivery) return 'Free';
     const fee = DELIVERY_FEES[id];
-    return fee === null ? 'Fee by text' : money(fee);
+    return fee === null ? 'Fee confirmed later' : money(fee);
   };
 
   const validate = () => {
@@ -390,7 +391,7 @@ export default function CheckoutPage() {
         <div className="flex justify-between">
           <dt className="text-[#4E423A]">{deliveryMethod === 'pickup' ? 'Store pickup' : 'Delivery'}</dt>
           <dd className={feeKnown && shippingCost === 0 ? 'text-[#1F5A37]' : feeKnown ? '' : 'text-[#8A4B1F]'}>
-            {feeKnown ? (shippingCost === 0 ? 'Free' : money(shippingCost)) : 'We text you the fee'}
+            {feeKnown ? (shippingCost === 0 ? 'Free' : money(shippingCost)) : 'We’ll contact you'}
           </dd>
         </div>
       </dl>
@@ -524,7 +525,7 @@ export default function CheckoutPage() {
                       <span className="font-semibold text-[15px]">{option.title}</span>
                       <span className="text-[13px] lg:text-sm text-[#4E423A]">{option.note}</span>
                     </span>
-                    <span className={`font-semibold text-sm whitespace-nowrap ${label === 'Free' ? 'text-[#1F5A37]' : label === 'Fee by text' ? 'text-[#8A4B1F]' : ''}`}>{label}</span>
+                    <span className={`font-semibold text-sm whitespace-nowrap ${label === 'Free' ? 'text-[#1F5A37]' : label === 'Fee confirmed later' ? 'text-[#8A4B1F]' : ''}`}>{label}</span>
                   </label>
                 );
               })}
@@ -544,7 +545,7 @@ export default function CheckoutPage() {
               <div className="flex flex-col gap-4">
                 {!feeKnown && (
                   <p className="text-[13px] text-[#4E423A] bg-[#F7F4EF] rounded-xl px-4 py-3">
-                    You pay for your items now. We text you the delivery fee for your area before we send the order.
+                    You pay for your items now. We’ll contact you with the delivery fee for your area before we send your order.
                   </p>
                 )}
                 <div className="grid sm:grid-cols-2 gap-4">

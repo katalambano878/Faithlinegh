@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import VariantMatrix from '@/components/admin/VariantMatrix';
 import { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { supabase } from '@/lib/supabase'; // used for categories fetch only
@@ -294,17 +295,6 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
         }));
     };
 
-    // Bulk set price/stock for all variants
-    const bulkSetField = (field: 'price' | 'stock', value: string) => {
-        setVariantData(prev => {
-            const updated = { ...prev };
-            variantCombinations.forEach(combo => {
-                updated[combo.key] = { ...updated[combo.key] || { price: '', stock: '0', sku: '' }, [field]: value };
-            });
-            return updated;
-        });
-    };
-
     const toggleColor = (color: { name: string; hex: string }) => {
         setSelectedColors(prev => {
             const same = (c: { name: string }) => c.name.trim().toLowerCase() === color.name.trim().toLowerCase();
@@ -585,6 +575,13 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
 
     const handleSubmit = async () => {
         if (variantUploading) { alert('Wait for the photo to finish uploading.'); return; }
+        // Colours with nothing in stock show as sold out on the website
+        const emptyColors = selectedColors
+            .filter(c => variants.filter(v => v.color === c.name).every(v => (parseInt(v.stock) || 0) === 0))
+            .map(c => c.name);
+        if (emptyColors.length > 0 && variants.some(v => (parseInt(v.stock) || 0) > 0)) {
+            if (!confirm(`${emptyColors.join(', ')} ${emptyColors.length === 1 ? 'has' : 'have'} no stock in any size, so shoppers will see ${emptyColors.length === 1 ? 'it' : 'them'} as sold out. Save anyway?`)) return;
+        }
         try {
             setLoading(true);
 
@@ -1408,163 +1405,34 @@ export default function ProductForm({ initialData, isEditMode = false }: Product
                                 )}
                             </div>
 
-                            {/* STEP 3: Variant Grid */}
+                            {/* STEP 3+: photos per colour, stock grid, prices */}
                             {variantCombinations.length > 0 && (
-                                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                                    <div className="p-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                                        <div>
-                                            <h4 className="text-sm font-bold text-gray-900 flex items-center">
-                                                <i className="ri-grid-line mr-2 text-lg text-brand-brown"></i>
-                                                Step 3: Set Price & Stock ({variantCombinations.length} variant{variantCombinations.length > 1 ? 's' : ''})
-                                            </h4>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    const val = prompt('Set price for ALL variants:', price?.toString() || '0');
-                                                    if (val !== null) bulkSetField('price', val);
-                                                }}
-                                                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
-                                            >
-                                                Bulk Set Price
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    const val = prompt('Set stock for ALL variants:', '0');
-                                                    if (val !== null) bulkSetField('stock', val);
-                                                }}
-                                                className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-medium hover:bg-gray-50 transition-colors"
-                                            >
-                                                Bulk Set Stock
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-gray-50 border-b border-gray-200">
-                                                <tr>
-                                                    {selectedColors.length > 0 && (
-                                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Color</th>
-                                                    )}
-                                                    {selectedSizes.length > 0 && (
-                                                        <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Size</th>
-                                                    )}
-                                                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Variant image</th>
-                                                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Price (₵)</th>
-                                                    <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700">Stock</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {variantCombinations.map((combo) => {
-                                                    const d = variantData[combo.key] || { price: '', stock: '0', sku: '' };
-                                                    return (
-                                                        <tr key={combo.key} className="border-b border-gray-100 hover:bg-gray-50">
-                                                            {selectedColors.length > 0 && (
-                                                                <td className="py-3 px-4">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span
-                                                                            className="w-5 h-5 rounded-full border border-gray-300 flex-shrink-0"
-                                                                            style={{ backgroundColor: combo.colorHex }}
-                                                                        ></span>
-                                                                        <span className="text-sm font-medium text-gray-900">{combo.color}</span>
-                                                                    </div>
-                                                                </td>
-                                                            )}
-                                                            {selectedSizes.length > 0 && (
-                                                                <td className="py-3 px-4">
-                                                                    <span className="text-sm font-semibold text-gray-900 bg-gray-100 px-2.5 py-1 rounded">
-                                                                        {combo.size}
-                                                                    </span>
-                                                                </td>
-                                                            )}
-                                                            <td className="py-3 px-4">
-                                                                <div className="flex items-center gap-2">
-                                                                    {d.image_url ? (
-                                                                        <>
-                                                                            <img src={d.image_url} alt="" className="w-12 h-12 rounded-lg object-cover border border-gray-200" />
-                                                                            <button type="button" onClick={() => setVariantImage(combo.key, '')} className="text-xs text-brand-brown hover:underline font-medium">Remove</button>
-                                                                        </>
-                                                                    ) : (
-                                                                        <span className="text-gray-400 text-xs">No image</span>
-                                                                    )}
-                                                                    <div className="flex flex-col gap-1">
-                                                                        <label className={`cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900 flex items-center gap-1 ${variantUploading === combo.key ? 'opacity-60 pointer-events-none' : ''}`}>
-                                                                            <i className={variantUploading === combo.key ? 'ri-loader-4-line animate-spin' : 'ri-upload-line'}></i> {variantUploading === combo.key ? 'Uploading…' : 'Upload'}
-                                                                            <input
-                                                                                type="file"
-                                                                                accept=".jpg,.jpeg,.png,.webp"
-                                                                                className="hidden"
-                                                                                onChange={async (e) => {
-                                                                                    const file = e.target.files?.[0];
-                                                                                    if (!file) return;
-                                                                                    e.target.value = '';
-                                                                                    if (file.size > 5 * 1024 * 1024) { alert(`"${file.name}" is too large. Max 5MB.`); return; }
-                                                                                    setVariantUploading(combo.key);
-                                                                                    try {
-                                                                                        const fd = new FormData();
-                                                                                        fd.append('file', file);
-                                                                                        fd.append('bucket', 'product-images');
-                                                                                        const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'include' });
-                                                                                        const data = await res.json().catch(() => ({}));
-                                                                                        if (!res.ok || !data?.url) throw new Error(data?.error || 'Upload failed');
-                                                                                        setVariantImage(combo.key, data.url);
-                                                                                    } catch (err: any) {
-                                                                                        alert(`Could not upload the photo: ${err.message}`);
-                                                                                    } finally {
-                                                                                        setVariantUploading(null);
-                                                                                    }
-                                                                                }}
-                                                                            />
-                                                                        </label>
-                                                                        {images.filter((img: any) => img.media_type !== 'video').length > 0 && (
-                                                                            <select
-                                                                                className="text-xs border border-gray-300 rounded px-2 py-1 text-gray-700"
-                                                                                value=""
-                                                                                onChange={(e) => { const u = e.target.value; if (u) setVariantImage(combo.key, u); e.target.value = ''; }}
-                                                                            >
-                                                                                <option value="">Pick from product</option>
-                                                                                {images.filter((img: any) => img.media_type !== 'video').map((img: any, idx: number) => (
-                                                                                    <option key={idx} value={img.url}>Image {idx + 1}</option>
-                                                                                ))}
-                                                                            </select>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td className="py-3 px-4">
-                                                                <input
-                                                                    type="number"
-                                                                    value={d.price}
-                                                                    onChange={(e) => updateVariantField(combo.key, 'price', e.target.value)}
-                                                                    className="w-28 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-gray-600 focus:border-gray-600"
-                                                                    step="0.01"
-                                                                    placeholder={price?.toString() || '0'}
-                                                                />
-                                                            </td>
-                                                            <td className="py-3 px-4">
-                                                                <input
-                                                                    type="number"
-                                                                    value={d.stock}
-                                                                    onChange={(e) => updateVariantField(combo.key, 'stock', e.target.value)}
-                                                                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-gray-600 focus:border-gray-600"
-                                                                    placeholder="0"
-                                                                />
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <div className="p-3 bg-gray-50 border-t border-gray-100">
-                                        <p className="text-xs text-gray-800 flex items-center">
-                                            <i className="ri-information-line mr-1.5"></i>
-                                            Total stock across all variants: <strong className="ml-1">{variants.reduce((sum, v) => sum + (parseInt(v.stock) || 0), 0)}</strong>
-                                        </p>
-                                    </div>
-                                </div>
+                                <VariantMatrix
+                                    colors={selectedColors}
+                                    sizes={selectedSizes}
+                                    data={variantData}
+                                    keyOf={buildVariantKey}
+                                    productPrice={String(price || '')}
+                                    productImages={images}
+                                    onField={(key, field, value) => updateVariantField(key, field, value)}
+                                    onImage={setVariantImage}
+                                    onRemoveColor={toggleColor}
+                                    uploadPhoto={async (file) => {
+                                        if (file.size > 5 * 1024 * 1024) throw new Error(`"${file.name}" is larger than 5MB.`);
+                                        setVariantUploading(file.name);
+                                        try {
+                                            const fd = new FormData();
+                                            fd.append('file', file);
+                                            fd.append('bucket', 'product-images');
+                                            const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, credentials: 'include' });
+                                            const data = await res.json().catch(() => ({}));
+                                            if (!res.ok || !data?.url) throw new Error(data?.error || 'Upload failed');
+                                            return data.url as string;
+                                        } finally {
+                                            setVariantUploading(null);
+                                        }
+                                    }}
+                                />
                             )}
 
                             {variantCombinations.length === 0 && (

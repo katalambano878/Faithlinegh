@@ -1,5 +1,5 @@
-// Faithlinegh - Service Worker v3.1
-const CACHE_VERSION = 'sl-v3.1';
+// Faithlinegh - Service Worker v4
+const CACHE_VERSION = 'fl-v4';
 const STATIC_CACHE = `static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE = `images-${CACHE_VERSION}`;
@@ -34,7 +34,7 @@ async function trimCache(cacheName, maxItems) {
 
 // Install: pre-cache static assets
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing v3.1...');
+  console.log('[SW] Installing v4...');
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
@@ -51,7 +51,7 @@ self.addEventListener('install', (event) => {
 
 // Activate: clean old caches
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating v3.1...');
+  console.log('[SW] Activating v4...');
   event.waitUntil(
     caches.keys()
       .then((keys) => {

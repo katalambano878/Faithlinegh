@@ -616,7 +616,7 @@ export async function createChatOrder(
     const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const trackingChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     const trackingId = Array.from({ length: 6 }, () => trackingChars[Math.floor(Math.random() * trackingChars.length)]).join('');
-    const trackingNumber = `SLI-${trackingId}`;
+    const trackingNumber = `FL-${trackingId}`;
 
     const shippingData = {
       firstName: sanitizedShipping.firstName,

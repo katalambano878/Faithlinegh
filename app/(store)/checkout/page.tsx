@@ -182,9 +182,9 @@ export default function CheckoutPage() {
 
     try {
       const orderNumber = `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      // Tracking number: SLI-XXXXXX (6-char alphanumeric)
+      // Tracking number: FL-XXXXXX (6-char alphanumeric; older orders use SLI-)
       const trackingId = Array.from({ length: 6 }, () => 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)]).join('');
-      const trackingNumber = `SLI-${trackingId}`;
+      const trackingNumber = `FL-${trackingId}`;
 
       // 1. Create order
       const { data: order, error: orderError } = await supabase

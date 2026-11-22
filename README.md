@@ -1,48 +1,26 @@
-# YOUR_PROJECT_NAME
+# Faithlinegh storefront
 
-> YOUR_PROJECT_DESCRIPTION
+The online store for **Faithlinegh** (faithlinegh.com): quality, affordable bags, basic tops and dresses, with store pickup and delivery across Ghana. Product context and principles live in [PRODUCT.md](PRODUCT.md); branding details in [CUSTOMIZE.md](CUSTOMIZE.md).
 
-A full-featured e-commerce storefront and admin dashboard built with Next.js (App Router), React, Tailwind CSS, and Supabase.
+## What's here
 
-## Getting Started
+- **Store:** product pages with colour/size variants and bundle pricing, bag drawer, one-page checkout, order confirmation and tracking.
+- **Payments:** Moolre (Mobile Money and card).
+- **Admin:** products, orders, customers, coupons, staff permissions, POS.
+- **Chat:** on-site AI assistant through OpenRouter (`OPENROUTER_API_KEY`). The WhatsApp assistant is a separate repo, `Drrbarns/faithline-whatsapp-ai`, which reads this store's database.
+- **SMS:** Taysend, with Moolre as fallback.
+
+## Stack and hosting
+
+Next.js (App Router) with Supabase. Deployed with Coolify on coolify-vps (`faithlinegh-app`, domains faithlinegh.com and www.faithlinegh.com). Push to `main`, then check that Coolify queued a deploy; start a normal deploy if it didn't.
+
+## Develop
 
 ```bash
 npm install
 npm run dev
 ```
 
-The dev server runs on the port defined in `package.json` (default `3009`).
+Environment variables are in `.env.local` (not committed). Database setup notes: [SECURITY_RLS_SETUP.md](SECURITY_RLS_SETUP.md).
 
-## Environment Variables
-
-Copy `.env.example` to `.env.local` and fill in your own values:
-
-```bash
-cp .env.example .env.local
-```
-
-See `.env.example` for the full list of required and optional variables.
-
-## Creating an Admin User
-
-```bash
-npm run create-admin
-```
-
-Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `.env.local` first (defaults are placeholders only).
-
-## Database
-
-Database schema and migrations live in `supabase/`. See `supabase/README.md` for setup instructions.
-
-## Customization
-
-This codebase ships with neutral placeholders. Complete the steps in `CUSTOMIZE.md` to make it fully yours, and replace the brand assets listed in `public/ASSETS_GUIDE.md`.
-
-## Deployment
-
-YOUR_DEPLOYMENT_INSTRUCTIONS
-
-## License
-
-See `LICENSE`.
+New orders get tracking codes starting `FL-`; older orders use `SLI-` and still track.

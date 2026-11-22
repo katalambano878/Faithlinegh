@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
 import ProductCard from '@/components/ProductCard';
 import ProductReviews from '@/components/ProductReviews';
 import SizeGuideModal from '@/components/SizeGuideModal';
+import BodyPortal from '@/components/BodyPortal';
 import { notFound } from 'next/navigation';
 import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
@@ -37,10 +38,12 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [manualImage, setManualImage] = useState(false);
+  const [nudge, setNudge] = useState(false);
+  const choiceRef = useRef<HTMLDivElement>(null);
 
   // Detect which size guide fits this product from its variant size names
   const detectSizeGuideCategory = (sizes: string[]): string | null => {
@@ -149,11 +152,24 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           setQuantity(transformedProduct.moq);
         }
 
-        // If variants exist, do NOT pre-select — force user to choose
-        // Reset variant and color selection
+        // Pre-select the first colour that is in stock (its photo leads the gallery);
+        // the size is never pre-selected, so the shopper always confirms it.
         setSelectedVariant(null);
         setSelectedSize('');
-        setSelectedColor('');
+        setManualImage(false);
+        setNudge(false);
+        const firstInStockColor = (transformedProduct.colors as string[]).find((color) =>
+          transformedProduct.variants.some((v: any) => v.color === color && ((v.stock ?? v.quantity ?? 0) > 0 || (transformedProduct.stockCount ?? 0) > 0))
+        );
+        const initialColor = firstInStockColor || '';
+        setSelectedColor(initialColor);
+        if (initialColor) {
+          const only = transformedProduct.variants.filter((v: any) => v.color === initialColor);
+          if (only.length === 1) {
+            setSelectedVariant(only[0]);
+            setSelectedSize(only[0].name);
+          }
+        }
 
         // Fetch related products (cached for 5 minutes)
         if (dataToTransform.category_id) {
@@ -281,534 +297,392 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
   const discount = product.compare_at_price ? Math.round((1 - activePrice / product.compare_at_price) * 100) : 0;
   const minVariantPrice = hasVariants ? Math.min(...product.variants.map((v: any) => v.price || product.price)) : product.price;
+  const maxVariantPrice = hasVariants ? Math.max(...product.variants.map((v: any) => v.price || product.price)) : product.price;
+  const priceVaries = hasVariants && !selectedVariant && minVariantPrice !== maxVariantPrice;
+
+  const variantStock = (v: any) => v.stock ?? v.quantity ?? 0;
+  const isVariantOut = (v: any) => variantStock(v) === 0 && (product.stockCount ?? 0) === 0;
+  const colorVariants = (color: string) => product.variants.filter((v: any) => v.color === color);
+  const isColorOut = (color: string) => colorVariants(color).every(isVariantOut);
+  const colorImage = (color: string) => colorVariants(color).find((v: any) => v.image_url)?.image_url as string | undefined;
+
+  const visibleVariants: any[] = hasColors
+    ? (selectedColor ? colorVariants(selectedColor) : [])
+    : (product.variants || []);
+  const showSizeSelector = hasColors ? visibleVariants.length > 1 : visibleVariants.length > 0;
+  const guideCategory = detectSizeGuideCategory(visibleVariants.map((v: any) => v.name || ''));
+
+  const ready = !needsColorSelection && !needsVariantSelection && activeStock > 0;
+  const soldOut = !needsColorSelection && !needsVariantSelection && activeStock === 0;
+  const lowStock = selectedVariant && activeStock > 0 && activeStock <= 5;
+  const minQty = product.moq || 1;
+
+  // Quantity choices: single (or MOQ) plus each bundle tier, priced by the real bundle engine
+  const quantityChoices: { qty: number; total: number; saved: number }[] = hasBundles
+    ? Array.from(new Set([minQty, ...bundleTiers.map(t => t.qty).filter(q => q > minQty)]))
+      .slice(0, 3)
+      .map(q => {
+        const total = computeBundlePrice(q, activePrice, bundleTiers);
+        return { qty: q, total, saved: Math.max(0, activePrice * q - total) };
+      })
+    : [];
+
+  const money = (n: number) => `₵${n.toFixed(2)}`;
+  // A thumbnail the shopper tapped wins; otherwise show the chosen variant / colour photo
+  const choiceImage: string | undefined = manualImage
+    ? undefined
+    : (selectedVariant?.image_url || (selectedColor ? colorImage(selectedColor) : undefined));
+  const mainImageSrc: string = choiceImage || product.images[selectedImage];
+  const mainIsVideo = !choiceImage && product.media?.[selectedImage]?.type === 'video';
+
+  const pickColor = (color: string) => {
+    setSelectedColor(color);
+    setManualImage(false);
+    setNudge(false);
+    const matching = colorVariants(color);
+    if (matching.length === 1) {
+      setSelectedVariant(matching[0]);
+      setSelectedSize(matching[0].name);
+    } else {
+      // Keep the chosen size if this colour has it in stock
+      const sameSize = matching.find((v: any) => v.name === selectedSize && !isVariantOut(v));
+      setSelectedVariant(sameSize || null);
+      if (!sameSize) setSelectedSize('');
+    }
+  };
+
+  const pickVariant = (variant: any) => {
+    setSelectedVariant(variant);
+    setSelectedSize(variant.name);
+    setManualImage(false);
+    setNudge(false);
+  };
+
+  const tryAddToCart = (buyNow: boolean) => {
+    if (!ready) {
+      if (!soldOut) {
+        setNudge(true);
+        choiceRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    if (buyNow) handleBuyNow();
+    else handleAddToCart();
+  };
+
+  const nudgeMessage = needsColorSelection ? 'Choose a colour to continue.' : 'Choose your size to add this to your bag.';
+  const ctaLabel = soldOut ? 'Out of stock' : 'Add to bag';
 
   return (
     <>
       {/* Product & breadcrumb JSON-LD are rendered server-side in page.tsx for reliable indexing. */}
-      <main className="min-h-screen bg-white">
-        <section className="py-8 bg-gray-50 border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <nav className="flex items-center space-x-2 text-sm flex-wrap gap-y-2">
-              <Link href="/" className="text-gray-600 hover:text-brand-brown transition-colors">Home</Link>
-              <i className="ri-arrow-right-s-line text-gray-400"></i>
-              <Link href="/shop" className="text-gray-600 hover:text-brand-brown transition-colors">Shop</Link>
-              <i className="ri-arrow-right-s-line text-gray-400"></i>
-              <Link href="#" className="text-gray-600 hover:text-brand-brown transition-colors">{product.category}</Link>
-              <i className="ri-arrow-right-s-line text-gray-400"></i>
-              <span className="text-brand-brown font-medium truncate max-w-[200px]">{product.name}</span>
-            </nav>
-          </div>
-        </section>
+      <main className="min-h-screen bg-white text-[#2B211B] pb-28 lg:pb-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-[13px] text-[#6E6158] py-5 flex-wrap">
+            <Link href="/shop" className="hover:text-[#2B211B] transition-colors">Shop</Link>
+            <span aria-hidden="true">/</span>
+            <span>{product.category}</span>
+            <span aria-hidden="true">/</span>
+            <span className="text-[#2B211B] truncate max-w-[220px]">{product.name}</span>
+          </nav>
 
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="grid lg:grid-cols-2 gap-12">
-              <div>
-                {/* Main image: show variant image when selected variant has one, otherwise product image */}
-                {(() => {
-                  const variantImage = selectedVariant?.image_url;
-                  const mainSrc = variantImage || product.images[selectedImage];
-                  const mainIsVideo = !variantImage && product.media?.[selectedImage]?.type === 'video';
-                  return (
-                    <div className="relative aspect-square rounded-2xl overflow-hidden bg-gray-100 mb-4 shadow-lg border border-gray-100">
-                      {mainIsVideo ? (
-                        <video
-                          key={product.images[selectedImage]}
-                          src={product.images[selectedImage]}
-                          className="w-full h-full object-cover"
-                          controls
-                          muted
-                          loop
-                          playsInline
-                          preload="none"
-                        />
-                      ) : mainSrc ? (
-                        <Image
-                          src={mainSrc}
-                          alt={product.name}
-                          fill
-                          className="object-cover object-center"
-                          sizes="(max-width: 1024px) 100vw, 50vw"
-                          priority={!variantImage}
-                          quality={80}
-                        />
-                      ) : null}
-                      {discount > 0 && (
-                        <span className="absolute top-6 right-6 bg-[#5B4436] text-white text-sm font-semibold px-4 py-2 rounded-full">
-                          Save {discount}%
-                        </span>
+          <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] gap-8 lg:gap-16 items-start">
+            {/* ── Gallery ── */}
+            <section aria-label="Photos" className="min-w-0 flex flex-col-reverse lg:flex-row gap-3 lg:gap-4 lg:sticky lg:top-24">
+              {product.images.length > 1 && (
+                <div className="flex lg:flex-col gap-2.5 lg:gap-3 overflow-x-auto lg:overflow-visible scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0 lg:w-[76px] shrink-0">
+                  {product.images.map((image: string, index: number) => {
+                    const isVideo = product.media?.[index]?.type === 'video';
+                    const active = mainImageSrc === image;
+                    return (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => { setSelectedImage(index); setManualImage(true); }}
+                        aria-label={`View photo ${index + 1}`}
+                        aria-current={active ? 'true' : undefined}
+                        className={`relative w-[64px] h-[64px] lg:w-[76px] lg:h-[76px] shrink-0 rounded-[10px] overflow-hidden bg-white transition-[border-color] cursor-pointer ${active ? 'border-[1.5px] border-[#5B4436]' : 'border border-[#E4DDD3] hover:border-[#C9BEB1]'}`}
+                      >
+                        {isVideo ? (
+                          <>
+                            <video src={image} className="w-full h-full object-cover" muted preload="none" />
+                            <span className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="ri-play-fill text-white text-lg"></i></span>
+                          </>
+                        ) : (
+                          <Image src={image} alt="" fill className="object-contain p-1" sizes="80px" quality={60} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="relative flex-1 min-w-0 aspect-square lg:max-w-[560px] overflow-hidden bg-white sm:border sm:border-[#EFEAE3] -mx-4 sm:mx-0 sm:rounded-2xl lg:rounded-[20px]">
+                {mainIsVideo ? (
+                  <video key={mainImageSrc} src={mainImageSrc} className="w-full h-full object-contain" controls muted loop playsInline preload="none" />
+                ) : mainImageSrc ? (
+                  <Image
+                    key={mainImageSrc}
+                    src={mainImageSrc}
+                    alt={selectedColor ? `${product.name} in ${selectedColor}` : product.name}
+                    fill
+                    className="object-contain p-3 sm:p-5 lg:p-6 animate-[fadeIn_200ms_ease-out]"
+                    sizes="(max-width: 1024px) 100vw, 55vw"
+                    priority
+                    quality={80}
+                  />
+                ) : null}
+                {discount > 0 && (
+                  <span className="absolute top-4 left-4 bg-[#5B4436] text-white text-xs font-semibold px-3 py-1.5 rounded-full">Save {discount}%</span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  aria-label={isWishlisted ? 'Remove from wishlist' : 'Save to wishlist'}
+                  aria-pressed={isWishlisted}
+                  className="absolute top-4 right-4 w-11 h-11 rounded-full bg-white flex items-center justify-center shadow-[0_2px_8px_rgba(43,33,27,0.08)] cursor-pointer"
+                >
+                  <i className={`${isWishlisted ? 'ri-heart-fill text-[#5B4436]' : 'ri-heart-line text-[#2B211B]'} text-xl`}></i>
+                </button>
+              </div>
+            </section>
+
+            {/* ── Choose and buy ── */}
+            <section aria-label="Choose and buy" className="flex flex-col gap-7 min-w-0">
+              <div className="flex flex-col gap-2.5">
+                <h1 className="font-serif font-medium text-[30px] lg:text-[40px] leading-[1.1] tracking-[-0.01em] text-balance">{product.name}</h1>
+                <div className="flex items-baseline gap-3 flex-wrap">
+                  <span className="text-xl lg:text-2xl font-semibold tabular-nums">
+                    {priceVaries ? `From ${money(minVariantPrice)}` : money(activePrice)}
+                  </span>
+                  {product.compare_at_price && product.compare_at_price > activePrice && (
+                    <span className="text-base text-[#6E6158] line-through tabular-nums">{money(product.compare_at_price)}</span>
+                  )}
+                  {hasBundles && bundleTiers.length > 0 && (() => {
+                    const best = bundleTiers[bundleTiers.length - 1];
+                    const each = tierUnitPrice(best);
+                    return each < activePrice ? (
+                      <span className="text-[13px] text-[#6E6158]">From {money(each)} each when you buy {best.qty}</span>
+                    ) : null;
+                  })()}
+                </div>
+                {product.description && (
+                  <p className="text-[15px] leading-relaxed text-[#4E423A] max-w-[60ch] line-clamp-3">{product.description}</p>
+                )}
+              </div>
+
+              <div ref={choiceRef} className="flex flex-col gap-7 scroll-mt-28">
+                {/* Colour */}
+                {hasColors && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm font-semibold">
+                        Colour{selectedColor && <>: <span className="font-medium text-[#4E423A]">{selectedColor}</span></>}
+                      </span>
+                      {product.colors.length > 1 && <span className="text-[13px] text-[#6E6158]">{product.colors.length} colours</span>}
+                    </div>
+                    <div role="group" aria-label="Colour" className={`flex flex-wrap gap-3 rounded-xl ${nudge && needsColorSelection ? 'ring-2 ring-[#A3392B] ring-offset-4' : ''}`}>
+                      {product.colors.map((color: string) => {
+                        const selected = selectedColor === color;
+                        const out = isColorOut(color);
+                        const img = colorImage(color);
+                        return (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => pickColor(color)}
+                            aria-label={`${color}${out ? ', sold out' : ''}`}
+                            aria-pressed={selected}
+                            title={color}
+                            className={`relative w-10 h-10 lg:w-9 lg:h-9 rounded-full overflow-hidden border border-[#2B211B]/15 transition-shadow cursor-pointer ${selected ? 'shadow-[0_0_0_2px_#fff,0_0_0_3.5px_#5B4436]' : 'hover:shadow-[0_0_0_2px_#fff,0_0_0_3.5px_#D8CFC3]'} ${out ? 'opacity-50' : ''}`}
+                            style={img ? undefined : { backgroundColor: product.colorHexMap?.[color] || colorNameToHex(color) }}
+                          >
+                            {img && <Image src={img} alt="" fill className="object-cover scale-[2.2]" sizes="40px" quality={50} />}
+                            {out && <span aria-hidden="true" className="absolute left-1/2 -top-1 w-[1.5px] h-12 bg-[#2B211B] -translate-x-1/2 rotate-45"></span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {selectedColor && isColorOut(selectedColor) && (
+                      <p className="text-[13px] text-[#A3392B]">{selectedColor} is sold out. Choose another colour.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Size / type */}
+                {showSizeSelector && (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-sm font-semibold">
+                        Size{selectedVariant && <>: <span className="font-medium text-[#4E423A]">{selectedVariant.name}</span></>}
+                      </span>
+                      {guideCategory && (
+                        <button type="button" onClick={() => setSizeGuideOpen(true)} className="inline-flex items-center gap-1.5 text-[13px] text-[#5B4436] underline underline-offset-[3px] cursor-pointer">
+                          <i className="ri-ruler-line"></i> Size guide
+                        </button>
                       )}
                     </div>
-                  );
-                })()}
+                    <div role="group" aria-label="Size" className={`grid grid-cols-4 gap-2 lg:gap-2.5 rounded-xl ${nudge && !needsColorSelection && needsVariantSelection ? 'ring-2 ring-[#A3392B] ring-offset-4' : ''}`}>
+                      {visibleVariants.map((variant: any) => {
+                        const selected = selectedVariant?.id === variant.id;
+                        const out = isVariantOut(variant);
+                        const showPrice = (variant.price || product.price) !== (hasColors ? activePrice : product.price);
+                        return (
+                          <button
+                            key={variant.id || variant.name}
+                            type="button"
+                            onClick={() => pickVariant(variant)}
+                            disabled={out}
+                            aria-pressed={selected}
+                            className={`min-h-[50px] px-2 py-1.5 rounded-xl text-[15px] font-semibold transition-colors flex flex-col items-center justify-center leading-tight cursor-pointer disabled:cursor-not-allowed ${selected
+                              ? 'border-[1.5px] border-[#5B4436] bg-[#5B4436] text-white'
+                              : out
+                                ? 'border border-dashed border-[#D8CFC3] text-[#A89C92] line-through'
+                                : 'border border-[#D8CFC3] bg-white hover:border-[#5B4436]'}`}
+                          >
+                            <span className="truncate max-w-full">{variant.name}</span>
+                            {showPrice && <span className={`text-[11px] font-medium ${selected ? 'text-white/80' : 'text-[#6E6158]'}`}>{money(variant.price || product.price)}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {lowStock && <p className="text-[13px] text-[#8A4B1F]">Only {activeStock} left in {selectedVariant.name}.</p>}
+                  </div>
+                )}
+                {nudge && !ready && !soldOut && (
+                  <p role="alert" className="-mt-4 text-[13px] font-medium text-[#A3392B]">{nudgeMessage}</p>
+                )}
+              </div>
 
-                {product.images.length > 1 && (
-                  <div className="grid grid-cols-4 gap-4">
-                    {product.images.map((image: string, index: number) => {
-                      const isVideo = product.media?.[index]?.type === 'video';
+              {/* How many */}
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-baseline">
+                  <span className="text-sm font-semibold">How many?</span>
+                  {hasBundles && hasVariants && <span className="text-[13px] text-[#6E6158]">Mix colours and sizes</span>}
+                </div>
+                {quantityChoices.length > 1 && (
+                  <div role="radiogroup" aria-label="Quantity" className={`grid gap-2 lg:gap-2.5 ${quantityChoices.length === 3 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                    {quantityChoices.map(choice => {
+                      const selected = quantity === choice.qty;
                       return (
                         <button
-                          key={index}
-                          onClick={() => setSelectedImage(index)}
-                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${selectedImage === index ? 'border-brand-brown shadow-md' : 'border-gray-200 hover:border-gray-300'
-                            }`}
+                          key={choice.qty}
+                          type="button"
+                          role="radio"
+                          aria-checked={selected}
+                          onClick={() => setQuantity(Math.min(choice.qty, Math.max(activeStock, minQty)))}
+                          className={`text-left px-3 lg:px-3.5 py-3 rounded-[14px] flex flex-col gap-0.5 transition-colors cursor-pointer ${selected ? 'border-[1.5px] border-[#5B4436] bg-[#F7F4EF]' : 'border border-[#E4DDD3] bg-white hover:border-[#C9BEB1]'}`}
                         >
-                          {isVideo ? (
-                            <>
-                              <video src={image} className="w-full h-full object-cover" muted preload="none" />
-                              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                <div className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
-                                  <i className="ri-play-fill text-brand-brown text-sm"></i>
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <Image
-                              src={image}
-                              alt={`${product.name} view ${index + 1}`}
-                              fill
-                              className="object-cover object-center"
-                              sizes="(max-width: 1024px) 25vw, 12vw"
-                              quality={60}
-                            />
+                          <span className="text-[12px] lg:text-[13px] font-medium text-[#4E423A]">{choice.qty === 1 ? '1 piece' : `${choice.qty} pieces`}</span>
+                          <span className="text-base lg:text-lg font-bold tabular-nums">{money(choice.total)}</span>
+                          <span className="text-[11px] lg:text-[12px] text-[#6E6158] tabular-nums">{money(choice.total / choice.qty)} each</span>
+                          {choice.saved > 0 && (
+                            <span className="mt-1.5 self-start text-[11px] font-bold text-[#1F5A37] bg-[#E3F0E7] px-2 py-0.5 rounded-full">Save ₵{Number.isInteger(choice.saved) ? choice.saved : choice.saved.toFixed(2)}</span>
                           )}
                         </button>
                       );
                     })}
                   </div>
                 )}
-              </div>
-
-              <div>
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-brand-brown font-semibold mb-2">{product.category}</p>
-                    <h1 className="text-3xl lg:text-4xl font-bold text-brand-brown mb-3">{product.name}</h1>
-                  </div>
-                  <button
-                    onClick={() => setIsWishlisted(!isWishlisted)}
-                    className="w-12 h-12 flex items-center justify-center border-2 border-gray-200 hover:border-brand-brown rounded-full transition-colors cursor-pointer"
-                  >
-                    <i className={`${isWishlisted ? 'ri-heart-fill text-[#5B4436]' : 'ri-heart-line text-gray-700'} text-xl`}></i>
-                  </button>
-                </div>
-
-                <div className="flex items-center mb-6">
-                  <div className="flex items-center space-x-1 mr-3">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <i
-                        key={star}
-                        className={`${star <= Math.round(product.rating) ? 'ri-star-fill text-[#5B4436]' : 'ri-star-line text-gray-300'} text-lg`}
-                      ></i>
-                    ))}
-                  </div>
-                  <span className="text-gray-700 font-medium">{Number(product.rating).toFixed(1)}</span>
-                </div>
-
-                <div className="flex items-baseline space-x-4 mb-6">
-                  {hasVariants && !selectedVariant ? (
-                    <span className="text-3xl lg:text-4xl font-bold text-brand-brown">
-                      From ₵{minVariantPrice.toFixed(2)}
-                    </span>
-                  ) : (
-                    <span className="text-3xl lg:text-4xl font-bold text-brand-brown">₵{activePrice.toFixed(2)}</span>
-                  )}
-                  {product.compare_at_price && product.compare_at_price > activePrice && (
-                    <span className="text-xl text-gray-400 line-through">₵{product.compare_at_price.toFixed(2)}</span>
-                  )}
-                </div>
-
-                {/* ── Bundle deals ── */}
-                {hasBundles && (
-                  <div className="mb-6 rounded-2xl border-2 border-brand-brown/15 bg-brand-cream/60 p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <i className="ri-stack-line text-brand-brown text-lg"></i>
-                      <span className="text-sm font-bold text-brand-brown uppercase tracking-wide">Bundle & Save</span>
-                      <span className="text-[11px] text-brand-brown/70 font-medium">mix colors & sizes</span>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {bundleTiers.map((tier) => {
-                        const isActive = quantity === tier.qty;
-                        const saved = tierSavings(tier, activePrice);
-                        return (
-                          <button
-                            key={tier.qty}
-                            type="button"
-                            onClick={() => setQuantity(tier.qty)}
-                            className={`relative flex flex-col items-center px-4 py-2.5 rounded-xl border-2 transition-all duration-150 cursor-pointer select-none active:scale-95 ${
-                              isActive
-                                ? 'border-brand-brown bg-brand-brown text-white shadow-md'
-                                : 'border-brand-brown/20 bg-white text-brand-brown hover:border-brand-brown/50 hover:shadow-sm'
-                            }`}
-                          >
-                            <span className="text-sm font-bold whitespace-nowrap">
-                              {tier.qty} for ₵{Number.isInteger(tier.total_price) ? tier.total_price : tier.total_price.toFixed(2)}
-                            </span>
-                            <span className={`text-[10px] font-medium ${isActive ? 'text-white/80' : 'text-brand-brown/60'}`}>
-                              ₵{tierUnitPrice(tier).toFixed(2)} each
-                            </span>
-                            {saved > 0 && (
-                              <span className={`absolute -top-2 -right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                isActive ? 'bg-white text-brand-brown' : 'bg-green-600 text-white'
-                              }`}>
-                                −₵{Number.isInteger(saved) ? saved : saved.toFixed(2)}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <p className="text-gray-700 leading-relaxed mb-8 text-lg">{product.description}</p>
-
-                {/* ── VARIANT SELECTORS ─────────────────────────────── */}
-                {hasVariants && (
-                  <div className="mb-6 space-y-5">
-
-                    {/* STEP 1 — Color */}
-                    {product.colors.length > 0 && (
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold uppercase tracking-widest text-gray-400">
-                            {product.colors.length > 1 ? 'Step 1 · ' : ''}Color
-                          </span>
-                          {selectedColor
-                            ? <span className="text-sm font-semibold text-brand-brown">{selectedColor}</span>
-                            : <span className="text-xs text-[#5B4436] font-medium animate-pulse">← Pick a color</span>
-                          }
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {product.colors.map((color: string) => {
-                            const isSelected = selectedColor === color;
-                            const colorVariants = product.variants.filter((v: any) => v.color === color);
-                            const colorStock = colorVariants.reduce((sum: number, v: any) => sum + (v.stock ?? v.quantity ?? 0), 0);
-                            const isOutOfStock = colorStock === 0 && product.stockCount === 0;
-                            const variantImage = colorVariants.find((v: any) => v.image_url)?.image_url;
-                            return (
-                              <button
-                                key={color}
-                                onClick={() => {
-                                  setSelectedColor(color);
-                                  const matching = product.variants.filter((v: any) => v.color === color);
-                                  if (matching.length === 1) {
-                                    setSelectedVariant(matching[0]);
-                                    setSelectedSize(matching[0].name);
-                                  } else {
-                                    setSelectedVariant(null);
-                                    setSelectedSize('');
-                                  }
-                                }}
-                                disabled={isOutOfStock}
-                                title={color}
-                                className={`relative group flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all duration-150 cursor-pointer select-none
-                                  ${isSelected
-                                    ? 'border-brand-brown bg-brand-brown text-white shadow-md scale-105'
-                                    : isOutOfStock
-                                      ? 'border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed opacity-50'
-                                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:shadow-sm active:scale-95'
-                                  }`}
-                              >
-                                {variantImage ? (
-                                  <span className="w-8 h-8 rounded-lg overflow-hidden border border-white/20 flex-shrink-0 bg-gray-100">
-                                    <Image src={variantImage} alt={color} width={32} height={32} className="w-full h-full object-cover" />
-                                  </span>
-                                ) : (
-                                  <span
-                                    className="w-5 h-5 rounded-full flex-shrink-0 border-2 border-white shadow-sm"
-                                    style={{ backgroundColor: product.colorHexMap?.[color] || colorNameToHex(color) }}
-                                  />
-                                )}
-                                <span className="text-sm font-medium">{color}</span>
-                                {isOutOfStock && <span className="absolute inset-0 flex items-center justify-center rounded-xl bg-white/60 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Out of Stock</span>}
-                                {isSelected && <i className="ri-check-line text-xs ml-1 opacity-80"></i>}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* STEP 2 — Size / Type */}
-                    {(() => {
-                      const hasColors = product.colors.length > 0;
-                      const visibleVariants = hasColors && selectedColor
-                        ? product.variants.filter((v: any) => v.color === selectedColor)
-                        : hasColors ? [] : product.variants;
-
-                      const showSelector = visibleVariants.length > 1 || (!hasColors && visibleVariants.length > 0);
-                      if (!showSelector) return null;
-
-                      const hasImages = visibleVariants.some((v: any) => v.image_url);
-                      const stepLabel = hasColors ? 'Step 2 · ' : '';
-                      const guideCategory = detectSizeGuideCategory(visibleVariants.map((v: any) => v.name || ''));
-
-                      return (
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="flex items-center gap-3">
-                              <span className="text-xs font-bold uppercase tracking-widest text-gray-400">{stepLabel}Size / Type</span>
-                              {guideCategory && (
-                                <button
-                                  type="button"
-                                  onClick={() => setSizeGuideOpen(true)}
-                                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand-brown hover:underline"
-                                >
-                                  <i className="ri-ruler-line"></i> Size Guide
-                                </button>
-                              )}
-                            </span>
-                            {selectedVariant
-                              ? <span className="text-sm font-semibold text-brand-brown">₵{(selectedVariant.price || product.price).toFixed(2)}</span>
-                              : <span className="text-xs text-[#5B4436] font-medium animate-pulse">← Pick a size</span>
-                            }
-                          </div>
-
-                          {hasImages ? (
-                            /* Image-style variant cards */
-                            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                              {visibleVariants.map((variant: any) => {
-                                const isSelected = selectedVariant?.id === variant.id || selectedVariant?.name === variant.name;
-                                const variantStock = variant.stock ?? variant.quantity ?? 0;
-                                const isOutOfStock = variantStock === 0 && product.stockCount === 0;
-                                return (
-                                  <button
-                                    key={variant.id || variant.name}
-                                    onClick={() => { setSelectedVariant(variant); setSelectedSize(variant.name); }}
-                                    disabled={isOutOfStock}
-                                    className={`relative rounded-xl overflow-hidden border-2 transition-all duration-150 cursor-pointer flex flex-col active:scale-95
-                                      ${isSelected ? 'border-brand-brown shadow-md' : isOutOfStock ? 'border-gray-100 opacity-40 cursor-not-allowed' : 'border-gray-200 hover:border-gray-400 hover:shadow-sm'}`}
-                                  >
-                                    {variant.image_url ? (
-                                      <span className="w-full aspect-square bg-gray-100 block overflow-hidden">
-                                        <Image src={variant.image_url} alt={variant.name} width={100} height={100} className="w-full h-full object-cover" />
-                                      </span>
-                                    ) : (
-                                      <span className="w-full aspect-square bg-gray-100 flex items-center justify-center text-xs text-gray-500 font-medium px-1 text-center">{variant.name}</span>
-                                    )}
-                                    <span className={`block text-center text-[11px] font-semibold py-1 px-1 truncate ${isSelected ? 'bg-brand-brown text-white' : 'bg-white text-gray-600'}`}>
-                                      ₵{(variant.price || product.price).toFixed(2)}
-                                    </span>
-                                    {isSelected && (
-                                      <span className="absolute top-1 right-1 w-5 h-5 bg-brand-brown rounded-full flex items-center justify-center">
-                                        <i className="ri-check-line text-white text-[10px]"></i>
-                                      </span>
-                                    )}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            /* Text pill variant buttons */
-                            <div className="flex flex-wrap gap-2">
-                              {visibleVariants.map((variant: any) => {
-                                const isSelected = selectedVariant?.id === variant.id || selectedVariant?.name === variant.name;
-                                const variantStock = variant.stock ?? variant.quantity ?? 0;
-                                const isOutOfStock = variantStock === 0 && product.stockCount === 0;
-                                return (
-                                  <button
-                                    key={variant.id || variant.name}
-                                    onClick={() => { setSelectedVariant(variant); setSelectedSize(variant.name); }}
-                                    disabled={isOutOfStock}
-                                    className={`relative px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all duration-150 cursor-pointer select-none active:scale-95
-                                      ${isSelected
-                                        ? 'border-brand-brown bg-brand-brown text-white shadow-md'
-                                        : isOutOfStock
-                                          ? 'border-gray-100 bg-gray-50 text-gray-300 line-through cursor-not-allowed'
-                                          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:shadow-sm'
-                                      }`}
-                                  >
-                                    <span>{variant.name}</span>
-                                    <span className={`block text-[11px] mt-0.5 ${isSelected ? 'text-gray-300' : 'text-gray-400'}`}>
-                                      ₵{(variant.price || product.price).toFixed(2)}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })()}
-
-                  </div>
-                )}
-                {/* ── END VARIANT SELECTORS ─────────────────────────── */}
-
-                <div className="mb-8">
-                  <label className="block font-semibold text-brand-brown mb-3">Quantity</label>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center border-2 border-gray-300 rounded-lg">
-                      <button
-                        onClick={() => setQuantity(Math.max(product.moq || 1, quantity - 1))}
-                        className="w-12 h-12 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                        disabled={activeStock === 0 || quantity <= (product.moq || 1)}
-                      >
-                        <i className="ri-subtract-line text-xl"></i>
-                      </button>
-                      <input
-                        type="number"
-                        value={quantity}
-                        onChange={(e) => setQuantity(Math.max(product.moq || 1, Math.min(activeStock, parseInt(e.target.value) || (product.moq || 1))))}
-                        className="w-16 h-12 text-center border-x-2 border-gray-300 focus:outline-none text-lg font-semibold"
-                        min={product.moq || 1}
-                        max={activeStock}
-                        disabled={activeStock === 0}
-                      />
-                      <button
-                        onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
-                        className="w-12 h-12 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
-                        disabled={activeStock === 0}
-                      >
-                        <i className="ri-add-line text-xl"></i>
-                      </button>
-                    </div>
-                    <div className="flex flex-col">
-                      {product.moq > 1 && (
-                        <span className="text-brand-brown font-medium text-sm">
-                          <i className="ri-information-line mr-1"></i>
-                          Min. order: {product.moq} units
-                        </span>
-                      )}
-                      {activeStock > 0 ? (
-                        <span className="text-[#5B4436] font-medium text-sm">
-                          <i className="ri-checkbox-circle-line mr-1"></i>
-                          In Stock
-                        </span>
-                      ) : (
-                        <span className="text-[#5B4436] font-medium">
-                          <i className="ri-close-circle-line mr-1"></i>
-                          Out of Stock
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Live total with bundle savings */}
-                  {quantity > 1 && (
-                    <div className="mt-4 flex items-baseline gap-3">
-                      <span className="text-sm text-gray-500">Total for {quantity}:</span>
-                      <span className="text-2xl font-bold text-brand-brown">₵{bundleTotal.toFixed(2)}</span>
-                      {bundleSaved > 0 && (
-                        <>
-                          <span className="text-sm text-gray-400 line-through">₵{(activePrice * quantity).toFixed(2)}</span>
-                          <span className="text-xs font-bold text-white bg-green-600 px-2 py-0.5 rounded-full">
-                            You save ₵{Number.isInteger(bundleSaved) ? bundleSaved : bundleSaved.toFixed(2)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                  <button
-                    disabled={activeStock === 0 || needsVariantSelection || needsColorSelection}
-                    className={`flex-1 bg-brand-brown hover:bg-brand-brown text-white py-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 text-lg whitespace-nowrap cursor-pointer ${(activeStock === 0 || needsVariantSelection || needsColorSelection) ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    onClick={handleAddToCart}
-                  >
-                    <i className="ri-shopping-cart-line text-xl"></i>
-                    <span>{activeStock === 0 ? 'Out of Stock' : needsColorSelection ? 'Select a Color' : needsVariantSelection ? 'Select a Variant' : 'Add to Cart'}</span>
-                  </button>
-                  {activeStock > 0 && !needsVariantSelection && !needsColorSelection && (
+                <div className="flex items-center gap-3.5 text-[13px] text-[#6E6158] flex-wrap">
+                  {quantityChoices.length > 1 && <span>Or any amount</span>}
+                  <div className="flex items-center border border-[#E4DDD3] rounded-full">
                     <button
-                      onClick={handleBuyNow}
-                      className="sm:w-auto bg-brand-brown hover:bg-[#47362C] text-white px-8 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap cursor-pointer"
-                    >
-                      Buy Now
-                    </button>
-                  )}
-                </div>
-
-                <div className="border-t border-gray-200 pt-6 space-y-4">
-                  <div className="flex items-center text-gray-700">
-                    <i className="ri-store-2-line text-xl text-brand-brown mr-3"></i>
-                    <span>Free store pickup available</span>
+                      type="button"
+                      aria-label="One less"
+                      onClick={() => setQuantity(Math.max(minQty, quantity - 1))}
+                      disabled={quantity <= minQty}
+                      className="w-11 h-10 flex items-center justify-center text-[#2B211B] text-lg disabled:text-[#C9BEB1] cursor-pointer disabled:cursor-not-allowed"
+                    >−</button>
+                    <span aria-live="polite" className="min-w-[28px] text-center font-semibold text-[#2B211B] tabular-nums">{quantity}</span>
+                    <button
+                      type="button"
+                      aria-label="One more"
+                      onClick={() => setQuantity(selectedVariant || !hasVariants ? Math.min(Math.max(activeStock, minQty), quantity + 1) : quantity + 1)}
+                      className="w-11 h-10 flex items-center justify-center text-[#2B211B] text-lg cursor-pointer"
+                    >+</button>
                   </div>
-                  <div className="flex items-center text-gray-700">
-                    <i className="ri-arrow-left-right-line text-xl text-brand-brown mr-3"></i>
-                    <span>Delivers in 24 - 48 hours</span>
-                  </div>
-                  <div className="flex items-center text-gray-700">
-                    <i className="ri-shield-check-line text-xl text-brand-brown mr-3"></i>
-                    <span>Secure payment & buyer protection</span>
-                  </div>
-                  {product.sku && (
-                    <div className="flex items-center text-gray-700">
-                      <i className="ri-barcode-line text-xl text-brand-brown mr-3"></i>
-                      <span>SKU: {product.sku}</span>
-                    </div>
-                  )}
+                  {minQty > 1 && <span>Minimum order: {minQty}</span>}
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6">
-            <div className="border-b border-gray-300 mb-8">
-              <div className="flex space-x-8">
-                {['description', 'features', 'care', 'reviews'].map((tab) => (
+              {/* Buy */}
+              <div className="hidden lg:flex flex-col gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => tryAddToCart(false)}
+                  disabled={soldOut}
+                  className="h-[58px] rounded-[14px] bg-[#5B4436] hover:bg-[#47362C] text-white text-base font-semibold flex items-center justify-center gap-2.5 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
+                >
+                  {ctaLabel}
+                  {ready && <><span aria-hidden="true" className="opacity-60">·</span><span className="tabular-nums">{money(bundleTotal)}</span></>}
+                </button>
+                {!soldOut && (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`pb-4 font-semibold transition-colors relative whitespace-nowrap cursor-pointer ${activeTab === tab
-                      ? 'text-brand-brown border-b-2 border-brand-brown'
-                      : 'text-gray-600 hover:text-brand-brown'
-                      }`}
+                    type="button"
+                    onClick={() => tryAddToCart(true)}
+                    className="h-[54px] rounded-[14px] border-[1.5px] border-[#5B4436] text-[#2B211B] hover:bg-[#F7F4EF] text-[15px] font-semibold transition-colors cursor-pointer"
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    Buy now
                   </button>
+                )}
+              </div>
+              {bundleSaved > 0 && ready && (
+                <p className="hidden lg:block -mt-4 text-[13px] text-[#1F5A37] font-medium">You save ₵{Number.isInteger(bundleSaved) ? bundleSaved : bundleSaved.toFixed(2)} with this bundle.</p>
+              )}
+              {product.preorderShipping && (
+                <p className="-mt-3 text-[13px] text-[#8A4B1F] flex items-center gap-1.5"><i className="ri-time-line"></i>{product.preorderShipping}</p>
+              )}
+
+              <div className="flex items-center gap-2 flex-wrap text-[12px] text-[#6E6158] -mt-2">
+                <i className="ri-lock-line text-sm"></i>
+                <span>Pay with</span>
+                {['MTN MoMo', 'Telecel Cash', 'AirtelTigo Money', 'Card'].map(m => (
+                  <span key={m} className="border border-[#E4DDD3] rounded-md px-2 py-0.5 text-[#2B211B] font-medium">{m}</span>
                 ))}
               </div>
-            </div>
 
-            {activeTab === 'description' && (
-              <div className="prose max-w-none">
-                <p className="text-gray-700 text-lg leading-relaxed">{product.description}</p>
-              </div>
-            )}
+              <ul className="bg-[#F7F4EF] rounded-2xl px-5 py-4 flex flex-col gap-3.5 text-sm">
+                <li className="flex gap-3 items-start"><i className="ri-store-2-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span><strong className="font-semibold">Free store pickup</strong>, or delivery in Accra and across Ghana</span></li>
+                <li className="flex gap-3 items-start"><i className="ri-truck-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span>Delivered within 48 hours · free over ₵800</span></li>
+                <li className="flex gap-3 items-start"><i className="ri-arrow-go-back-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span>Easy returns within 7 days</span></li>
+              </ul>
 
-            {activeTab === 'features' && (
-              <div>
-                <h3 className="text-2xl font-bold text-brand-brown mb-6">Key Features</h3>
-                <ul className="grid md:grid-cols-2 gap-4">
-                  {product.features.map((feature: string, index: number) => (
-                    <li key={index} className="flex items-start">
-                      <i className="ri-checkbox-circle-fill text-brand-brown text-xl mr-3 mt-1"></i>
-                      <span className="text-gray-700 text-lg">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="border-t border-[#E4DDD3]">
+                {product.description && (
+                  <details open className="group border-b border-[#E4DDD3]">
+                    <summary className="flex justify-between items-center min-h-[56px] text-[15px] font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                      Details<i className="ri-arrow-down-s-line text-xl transition-transform group-open:rotate-180"></i>
+                    </summary>
+                    <div className="pb-5 text-sm leading-[1.7] text-[#4E423A] max-w-[62ch] whitespace-pre-line">{product.description}</div>
+                  </details>
+                )}
+                <details className="group border-b border-[#E4DDD3]">
+                  <summary className="flex justify-between items-center min-h-[56px] text-[15px] font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    Delivery and returns<i className="ri-arrow-down-s-line text-xl transition-transform group-open:rotate-180"></i>
+                  </summary>
+                  <div className="pb-5 text-sm leading-[1.7] text-[#4E423A] max-w-[62ch]">
+                    Free pickup from our store, doorstep delivery in Accra, or delivery outside Accra. Orders arrive within 48 hours, and delivery is free over ₵800. <Link href="/returns" className="text-[#5B4436] underline underline-offset-[3px]">Returns</Link> are accepted within 7 days.
+                  </div>
+                </details>
+                <details id="reviews" className="group border-b border-[#E4DDD3]">
+                  <summary className="flex justify-between items-center min-h-[56px] text-[15px] font-semibold cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+                    Reviews<i className="ri-arrow-down-s-line text-xl transition-transform group-open:rotate-180"></i>
+                  </summary>
+                  <div className="pb-5">
+                    <ProductReviews productId={product.id} />
+                  </div>
+                </details>
               </div>
-            )}
-
-            {activeTab === 'care' && (
-              <div>
-                <h3 className="text-2xl font-bold text-brand-brown mb-6">Care Instructions</h3>
-                <p className="text-gray-700 text-lg leading-relaxed">{product.care}</p>
-              </div>
-            )}
-
-            {activeTab === 'reviews' && (
-              <div id="reviews">
-                <ProductReviews productId={product.id} />
-              </div>
-            )}
+            </section>
           </div>
-        </section>
+        </div>
 
         {relatedProducts.length > 0 && (
-          <section className="py-20 bg-white" data-product-shop>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl lg:text-4xl font-bold text-brand-brown mb-4">You May Also Like</h2>
-                <p className="text-lg text-gray-600">Curated recommendations based on this product</p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          <section className="py-16 lg:py-24 bg-white" data-product-shop>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+              <h2 className="font-serif font-medium text-[28px] lg:text-[34px] mb-8 lg:mb-10">You may also like</h2>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-8">
                 {relatedProducts.map((p) => (
                   <ProductCard key={p.id} {...p} />
                 ))}
@@ -817,6 +691,26 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
           </section>
         )}
       </main>
+
+      {/* Phone: price and add-to-bag always in reach */}
+      <BodyPortal>
+      <div className="lg:hidden fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-[#EFEAE3] shadow-[0_-6px_20px_rgba(43,33,27,0.06)] px-4 pt-3 pb-[max(16px,env(safe-area-inset-bottom))]">
+        <div className="flex items-center gap-3">
+          <div className="flex flex-col min-w-[92px]">
+            <span className="text-[12px] text-[#6E6158]">{quantity === 1 ? '1 piece' : `${quantity} pieces`}</span>
+            <span className="text-lg font-bold tabular-nums text-[#2B211B]">{priceVaries && !selectedVariant ? `From ${money(minVariantPrice)}` : money(bundleTotal)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => tryAddToCart(false)}
+            disabled={soldOut}
+            className="flex-1 h-[54px] rounded-[14px] bg-[#5B4436] active:bg-[#47362C] text-white text-base font-semibold cursor-pointer disabled:opacity-50"
+          >
+            {ctaLabel}
+          </button>
+        </div>
+      </div>
+      </BodyPortal>
 
       <SizeGuideModal
         isOpen={sizeGuideOpen}

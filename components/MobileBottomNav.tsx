@@ -42,6 +42,9 @@ export default function MobileBottomNav() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  // Product and checkout pages have their own fixed buy / pay bar on phones
+  const hasOwnActionBar = pathname.startsWith('/product/') || pathname.startsWith('/checkout');
+
   const navItems = [
     {
       href: '/',
@@ -79,7 +82,7 @@ export default function MobileBottomNav() {
 
   return (
     <nav
-      className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-out ${
+      className={`${hasOwnActionBar ? 'hidden' : 'lg:hidden'} fixed bottom-0 left-0 right-0 z-50 transition-transform duration-300 ease-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
       aria-label="Mobile navigation"

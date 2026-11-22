@@ -4,13 +4,26 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 
+const money = (n: number) => `₵${Number(n || 0).toFixed(2)}`;
+const HOUR = 60 * 60 * 1000;
+
+/** Delivery promise shown to customers: delivery within 48 hours, pickup ready within 24 hours. */
+function deliveryPromise(order: any) {
+  const placed = new Date(order.created_at || Date.now());
+  const isPickup = order.shipping_method === 'pickup';
+  const by = new Date(placed.getTime() + (isPickup ? 24 : 48) * HOUR);
+  const byLabel = by.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  return isPickup
+    ? { title: 'Ready to collect', window: 'Within 24 hours', by: byLabel }
+    : { title: 'Delivered', window: 'Within 48 hours', by: byLabel };
+}
+
 function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const orderNumber = searchParams.get('order');
   const paymentSuccess = searchParams.get('payment_success');
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showConfetti, setShowConfetti] = useState(true);
   const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
@@ -27,9 +40,9 @@ function OrderSuccessContent() {
         const orderData = json.order;
         setOrder(orderData);
 
-        // If redirected from payment and order is still pending, try to verify
+        // Back from Moolre but the webhook has not marked it paid yet: check again
         if (paymentSuccess === 'true' && orderData && orderData.payment_status !== 'paid') {
-          verifyPayment(orderNumber, orderData);
+          verifyPayment(orderNumber);
         }
       } catch (err) {
         console.error('Error fetching order:', err);
@@ -40,8 +53,8 @@ function OrderSuccessContent() {
     fetchOrder();
   }, [orderNumber, paymentSuccess]);
 
-  // Payment verification - called when user is redirected from Moolre with payment_success=true
-  const verifyPayment = async (orderNum: string, _initialOrder: any) => {
+  // Called when the shopper returns from Moolre with payment_success=true
+  const verifyPayment = async (orderNum: string) => {
     setVerifying(true);
 
     const refreshOrder = async () => {
@@ -50,7 +63,7 @@ function OrderSuccessContent() {
       return j.order;
     };
 
-    // Retry loop: check every 3s for up to 30s to give the webhook time to fire
+    // Give the webhook up to ~30s to fire
     const delays = [3000, 3000, 4000, 5000, 5000, 5000, 5000];
     for (const delay of delays) {
       await new Promise(resolve => setTimeout(resolve, delay));
@@ -62,7 +75,7 @@ function OrderSuccessContent() {
       }
     }
 
-    // Webhook never fired — call our verify endpoint which queries Moolre directly
+    // Webhook never fired: ask Moolre directly
     try {
       const res = await fetch('/api/payment/moolre/verify', {
         method: 'POST',
@@ -70,7 +83,6 @@ function OrderSuccessContent() {
         body: JSON.stringify({ orderNumber: orderNum })
       });
       const result = await res.json();
-      console.log('[Success] Verify result:', result);
       if (result.success && result.payment_status === 'paid') {
         const updated = await refreshOrder().catch(() => null);
         if (updated) setOrder(updated);
@@ -84,258 +96,160 @@ function OrderSuccessContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <i className="ri-loader-4-line text-4xl text-gray-900 animate-spin mb-4 block"></i>
-          <p className="text-gray-500">Loading order details...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Use a fallback or nice error if order not found
-  if (!order) {
-    return (
-      <main className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <i className="ri-error-warning-line text-4xl text-[#5B4436] mb-4 block"></i>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
-          <p className="text-gray-600 mb-6">We couldn't locate the order details.</p>
-          <Link href="/shop" className="text-gray-900 font-semibold hover:underline">
-            Return to Shop
-          </Link>
+      <main className="min-h-[70vh] flex items-center justify-center bg-white text-[#2B211B]">
+        <div className="flex flex-col items-center gap-3">
+          <span className="w-8 h-8 rounded-full border-[3px] border-[#E4DDD3] border-t-[#5B4436] animate-spin" aria-hidden="true"></span>
+          <p className="text-[#4E423A]">Loading your order…</p>
         </div>
       </main>
     );
   }
 
-  const orderDate = new Date(order.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  const estimatedDelivery = new Date(new Date(order.created_at).getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
-  const pointsEarned = Math.floor(order.total / 10); // Example logic: 1 point per 10 currency units
+  if (!order) {
+    return (
+      <main className="min-h-[70vh] flex items-center justify-center bg-white text-[#2B211B] px-4">
+        <div className="max-w-sm text-center flex flex-col items-center gap-3">
+          <i className="ri-error-warning-line text-4xl text-[#5B4436]"></i>
+          <h1 className="font-serif font-medium text-3xl">We couldn’t find that order</h1>
+          <p className="text-[#4E423A]">Check the link in your text message, or track it with your order number.</p>
+          <div className="flex gap-3 mt-2 flex-wrap justify-center">
+            <Link href="/order-tracking" className="h-12 px-5 inline-flex items-center rounded-[14px] bg-[#5B4436] hover:bg-[#47362C] text-white font-semibold transition-colors">Track an order</Link>
+            <Link href="/shop" className="h-12 px-5 inline-flex items-center rounded-[14px] border-[1.5px] border-[#5B4436] font-semibold hover:bg-[#F7F4EF] transition-colors">Back to shop</Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const isPaid = order.payment_status === 'paid';
+  const firstName = order.shipping_address?.firstName || order.metadata?.first_name || '';
+  const promise = deliveryPromise(order);
+  const isPickup = order.shipping_method === 'pickup';
+  const channel = order.metadata?.payment_channel === 'card' ? 'Card' : order.metadata?.payment_channel === 'momo' ? 'Mobile Money' : null;
+  // Older delivery orders were placed with no fee and priced by phone afterwards
+  const feePending = order.metadata?.delivery_fee_pending ?? (
+    order.shipping_method !== 'pickup' && Number(order.shipping_total) === 0 && Number(order.subtotal) < 800
+  );
+  const placedAt = new Date(order.created_at);
+  const placedLabel = `${placedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${placedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+  const address = order.shipping_address || {};
+  const items: any[] = order.order_items || [];
 
   return (
-    <main className="min-h-screen bg-white">
-      {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-          {[...Array(50)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute animate-fall"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `-${Math.random() * 20}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${3 + Math.random() * 2}s`
-              }}
-            >
-              <i className={`ri-${['heart', 'star', 'gift'][Math.floor(Math.random() * 3)]}-fill ${['text-gray-500', 'text-[#5B4436]', 'text-[#5B4436]'][Math.floor(Math.random() * 3)]} text-xl opacity-70`}></i>
+    <main className="min-h-screen bg-white text-[#2B211B]">
+      <div className="max-w-[760px] mx-auto px-4 sm:px-6 lg:px-10 pt-10 lg:pt-16 pb-20 lg:pb-24 flex flex-col gap-9 lg:gap-10">
+
+        {/* Status */}
+        {verifying ? (
+          <div className="flex flex-col gap-3.5 items-start">
+            <span className="w-14 h-14 rounded-full bg-[#F7F4EF] flex items-center justify-center"><span className="w-7 h-7 rounded-full border-[3px] border-[#E4DDD3] border-t-[#5B4436] animate-spin" aria-hidden="true"></span></span>
+            <h1 className="font-serif font-medium text-[36px] lg:text-[48px] leading-[1.05] tracking-[-0.01em]">Confirming your payment…</h1>
+            <p className="text-base lg:text-[17px] text-[#4E423A] max-w-[56ch]" aria-live="polite">This usually takes a few seconds. Please keep this page open.</p>
+            <span className="text-sm text-[#4E423A]">Order <strong className="text-[#2B211B] tabular-nums">{order.order_number}</strong></span>
+          </div>
+        ) : isPaid ? (
+          <div className="flex flex-col gap-3.5 items-start">
+            <span className="w-14 h-14 rounded-full bg-[#E3F0E7] text-[#1F5A37] flex items-center justify-center"><i className="ri-check-line text-3xl"></i></span>
+            <h1 className="font-serif font-medium text-[36px] lg:text-[48px] leading-[1.05] tracking-[-0.01em]">Thank you{firstName ? `, ${firstName}` : ''}</h1>
+            <p className="text-base lg:text-[17px] text-[#4E423A] max-w-[56ch]">
+              Your payment of <strong className="text-[#2B211B]">{money(order.total)}</strong> is confirmed. Updates go to {order.phone}{order.email ? ` and ${order.email}` : ''}.
+            </p>
+            <span className="text-sm text-[#4E423A]">Order number <strong className="text-[#2B211B] tabular-nums">{order.order_number}</strong></span>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3.5 items-start">
+            <span className="w-14 h-14 rounded-full bg-[#FBF1E6] text-[#8A4B1F] flex items-center justify-center"><i className="ri-time-line text-3xl"></i></span>
+            <h1 className="font-serif font-medium text-[36px] lg:text-[48px] leading-[1.05] tracking-[-0.01em]">Your payment isn’t finished</h1>
+            <p className="text-base lg:text-[17px] text-[#4E423A] max-w-[56ch]">
+              We saved your order, but we haven’t received the payment of <strong className="text-[#2B211B]">{money(order.total)}</strong> yet. If money left your account, it can take a few minutes to show here.
+            </p>
+            <span className="text-sm text-[#4E423A]">Order <strong className="text-[#2B211B] tabular-nums">{order.order_number}</strong></span>
+            <div className="flex gap-3 flex-wrap mt-2">
+              <Link href={`/pay/${encodeURIComponent(order.order_number)}`} className="h-[54px] px-7 rounded-[14px] bg-[#5B4436] hover:bg-[#47362C] text-white font-semibold inline-flex items-center transition-colors">Pay {money(order.total)} now</Link>
+              <button type="button" onClick={() => window.location.reload()} className="h-[54px] px-7 rounded-[14px] border-[1.5px] border-[#5B4436] font-semibold hover:bg-[#F7F4EF] transition-colors cursor-pointer">I’ve paid, check again</button>
+            </div>
+          </div>
+        )}
+
+        {/* Progress */}
+        {isPaid && (
+          <ol aria-label="Order progress" className="grid grid-cols-3 gap-3">
+            <li className="flex flex-col gap-2.5">
+              <span className="h-1 rounded-full bg-[#5B4436]"></span>
+              <span className="text-sm font-semibold">Paid</span>
+              <span className="text-[13px] text-[#4E423A]">{placedLabel}</span>
+            </li>
+            <li className="flex flex-col gap-2.5">
+              <span className="h-1 rounded-full bg-[#E4DDD3]"></span>
+              <span className="text-sm font-semibold">Packing</span>
+              <span className="text-[13px] text-[#4E423A]">We text you when it starts</span>
+            </li>
+            <li className="flex flex-col gap-2.5">
+              <span className="h-1 rounded-full bg-[#E4DDD3]"></span>
+              <span className="text-sm font-semibold">{promise.title}</span>
+              <span className="text-[13px] text-[#4E423A]">{promise.window}</span>
+            </li>
+          </ol>
+        )}
+
+        {/* Delivery + payment */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="bg-[#F7F4EF] rounded-2xl p-5 flex flex-col gap-1.5 text-sm">
+            <span className="font-semibold text-[15px]">{isPickup ? 'Store pickup' : order.shipping_method === 'outside_accra' ? 'Delivery outside Accra' : 'Doorstep delivery'}</span>
+            <span className="text-[#2B211B] font-medium">{promise.window} · by {promise.by}</span>
+            {isPickup ? (
+              <span className="text-[#4E423A]">We text you when it’s ready to collect. Bring your order number.</span>
+            ) : (
+              <>
+                {address.address && <span className="text-[#4E423A]">{address.address}</span>}
+                {(address.city || address.region) && <span className="text-[#4E423A]">{[address.city, address.region].map((v: any) => String(v || '').trim()).filter(Boolean).join(', ')}</span>}
+                {address.gpsAddress && <span className="text-[#4E423A]">GPS {address.gpsAddress}</span>}
+                {feePending && <span className="text-[#8A4B1F]">We text you the delivery fee before we send it.</span>}
+              </>
+            )}
+          </div>
+          <div className="bg-[#F7F4EF] rounded-2xl p-5 flex flex-col gap-1.5 text-sm">
+            <span className="font-semibold text-[15px]">Payment</span>
+            <span className="text-[#4E423A]">{channel ? `${channel} through Moolre` : 'Through Moolre'}</span>
+            <span className={isPaid ? 'text-[#1F5A37] font-medium' : 'text-[#8A4B1F] font-medium'}>{isPaid ? `Paid ${money(order.total)}` : `Waiting for ${money(order.total)}`}</span>
+          </div>
+        </div>
+
+        {/* Items */}
+        <div className="flex flex-col gap-3.5 border-t border-[#EFEAE3] pt-6">
+          {items.map((item: any) => (
+            <div key={item.id} className="flex gap-3.5 items-center">
+              <div className="w-14 h-[66px] flex-none bg-[#F7F4EF] rounded-[10px] overflow-hidden">
+                {item.metadata?.image && <img src={item.metadata.image} alt="" className="w-full h-full object-cover" />}
+              </div>
+              <div className="flex-1 min-w-0 text-sm">
+                <p className="font-semibold line-clamp-1">{item.product_name}</p>
+                <p className="text-[#4E423A]">{[item.variant_name?.replace(' / ', ' · '), `×${item.quantity}`].filter(Boolean).join(' · ')}</p>
+                {item.metadata?.preorder_shipping && <p className="text-xs text-[#8A4B1F] mt-0.5">{item.metadata.preorder_shipping}</p>}
+              </div>
+              <span className="text-sm font-semibold tabular-nums">{money(item.total_price ?? item.unit_price * item.quantity)}</span>
             </div>
           ))}
+          <dl className="flex flex-col gap-2 text-sm tabular-nums border-t border-[#EFEAE3] pt-3.5">
+            <div className="flex justify-between"><dt className="text-[#4E423A]">Subtotal</dt><dd>{money(order.subtotal)}</dd></div>
+            {Number(order.discount_total) > 0 && <div className="flex justify-between text-[#1F5A37]"><dt>Savings</dt><dd>−{money(order.discount_total)}</dd></div>}
+            <div className="flex justify-between"><dt className="text-[#4E423A]">{isPickup ? 'Store pickup' : 'Delivery'}</dt><dd>{feePending ? 'Fee by text' : Number(order.shipping_total) > 0 ? money(order.shipping_total) : 'Free'}</dd></div>
+            <div className="flex justify-between text-base font-bold border-t border-[#EFEAE3] pt-3"><dt>{isPaid ? 'Total paid' : 'Total'}</dt><dd>{money(order.total)}</dd></div>
+          </dl>
         </div>
-      )}
 
-      <section className="py-16">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center mb-8">
-            <div className="w-24 h-24 flex items-center justify-center mx-auto mb-6 bg-gray-100 rounded-full">
-              <i className="ri-checkbox-circle-fill text-6xl text-gray-700"></i>
-            </div>
-
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">Order Confirmed!</h1>
-            <p className="text-xl text-gray-600 mb-8">
-              Thank you for your purchase. We're processing your order now.
-            </p>
-
-            <div className="bg-gray-50 rounded-xl p-6 mb-8">
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Order Number</p>
-                  <p className="text-lg font-bold text-gray-900">{order.order_number}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Order Date</p>
-                  <p className="text-lg font-bold text-gray-900">{orderDate}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600 mb-1">Estimated Delivery</p>
-                  <p className="text-lg font-bold text-gray-900">{estimatedDelivery}</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-              <Link
-                href={`/account?tab=orders`}
-                className="bg-gray-900 hover:bg-brand-bag-dark text-white px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center justify-center whitespace-nowrap"
-              >
-                <i className="ri-file-list-3-line mr-2"></i>
-                View Order
-              </Link>
-              <Link
-                href="/shop"
-                className="border-2 border-gray-300 hover:border-gray-400 text-gray-700 px-8 py-4 rounded-lg font-semibold transition-colors inline-flex items-center justify-center whitespace-nowrap"
-              >
-                <i className="ri-shopping-bag-line mr-2"></i>
-                Continue Shopping
-              </Link>
-            </div>
-
-            <div className="bg-gradient-to-r from-[#E6DFD5]/50 to-[#F3F3F3] rounded-xl p-6 border-2 border-[#5B4436]/30">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-12 flex items-center justify-center bg-[#5B4436] rounded-full">
-                    <i className="ri-star-fill text-white text-2xl"></i>
-                  </div>
-                  <div className="text-left">
-                    <p className="font-bold text-gray-900 text-lg">You Earned {pointsEarned} Points!</p>
-                    <p className="text-sm text-gray-600">Join our loyalty program to redeem.</p>
-                  </div>
-                </div>
-                <Link
-                  href="/auth/signup"
-                  className="bg-[#5B4436] hover:bg-[#5B4436] text-white px-6 py-3 rounded-lg font-semibold transition-colors whitespace-nowrap"
-                >
-                  Join Now
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Order Items</h2>
-              <div className="space-y-4">
-                {order.order_items.map((item: any) => (
-                  <div key={item.id} className="flex items-center space-x-4">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
-                      <img
-                        src={item.metadata?.image || 'https://via.placeholder.com/150'}
-                        alt={item.product_name}
-                        className="w-full h-full object-cover object-center"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900 line-clamp-2">{item.product_name}</p>
-                      <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-                      {item.variant_name && (
-                        <p className="text-xs text-gray-500">{item.variant_name}</p>
-                      )}
-                      {item.metadata?.preorder_shipping && (
-                        <p className="text-xs text-[#5B4436] bg-[#E6DFD5]/50 inline-flex items-center gap-1 px-2 py-0.5 rounded mt-1 border border-[#5B4436]/30">
-                          <i className="ri-time-line"></i> {item.metadata.preorder_shipping}
-                        </p>
-                      )}
-                    </div>
-                    <p className="font-bold text-gray-900">₵{item.unit_price.toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t border-gray-200 mt-4 pt-4">
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Subtotal</span>
-                  <span>₵{order.subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm text-gray-600 mb-2">
-                  <span>Shipping</span>
-                  <span>₵{order.shipping_total.toFixed(2)}</span>
-                </div>
-
-                <div className="flex justify-between text-xl font-bold text-gray-900 border-t border-gray-200 pt-2">
-                  <span>Total Paid</span>
-                  <span>₵{order.total.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Delivery Details</h2>
-              <div className="space-y-3">
-                {order.shipping_address && (
-                  <>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Recipient</p>
-                      <p className="font-semibold text-gray-900">
-                        {order.shipping_address.firstName} {order.shipping_address.lastName}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Address</p>
-                      <p className="text-gray-900">{order.shipping_address.address}</p>
-                      <p className="text-gray-900">{order.shipping_address.city}, {order.shipping_address.region}</p>
-                      <p className="text-gray-900">{order.shipping_address.postalCode}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Phone</p>
-                      <p className="text-gray-900">{order.phone}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-600 mb-1">Email</p>
-                      <p className="text-gray-900">{order.email}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-3">What's Next?</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start space-x-3">
-                    <i className="ri-mail-line text-gray-900 mt-1"></i>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Email Confirmation</p>
-                      <p className="text-sm text-gray-600">Sent to {order.email}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <i className="ri-box-3-line text-gray-900 mt-1"></i>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Processing</p>
-                      <p className="text-sm text-gray-600">We'll pack your order today</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-3">
-                    <i className="ri-truck-line text-gray-900 mt-1"></i>
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">Shipping Updates</p>
-                      <p className="text-sm text-gray-600">Track via email & SMS</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <p className="text-gray-600 mb-4">Need help with your order?</p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/contact" className="text-gray-900 hover:text-gray-900 font-semibold whitespace-nowrap">
-                <i className="ri-customer-service-line mr-1"></i>
-                Contact Support
-              </Link>
-              <Link href="/account?tab=orders" className="text-gray-900 hover:text-gray-900 font-semibold whitespace-nowrap">
-                <i className="ri-question-line mr-1"></i>
-                Order Help
-              </Link>
-              <Link href="/returns" className="text-gray-900 hover:text-gray-900 font-semibold whitespace-nowrap">
-                <i className="ri-arrow-left-right-line mr-1"></i>
-                Returns Policy
-              </Link>
-            </div>
-          </div>
+        <div className="flex gap-3 flex-wrap">
+          <Link href={`/order-tracking?order=${encodeURIComponent(order.order_number)}${order.email ? `&email=${encodeURIComponent(order.email)}` : ''}`} className="h-[54px] px-7 rounded-[14px] bg-[#5B4436] hover:bg-[#47362C] text-white font-semibold inline-flex items-center transition-colors">Track your order</Link>
+          <Link href="/shop" className="h-[54px] px-7 rounded-[14px] border-[1.5px] border-[#5B4436] font-semibold hover:bg-[#F7F4EF] inline-flex items-center transition-colors">Continue shopping</Link>
         </div>
-      </section>
 
-      <style jsx>{`
-        @keyframes fall {
-          to {
-            transform: translateY(100vh) rotate(360deg);
-            opacity: 0;
-          }
-        }
-        .animate-fall {
-          animation: fall linear forwards;
-        }
-      `}</style>
+        <div className="flex flex-col gap-2 text-sm text-[#4E423A]">
+          {!order.user_id && (
+            <p>Want faster checkout next time? <Link href="/auth/signup" className="text-[#5B4436] font-semibold underline underline-offset-[3px]">Save your details with a password</Link></p>
+          )}
+          <p>Questions about your order? <Link href="/contact" className="text-[#5B4436] font-semibold underline underline-offset-[3px]">Contact us</Link> or see our <Link href="/returns" className="text-[#5B4436] font-semibold underline underline-offset-[3px]">returns policy</Link>.</p>
+        </div>
+      </div>
     </main>
   );
 }
@@ -343,8 +257,8 @@ function OrderSuccessContent() {
 export default function OrderSuccessPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-[70vh] flex items-center justify-center">
+        <span className="w-8 h-8 rounded-full border-[3px] border-[#E4DDD3] border-t-[#5B4436] animate-spin" aria-hidden="true"></span>
       </div>
     }>
       <OrderSuccessContent />

@@ -68,8 +68,13 @@ export default function PWAInstaller() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstall);
     window.addEventListener('appinstalled', handleInstalled);
 
+    // In development the worker's cache-first rule would serve stale code after every edit
+    if (process.env.NODE_ENV !== 'production' && 'serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((regs) => regs.forEach((r) => r.unregister()));
+    }
+
     // Register service worker with update detection
-    if ('serviceWorker' in navigator) {
+    if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/service-worker.js', { scope: '/' })
         .then((registration) => {

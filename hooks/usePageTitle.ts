@@ -6,8 +6,8 @@ const SITE_NAME = "Faithlinegh";
 
 export function usePageTitle(title: string) {
   useEffect(() => {
-    document.title = title
-      ? `${title} | ${SITE_NAME}`
-      : `${SITE_NAME} | Smart Sourcing, Seamless Shopping`;
+    // No title: keep the one the server set (from the page's metadata)
+    if (!title) return;
+    document.title = `${title} | ${SITE_NAME}`;
   }, [title]);
 }

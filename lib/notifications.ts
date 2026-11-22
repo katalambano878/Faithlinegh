@@ -30,7 +30,7 @@ ${preheader ? `<span style="display:none;max-height:0;overflow:hidden;">${prehea
 <!-- Header -->
 <tr><td style="background:linear-gradient(135deg,${BRAND.color},${BRAND.colorDark});padding:32px 40px;text-align:center;">
 <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:0.5px;">${BRAND.name}</h1>
-<p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;">Smart Sourcing, Seamless Shopping</p>
+<p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:12px;letter-spacing:1.5px;text-transform:uppercase;">Effortless Style. Elevated Essentials.</p>
 </td></tr>
 
 <!-- Body -->

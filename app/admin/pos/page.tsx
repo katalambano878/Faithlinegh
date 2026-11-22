@@ -141,7 +141,7 @@ function printReceipt(order: {
 </style></head><body>
     <div class="center">
         <div class="store-name">STORE</div>
-        <div style="font-size:10px;margin-top:2px;">Smart Sourcing, Seamless Shopping</div>
+        <div style="font-size:10px;margin-top:2px;">Effortless Style. Elevated Essentials.</div>
     </div>
     <div class="divider"></div>
     <div style="display:flex;justify-content:space-between;font-size:10px;">

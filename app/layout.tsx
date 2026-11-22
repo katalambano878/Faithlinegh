@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
-import { Montserrat, Playfair_Display } from "next/font/google";
+// Fonts ship with the site (variable fonts, latin) so builds never depend on Google Fonts
+import localFont from "next/font/local";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
 import { siteGraph, jsonLd } from "@/lib/seo";
@@ -14,18 +15,22 @@ const supabaseHost = (() => {
   }
 })();
 
-const playfair = Playfair_Display({
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
+const playfair = localFont({
+  src: [
+    { path: "./fonts/PlayfairDisplay-normal.woff2", weight: "400 700", style: "normal" },
+    { path: "./fonts/PlayfairDisplay-italic.woff2", weight: "400 700", style: "italic" },
+  ],
   variable: "--font-playfair",
+  display: "swap",
 });
 
-const montserrat = Montserrat({
-  weight: ["300", "400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  subsets: ["latin"],
+const montserrat = localFont({
+  src: [
+    { path: "./fonts/Montserrat-normal.woff2", weight: "300 700", style: "normal" },
+    { path: "./fonts/Montserrat-italic.woff2", weight: "300 700", style: "italic" },
+  ],
   variable: "--font-montserrat",
+  display: "swap",
 });
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://faithlinegh.com";

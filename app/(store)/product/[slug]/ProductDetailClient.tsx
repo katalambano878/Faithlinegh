@@ -644,7 +644,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
 
               <ul className="bg-[#F7F4EF] rounded-2xl px-5 py-4 flex flex-col gap-3.5 text-sm">
                 <li className="flex gap-3 items-start"><i className="ri-store-2-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span><strong className="font-semibold">Free store pickup</strong>, or delivery in Accra and across Ghana</span></li>
-                <li className="flex gap-3 items-start"><i className="ri-truck-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span>Delivered within 48 hours · free over ₵800</span></li>
+                <li className="flex gap-3 items-start"><i className="ri-truck-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span>Delivered within 48 hours</span></li>
                 <li className="flex gap-3 items-start"><i className="ri-arrow-go-back-line text-lg text-[#5B4436] leading-none mt-0.5"></i><span>Easy returns within 7 days</span></li>
               </ul>
 
@@ -662,7 +662,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                     Delivery and returns<i className="ri-arrow-down-s-line text-xl transition-transform group-open:rotate-180"></i>
                   </summary>
                   <div className="pb-5 text-sm leading-[1.7] text-[#4E423A] max-w-[62ch]">
-                    Free pickup from our store, doorstep delivery in Accra, or delivery outside Accra. Orders arrive within 48 hours, and delivery is free over ₵800. <Link href="/returns" className="text-[#5B4436] underline underline-offset-[3px]">Returns</Link> are accepted within 7 days.
+                    Free pickup from our store, doorstep delivery in Accra, or delivery outside Accra. Orders arrive within 48 hours, and we’ll contact you with the delivery fee for your area. <Link href="/returns" className="text-[#5B4436] underline underline-offset-[3px]">Returns</Link> are accepted within 7 days.
                   </div>
                 </details>
                 <details id="reviews" className="group border-b border-[#E4DDD3]">

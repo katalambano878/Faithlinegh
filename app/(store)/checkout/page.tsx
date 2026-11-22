@@ -27,9 +27,6 @@ const DELIVERY_FEES: Record<DeliveryMethod, number | null> = {
   outside_accra: null,
 };
 
-/** Orders at or above this subtotal get free delivery (matches the store banner). */
-const FREE_DELIVERY_FROM = 800;
-
 const DELIVERY_OPTIONS: { id: DeliveryMethod; title: string; note: string }[] = [
   { id: 'pickup', title: 'Store pickup', note: 'Ready within 24 hours' },
   { id: 'doorstep', title: 'Doorstep delivery in Accra', note: 'Within 48 hours' },
@@ -109,7 +106,8 @@ export default function CheckoutPage() {
   // Totals. `cartSubtotal` is bundle-aware (what the customer pays);
   // `baseSubtotal` is plain unit pricing and matches the sum of order line items.
   const subtotal = baseSubtotal;
-  const freeDelivery = cartSubtotal >= FREE_DELIVERY_FROM || appliedCoupon?.type === 'free_shipping';
+  // Only a free-shipping coupon makes delivery free; there is no order-size threshold.
+  const freeDelivery = appliedCoupon?.type === 'free_shipping';
   const configuredFee = DELIVERY_FEES[deliveryMethod];
   const feeKnown = deliveryMethod === 'pickup' || freeDelivery || configuredFee !== null;
   const shippingCost = deliveryMethod === 'pickup' || freeDelivery ? 0 : (configuredFee ?? 0);
@@ -696,9 +694,6 @@ export default function CheckoutPage() {
           {summaryLines}
           <div className="flex flex-col gap-2.5 text-[13px] text-[#4E423A] border-t border-[#E4DDD3] pt-4">
             <span className="flex gap-2.5 items-center"><i className="ri-arrow-go-back-line text-base text-[#5B4436]"></i>Easy returns within 7 days</span>
-            {cartSubtotal < FREE_DELIVERY_FROM && (
-              <span className="flex gap-2.5 items-center"><i className="ri-truck-line text-base text-[#5B4436]"></i>Add {money(FREE_DELIVERY_FROM - cartSubtotal)} more for free delivery</span>
-            )}
             <a href={`https://wa.me/${whatsappDigits}`} target="_blank" rel="noopener noreferrer" className="flex gap-2.5 items-center underline underline-offset-[3px]"><i className="ri-whatsapp-line text-base text-[#5B4436]"></i>Questions? Chat with us on WhatsApp</a>
           </div>
         </aside>

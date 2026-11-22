@@ -15,7 +15,7 @@ interface BannerItem {
 }
 
 const DEFAULT_MESSAGES = [
-  'Free shipping on orders over GH₵800',
+  'Free store pickup',
   'Fast delivery within 48 hours',
   'Easy returns within 7 days',
   'Shop our latest sale — new styles added weekly',

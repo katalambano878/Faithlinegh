@@ -128,7 +128,7 @@ function OrderSuccessContent() {
   const channel = order.metadata?.payment_channel === 'card' ? 'Card' : order.metadata?.payment_channel === 'momo' ? 'Mobile Money' : null;
   // Older delivery orders were placed with no fee and priced by phone afterwards
   const feePending = order.metadata?.delivery_fee_pending ?? (
-    order.shipping_method !== 'pickup' && Number(order.shipping_total) === 0 && Number(order.subtotal) < 800
+    order.shipping_method !== 'pickup' && Number(order.shipping_total) === 0
   );
   const placedAt = new Date(order.created_at);
   const placedLabel = `${placedAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}, ${placedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}`;

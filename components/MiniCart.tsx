@@ -11,9 +11,6 @@ interface MiniCartProps {
   onClose: () => void;
 }
 
-/** Orders at or above this subtotal get free delivery (matches the store banner). */
-const FREE_DELIVERY_FROM = 800;
-
 const money = (n: number) => `₵${n.toFixed(2)}`;
 
 export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
@@ -51,8 +48,6 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
   if (!mounted || !isOpen) return null;
 
   const itemCount = cart.reduce((sum, i) => sum + i.quantity, 0);
-  const toFreeDelivery = Math.max(0, FREE_DELIVERY_FROM - subtotal);
-  const freeProgress = Math.min(100, (subtotal / FREE_DELIVERY_FROM) * 100);
 
   // Next bundle step for the first product that has one ("Make it 5 for ₵475")
   const bundleHint = (() => {
@@ -189,16 +184,6 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                 </div>
               )}
 
-              <div className="flex flex-col gap-2">
-                <span className="text-[13px] text-[#4E423A]">
-                  {toFreeDelivery > 0
-                    ? <>Add <strong className="text-[#2B211B]">{money(toFreeDelivery)}</strong> more for free delivery</>
-                    : <strong className="text-[#1F5A37]">Your order gets free delivery</strong>}
-                </span>
-                <div role="progressbar" aria-label="Progress to free delivery" aria-valuemin={0} aria-valuemax={FREE_DELIVERY_FROM} aria-valuenow={Math.min(subtotal, FREE_DELIVERY_FROM)} className="h-1.5 bg-[#EFEAE3] rounded-full overflow-hidden">
-                  <div className="h-full bg-[#5B4436] rounded-full transition-[width] duration-300 ease-out" style={{ width: `${freeProgress}%` }} />
-                </div>
-              </div>
             </div>
 
             <div className="border-t border-[#EFEAE3] px-6 sm:px-7 pt-5 pb-[max(24px,env(safe-area-inset-bottom))] flex flex-col gap-3 bg-white">

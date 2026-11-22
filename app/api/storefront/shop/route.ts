@@ -64,7 +64,12 @@ export async function GET(request: Request) {
       }
 
       if (params.categoryFilterSlugs && params.categoryFilterSlugs.length > 0) {
-        query = query.in('categories.slug', params.categoryFilterSlugs);
+        // Resolve slugs (and their sub-categories) to ids; filtering on the
+        // joined categories.slug isn't supported by the database layer.
+        const { data: cats } = await supabaseAdmin.from('categories').select('id, slug, parent_id');
+        const top = (cats || []).filter((c: any) => params.categoryFilterSlugs!.includes(c.slug)).map((c: any) => c.id);
+        const ids = [...top, ...(cats || []).filter((c: any) => top.includes(c.parent_id)).map((c: any) => c.id)];
+        query = query.in('category_id', ids.length ? ids : ['00000000-0000-0000-0000-000000000000']);
       }
 
       if (priceMax < 5000) {

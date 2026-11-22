@@ -58,17 +58,28 @@ export async function GET(request: Request) {
       else if (period === '7d') { const d = new Date(now); d.setDate(d.getDate() - 7); startDate = d.toISOString(); }
       else if (period === '30d') { const d = new Date(now); d.setDate(d.getDate() - 30); startDate = d.toISOString(); }
 
-      let query = supabaseAdmin
+      // Paid, not-cancelled orders in the period, then their items. (The
+      // database layer can't filter on a joined table's columns.)
+      let oq = supabaseAdmin
+        .from('orders')
+        .select('id, created_at, status, payment_status')
+        .eq('payment_status', 'paid')
+        .neq('status', 'cancelled')
+        .neq('status', 'refunded');
+      if (startDate) oq = oq.gte('created_at', startDate);
+      const { data: paidOrders, error: oErr } = await oq.limit(10000);
+      if (oErr) throw oErr;
+      const byId = new Map((paidOrders || []).map((o: any) => [o.id, o]));
+      if (byId.size === 0) return NextResponse.json({ items: [] });
+
+      const { data, error } = await supabaseAdmin
         .from('order_items')
-        .select(`quantity, product_name, product_id, variant_name, total_price, orders!inner(id, created_at, status, payment_status)`)
-        .eq('orders.payment_status', 'paid')
-        .neq('orders.status', 'cancelled');
-
-      if (startDate) query = query.gte('orders.created_at', startDate);
-
-      const { data, error } = await query;
+        .select('order_id, quantity, product_name, product_id, variant_name, total_price')
+        .in('order_id', Array.from(byId.keys()))
+        .limit(10000);
       if (error) throw error;
-      return NextResponse.json({ items: data || [] });
+      const items = (data || []).map(({ order_id, ...it }: any) => ({ ...it, orders: byId.get(order_id) }));
+      return NextResponse.json({ items });
     }
 
     // Full orders list

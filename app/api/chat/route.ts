@@ -187,7 +187,7 @@ const LLM_TOOLS = [
     type: 'function' as const,
     function: {
       name: 'initiate_return',
-      description: 'Start a return request for a delivered order. Only for logged-in users with an order delivered within the last 7 days. Ask for the order ID and reason before calling.',
+      description: 'Report a damaged, defective or incorrect item on a delivered order (all other sales are final). Only for logged-in users, within 24 hours of delivery. Ask for the order ID and what is wrong before calling.',
       parameters: {
         type: 'object',
         properties: {
@@ -284,7 +284,7 @@ const LLM_TOOLS = [
           delivery_method: {
             type: 'string',
             enum: ['pickup', 'doorstep', 'outside_accra'],
-            description: 'pickup = free store pickup (ready within 24 hours); doorstep = delivery in Accra; outside_accra = delivery elsewhere in Ghana. Delivery arrives within 48 hours; the fee is confirmed by the team after the order.',
+            description: 'pickup = free store pickup (ready within 2 hours of payment); doorstep = delivery in Accra & Greater Accra (1–2 business days); outside_accra = other regions by courier (2–4 business days). Deliveries run Mon–Sat. The fee is shared by the team after the order is confirmed.',
           },
           payment_channel: {
             type: 'string',
@@ -343,8 +343,8 @@ WHEN CREATING SUPPORT TICKETS:
 - Always include a clear subject and description based on the full conversation context.
 
 STORE POLICIES (quick reference):
-- Delivery: free store pickup (ready within 24 hours), doorstep delivery in Accra, or delivery anywhere else in Ghana (within 48 hours). The delivery fee depends on the location and the team contacts the customer with it after the order. Never quote a delivery fee.
-- Returns: within 7 days; damaged or wrong items must be reported within 48 hours with photos
+- Delivery: Accra & Greater Accra 1–2 business days (our riders); other regions 2–4 business days (courier); free store pickup within 2 hours after payment confirmation. Deliveries Monday to Saturday, no Sundays. Delivery fees vary by location and are shared after the order is placed and confirmed; never quote a fee. Missed deliveries may attract an additional fee.
+- Returns: ALL PURCHASES ARE FINAL. No refunds or exchanges for change of mind, wrong size choice or personal preference. Damaged, defective or incorrect items must be reported within 24 hours of delivery with order details and clear photos; the item must stay unworn and unwashed; the team reviews and decides the resolution. Never promise a refund or exchange.
 - Payment: online through Moolre with Mobile Money or card, paid in full. There is NO cash on delivery and NO instalments or part-payment. Never offer them.
 - Support hours: Mon-Sat, 9 AM - 6 PM GMT
 
@@ -355,7 +355,7 @@ CAPABILITIES (what you CAN do):
 - Show recent orders (logged-in users)
 - Validate coupon/discount codes
 - Create support tickets (for issues that need human help)
-- Initiate returns (logged-in users, delivered orders within 7 days)
+- Report damaged/defective/incorrect items (logged-in users, within 24 hours of delivery)
 - Answer questions about shipping, returns, payment, and store info
 - Look up ANY information about the website, business, policies, FAQs, and more using the get_website_info tool
 - **Place orders and initiate payments** using the create_order tool
@@ -369,9 +369,9 @@ You can help customers place orders directly in this chat. Here is how:
 2. Every cart item that has a size or colour shows it as "option". If an item that needs a size or colour has none, ask the customer to choose it on the product page first.
 3. When the customer wants to check out, collect step by step: full name, email address and phone number.
 4. Ask how they want to receive it:
-   - **Store pickup** — free, ready within 24 hours
-   - **Doorstep delivery in Accra** — within 48 hours
-   - **Delivery outside Accra** — within 48 hours (ask for the region)
+   - **Store pickup** — free, ready within 2 hours of payment
+   - **Delivery in Accra & Greater Accra** — 1–2 business days
+   - **Delivery to other regions** — 2–4 business days by courier (ask for the region)
    For delivery, also ask for the area/town and a street, house number or landmark (Ghana Post GPS is optional). Tell them the team will contact them with the delivery fee; never quote one.
 5. Ask whether they will pay with Mobile Money or card (both on the secure Moolre page). There is no cash on delivery.
 6. Summarize the items, the subtotal, and the delivery choice, then ask the customer to confirm. The final total comes from the create_order tool (it applies bundle deals and coupons).
@@ -1100,7 +1100,7 @@ async function executeToolCall(
         description: args.description || args.reason,
       });
       if (!ret) {
-        return { data: { error: 'Could not create return request. The order may not be eligible (it must have been delivered within the last 7 days).' }, quickReplies: ['Check eligibility', 'Contact support'] };
+        return { data: { error: 'Could not create the report. Damaged or incorrect items must be reported within 24 hours of delivery; otherwise please contact support.' }, quickReplies: ['Contact support'] };
       }
       return {
         data: { id: ret.id, status: ret.status, order_number: ret.order_number },

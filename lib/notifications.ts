@@ -390,9 +390,10 @@ export async function sendOrderStatusUpdate(order: any, newStatus: string) {
         message = `Your order ${ref} is with the rider and on its way to you.`;
         smsMessage = `Hi ${name}, order ${ref} is with the rider and on its way.${track} Track: ${trackingUrl}`;
     } else if (newStatus === 'delivered') {
-        message = isPickup
+        message = (isPickup
             ? `Your order ${ref} has been collected. Thank you for shopping with Faithline!`
-            : `Your order ${ref} has been delivered. Enjoy, and thank you for shopping with Faithline!`;
+            : `Your order ${ref} has been delivered. Enjoy, and thank you for shopping with Faithline!`)
+            + ' If anything is damaged, defective or incorrect, please contact us within 24 hours with clear photos of the item.';
         smsMessage = isPickup
             ? `Hi ${name}, order ${ref} has been collected. Thank you for shopping with Faithline!`
             : `Hi ${name}, order ${ref} has been delivered. Enjoy your purchase!`;

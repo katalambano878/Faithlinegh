@@ -5,19 +5,16 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { imgSrc } from '@/lib/img';
+import { deliveryEstimate } from '@/lib/delivery';
 
 const money = (n: number) => `₵${Number(n || 0).toFixed(2)}`;
-const HOUR = 60 * 60 * 1000;
 
-/** Delivery promise shown to customers: delivery within 48 hours, pickup ready within 24 hours. */
+/** Delivery promise shown to customers (from the Shipping & Delivery policy). */
 function deliveryPromise(order: any) {
-  const placed = new Date(order.created_at || Date.now());
-  const isPickup = order.shipping_method === 'pickup';
-  const by = new Date(placed.getTime() + (isPickup ? 24 : 48) * HOUR);
-  const byLabel = by.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
-  return isPickup
-    ? { title: 'Ready to collect', window: 'Within 24 hours', by: byLabel }
-    : { title: 'Delivered', window: 'Within 48 hours', by: byLabel };
+  const est = deliveryEstimate(order);
+  return est.method === 'pickup'
+    ? { title: 'Ready to collect', window: est.window, by: est.byLabel }
+    : { title: 'Delivered', window: est.window, by: est.byLabel };
 }
 
 /** The order's private token: from the Moolre return link, or saved at checkout in this browser. */

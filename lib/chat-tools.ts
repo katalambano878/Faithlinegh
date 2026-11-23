@@ -334,7 +334,7 @@ export async function initiateReturn(
 
   const { data: order } = await supabase
     .from('orders')
-    .select('id, order_number, status, created_at, updated_at, user_id')
+    .select('id, order_number, status, created_at, updated_at, user_id, metadata')
     .eq('id', orderId)
     .single();
 
@@ -342,10 +342,10 @@ export async function initiateReturn(
   if (order.user_id !== userId) return null;
   if (order.status !== 'delivered') return null;
 
-  // Last status change is when it was marked delivered
-  const deliveredDate = new Date(order.updated_at || order.created_at);
-  const daysSinceDelivery = (Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60 * 24);
-  if (daysSinceDelivery > 7) return null;
+  // Damaged/incorrect items must be reported within 24 hours of delivery
+  const deliveredDate = new Date(order.metadata?.delivered_at || order.updated_at || order.created_at);
+  const hoursSinceDelivery = (Date.now() - deliveredDate.getTime()) / (1000 * 60 * 60);
+  if (hoursSinceDelivery > 24) return null;
 
   const { data: ret, error } = await supabase
     .from('return_requests')
@@ -402,12 +402,12 @@ export async function getRecommendations(
 // ─── 9. Get Store Info (static) ─────────────────────────────────────────────
 
 const STORE_INFO: Record<string, string> = {
-  shipping: `Three ways to get your order: free store pickup (ready within 24 hours), doorstep delivery in Accra, or delivery anywhere else in Ghana (both within 48 hours). The delivery fee depends on where you are; the team contacts you with it after you order. Pickup is free.`,
-  returns: `Items can be returned within 7 days. If something arrives damaged or wrong, contact us within 48 hours with photos. See the returns page for details, or I can create a support ticket for you.`,
+  shipping: `Accra & Greater Accra: 1–2 business days by our delivery riders. Other regions: 2–4 business days by courier. Store pickup is free and can be collected within 2 hours after payment is confirmed. Deliveries run Monday to Saturday (no Sundays). Delivery fees vary by location and are shared after the order is placed and confirmed. Please keep your phone reachable: missed deliveries may attract an additional fee.`,
+  returns: `All purchases are final: no refunds or exchanges for change of mind, wrong size choice or personal preference. If an item arrives damaged, defective or incorrect, contact us within 24 hours of delivery with your order details and clear photos, and keep the item unworn and unwashed. The team reviews it and contacts you with the resolution. You can report it on the Returns page, or I can create a support ticket for you.`,
   payment: `Payment is online through Moolre, with Mobile Money or card, in full when you order. There is no cash on delivery and no instalment or part-payment option.`,
   contact: `You can reach us through:\n- This chat\n- Phone/WhatsApp: 0541770961\n- Instagram & TikTok: faithline.gh\n- Support ticket: I can create one for you right now`,
   about: `Faithlinegh is a Ghanaian fashion store offering quality, affordable bags, basics and dresses for women, with store pickup and delivery across Ghana.`,
-  delivery_times: `Pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.`,
+  delivery_times: `Accra & Greater Accra: 1–2 business days. Other regions: 2–4 business days. Pickup: within 2 hours of payment confirmation. No deliveries on Sundays.`,
   hours: `The online store is open all the time. Customer support is available Monday-Saturday, 9 AM - 6 PM GMT.`,
 };
 

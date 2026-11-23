@@ -29,9 +29,9 @@ const DELIVERY_FEES: Record<DeliveryMethod, number | null> = {
 };
 
 const DELIVERY_OPTIONS: { id: DeliveryMethod; title: string; note: string }[] = [
-  { id: 'pickup', title: 'Store pickup', note: 'Ready within 24 hours' },
-  { id: 'doorstep', title: 'Doorstep delivery in Accra', note: 'Within 48 hours' },
-  { id: 'outside_accra', title: 'Delivery outside Accra', note: 'To your nearest bus station (VIP, STC) or courier, within 48 hours' },
+  { id: 'pickup', title: 'Store pickup', note: 'Ready within 2 hours of payment' },
+  { id: 'doorstep', title: 'Delivery in Accra & Greater Accra', note: '1–2 business days, by our riders' },
+  { id: 'outside_accra', title: 'Delivery to other regions', note: '2–4 business days, by courier' },
 ];
 
 const OTHER_REGIONS = [
@@ -603,7 +603,8 @@ export default function CheckoutPage() {
           </div>
           {summaryLines}
           <div className="flex flex-col gap-2.5 text-[13px] text-[#4E423A] border-t border-[#E4DDD3] pt-4">
-            <span className="flex gap-2.5 items-center"><i className="ri-arrow-go-back-line text-base text-[#5B4436]"></i>Easy returns within 7 days</span>
+            <span className="flex gap-2.5 items-center"><i className="ri-truck-line text-base text-[#5B4436]"></i>Deliveries Monday to Saturday</span>
+            <Link href="/returns" className="flex gap-2.5 items-center underline underline-offset-[3px]"><i className="ri-file-list-3-line text-base text-[#5B4436]"></i>All sales final. See our returns policy</Link>
             <a href={`https://wa.me/${whatsappDigits}`} target="_blank" rel="noopener noreferrer" className="flex gap-2.5 items-center underline underline-offset-[3px]"><i className="ri-whatsapp-line text-base text-[#5B4436]"></i>Questions? Chat with us on WhatsApp</a>
           </div>
         </aside>

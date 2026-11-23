@@ -318,21 +318,21 @@ export function productSchema(p: ProductForSchema) {
         : p.inStock === false ? 'https://schema.org/OutOfStock' : 'https://schema.org/InStock',
       itemCondition: 'https://schema.org/NewCondition',
       seller: { '@id': ORG_ID },
-      // Delivery within 48 hours across Ghana; the fee depends on the location, so no rate is stated
+      // 1–2 business days in Accra, 2–4 elsewhere (Mon–Sat); the fee depends on the location, so no rate is stated
       shippingDetails: {
         '@type': 'OfferShippingDetails',
         shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'GH' },
         deliveryTime: {
           '@type': 'ShippingDeliveryTime',
           handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
-          transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 2, unitCode: 'DAY' },
+          transitTime: { '@type': 'QuantitativeValue', minValue: 1, maxValue: 4, unitCode: 'DAY' },
         },
       },
       hasMerchantReturnPolicy: {
         '@type': 'MerchantReturnPolicy',
         applicableCountry: 'GH',
-        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-        merchantReturnDays: 7,
+        // All purchases are final (only damaged/incorrect items are reviewed)
+        returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
       },
     },
   };

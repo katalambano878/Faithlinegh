@@ -126,7 +126,7 @@ export default function ContactPage() {
   const faqs = [
     {
       question: 'What are your delivery times?',
-      answer: "Store pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.",
+      answer: "Accra and Greater Accra: 1–2 business days. Other regions: 2–4 business days. Pickup orders are ready within 2 hours of payment. We deliver Monday to Saturday.",
     },
     {
       question: 'Where do you deliver?',

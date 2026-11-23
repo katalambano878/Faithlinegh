@@ -16,8 +16,8 @@ interface BannerItem {
 
 const DEFAULT_MESSAGES = [
   'Free store pickup',
-  'Fast delivery within 48 hours',
-  'Easy returns within 7 days',
+  'Delivery in Accra in 1–2 business days',
+  'Pickup ready within 2 hours of payment',
   'Shop our latest sale — new styles added weekly',
 ];
 

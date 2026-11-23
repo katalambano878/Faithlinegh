@@ -247,7 +247,7 @@ export default function CartPage() {
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <i className="ri-truck-line text-gray-900 mr-2"></i>
-                        <span>Delivered within 48 hours, or collect from the store</span>
+                        <span>1–2 business days in Accra, 2–4 elsewhere, or collect from the store</span>
                       </div>
                     </div>
                   </div>

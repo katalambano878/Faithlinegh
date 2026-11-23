@@ -114,7 +114,7 @@ export async function generateMetadata({
     p.seo_description ||
       p.short_description ||
       p.description ||
-      `Shop ${p.name}${category ? ` (${category})` : ''} at ${SITE_NAME}. Free store pickup or delivery across Ghana within 48 hours.`,
+      `Shop ${p.name}${category ? ` (${category})` : ''} at ${SITE_NAME}. Free store pickup, or delivery across Ghana in 1–4 business days.`,
     160
   );
 

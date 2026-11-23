@@ -37,17 +37,17 @@ export default function FAQsPage() {
     {
       category: 'orders',
       question: 'What if I receive the wrong item?',
-      answer: 'We sincerely apologise if you receive the wrong item. Contact us within 48 hours with photos of the item received. We\'ll arrange for the correct item to be sent immediately and collect the wrong item at no cost to you.'
+      answer: 'We\'re sorry if that happens. Contact us within 24 hours of delivery with your order details and clear photos of the item. Keep it unworn, unwashed and in its original condition while our team reviews it, and we\'ll contact you with the appropriate resolution.'
     },
     {
       category: 'shipping',
       question: 'What are your delivery times?',
-      answer: 'Store pickup orders are ready within 24 hours. Delivery orders, in Accra or anywhere in Ghana, arrive within 48 hours.'
+      answer: 'Accra and Greater Accra: 1–2 business days, by our delivery riders. Other regions: 2–4 business days, by courier. Pickup orders can be collected within 2 hours after your payment is confirmed. Deliveries run Monday to Saturday (no Sundays).'
     },
     {
       category: 'shipping',
       question: 'How much does shipping cost?',
-      answer: 'Store pickup is free. For delivery, the fee depends on your area: you pay for your items at checkout, and our team contacts you with the delivery fee before we send your order.'
+      answer: 'Store pickup is free. Delivery fees vary depending on your location: you pay for your items at checkout, and we tell you the delivery fee after your order has been placed and confirmed.'
     },
     {
       category: 'shipping',
@@ -57,27 +57,27 @@ export default function FAQsPage() {
     {
       category: 'shipping',
       question: 'What if nobody is home for delivery?',
-      answer: 'Our team contacts you to arrange another time. Make sure the phone number you gave at checkout is reachable.'
+      answer: 'Please make sure your phone is reachable and someone is available to receive your order. Missed deliveries may attract an additional delivery fee.'
     },
     {
       category: 'shipping',
       question: 'How fast is delivery?',
-      answer: 'Pickup orders are ready within 24 hours and delivery orders arrive within 48 hours.'
+      answer: 'Pickup orders are ready within 2 hours of payment. Delivery takes 1–2 business days in Accra and Greater Accra, and 2–4 business days to other regions.'
     },
     {
       category: 'returns',
-      question: 'Which items cannot be returned?',
-      answer: 'Items with clear signs of use, damage caused after delivery, or custom/personalised orders may not qualify for return unless there is a manufacturing defect.'
+      question: 'Can I return an item or get a refund?',
+      answer: 'All purchases are final. We do not offer refunds for change of mind, incorrect size selection or personal preference. If an item is damaged, defective or incorrect due to an error on our part, we will review it and provide an appropriate resolution.'
     },
     {
       category: 'returns',
-      question: 'Who pays for return shipping?',
-      answer: 'If you\'re returning due to a defect or our error, we cover return shipping. For change-of-mind returns, you cover the cost of sending the item back to us.'
+      question: 'How do I report a damaged or incorrect item?',
+      answer: 'Contact us within 24 hours of delivery, or use the form on our Returns page. Include your order details and clear photographs of the item, and keep it unworn, unwashed and in its original condition while it is being assessed.'
     },
     {
       category: 'returns',
-      question: 'Can I exchange an item instead of returning it?',
-      answer: 'Yes! If you need a different variant or specification, select "Exchange" when initiating your return. We\'ll send the replacement as soon as we receive your original item.'
+      question: 'Can I exchange an item for a different size?',
+      answer: 'We do not offer exchanges for size-related issues, change of mind or personal preference. Please check our size guide and contact us for sizing help before you order. Exchanges or replacements are only considered when we have supplied an incorrect, damaged or defective item.'
     },
     {
       category: 'payment',
@@ -97,7 +97,7 @@ export default function FAQsPage() {
     {
       category: 'payment',
       question: 'How do refunds work?',
-      answer: 'Refunds are processed to your original payment method within 5-7 business days after we receive and inspect your return. For mobile money refunds, ensure you provide correct details. You\'ll receive confirmation via email.'
+      answer: 'All purchases are final, so we do not refund change of mind, incorrect size selection or personal preference. If an item is damaged, defective or incorrect due to our error, our team reviews it and contacts you with the appropriate resolution.'
     },
     {
       category: 'account',

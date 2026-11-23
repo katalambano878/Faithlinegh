@@ -131,6 +131,16 @@ export async function PATCH(
       if (error) throw error;
     }
 
+    // Remember when the order was delivered/collected: damaged or incorrect
+    // items must be reported within 24 hours of delivery.
+    if (update.status === 'delivered' && current.status !== 'delivered') {
+      const { error } = await supabaseAdmin.rpc('merge_order_metadata', {
+        p_order_id: id,
+        p_patch: { delivered_at: new Date().toISOString() },
+      });
+      if (error) console.error('[admin orders] delivered_at failed:', error.message);
+    }
+
     if (body.courier_reference !== undefined) {
       const { error } = await supabaseAdmin.rpc('merge_order_metadata', {
         p_order_id: id,

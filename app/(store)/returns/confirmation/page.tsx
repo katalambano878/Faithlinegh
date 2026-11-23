@@ -1,136 +1,81 @@
 'use client';
 
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useCMS } from '@/context/CMSContext';
 
-export default function ReturnConfirmationPage() {
-  const returnId = `RET-2024-${Math.floor(Math.random() * 10000)}`;
+function Confirmation() {
+  const order = useSearchParams().get('order') || '';
+  const { getSetting } = useCMS();
+  const phone = getSetting('contact_phone') || '0541770961';
+  const whatsappDigits = phone.replace(/\D/g, '').replace(/^0/, '233');
+  const message = encodeURIComponent(`Hi Faithline, I reported a problem with order ${order}. Here are photos of the item.`);
 
   return (
-    <>
-      <main className="min-h-screen bg-white flex items-center justify-center py-12">
-        <div className="max-w-2xl mx-auto px-4">
-          <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-            <div className="w-20 h-20 flex items-center justify-center bg-gray-100 rounded-full mx-auto mb-6">
-              <i className="ri-check-line text-4xl text-gray-900"></i>
-            </div>
-
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Return Request Submitted!</h1>
-            <p className="text-gray-600 mb-2">Your return has been successfully processed</p>
-            <p className="text-sm text-gray-500 mb-8">
-              Return ID: <span className="font-semibold">{returnId}</span>
-            </p>
-
-            <div className="mb-8 p-6 bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-xl text-left">
-              <h2 className="font-bold text-gray-900 mb-4 flex items-center">
-                <i className="ri-mail-line text-2xl text-[#5B4436] mr-2"></i>
-                Check Your Email
-              </h2>
-              <p className="text-sm text-gray-700 mb-3">
-                We've sent you an email with:
-              </p>
-              <ul className="text-sm text-gray-700 space-y-2">
-                <li className="flex items-start space-x-2">
-                  <i className="ri-checkbox-circle-fill text-gray-700 mt-0.5"></i>
-                  <span>Prepaid return shipping label</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <i className="ri-checkbox-circle-fill text-gray-700 mt-0.5"></i>
-                  <span>Packing instructions</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <i className="ri-checkbox-circle-fill text-gray-700 mt-0.5"></i>
-                  <span>Nearest drop-off locations</span>
-                </li>
-                <li className="flex items-start space-x-2">
-                  <i className="ri-checkbox-circle-fill text-gray-700 mt-0.5"></i>
-                  <span>Return tracking number</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="mb-8 text-left">
-              <h2 className="font-bold text-gray-900 mb-4">What happens next?</h2>
-              <div className="space-y-4">
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full flex-shrink-0">
-                    <span className="font-bold text-gray-900">1</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Print Your Label</p>
-                    <p className="text-sm text-gray-600">Download and print the return label from your email</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full flex-shrink-0">
-                    <span className="font-bold text-gray-900">2</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Pack Your Items</p>
-                    <p className="text-sm text-gray-600">Securely pack items in original packaging with all tags</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full flex-shrink-0">
-                    <span className="font-bold text-gray-900">3</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Ship It Back</p>
-                    <p className="text-sm text-gray-600">Drop off at any authorized shipping location</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-full flex-shrink-0">
-                    <span className="font-bold text-gray-900">4</span>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">Get Your Refund</p>
-                    <p className="text-sm text-gray-600">Refund processed within 5-7 days after we receive your return</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Link
-                href="/account"
-                className="block w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors whitespace-nowrap"
-              >
-                Track Return Status
-              </Link>
-              <Link
-                href="/shop"
-                className="block w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-4 rounded-lg font-semibold transition-colors whitespace-nowrap"
-              >
-                Continue Shopping
-              </Link>
-              <Link
-                href="/support/ticket"
-                className="block text-gray-900 hover:text-gray-800 font-semibold whitespace-nowrap"
-              >
-                Need Help? Contact Support
-              </Link>
-            </div>
+    <main className="min-h-screen bg-white flex items-center justify-center py-12">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="bg-white rounded-xl shadow-lg p-8">
+          <div className="w-16 h-16 flex items-center justify-center bg-gray-100 rounded-full mx-auto mb-6">
+            <i className="ri-check-line text-3xl text-gray-900" aria-hidden="true"></i>
           </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-3 text-center">We&apos;ve got your report</h1>
+          {order && (
+            <p className="text-center text-gray-600 mb-8">Order <span className="font-semibold text-gray-900">{order}</span></p>
+          )}
 
-          <div className="mt-8 bg-[#E6DFD5] border border-[#5B4436]/30 rounded-xl p-6">
-            <div className="flex items-start space-x-3">
-              <i className="ri-alert-line text-2xl text-[#5B4436] mt-0.5"></i>
+          <h2 className="font-bold text-gray-900 mb-4">What happens next</h2>
+          <ol className="space-y-4 mb-8">
+            <li className="flex gap-4 items-start">
+              <span className="w-8 h-8 flex-none rounded-full bg-gray-100 text-gray-900 font-bold text-sm flex items-center justify-center">1</span>
               <div>
-                <p className="font-semibold text-[#5B4436] mb-2">Important Reminders</p>
-                <ul className="text-sm text-[#5B4436] space-y-1">
-                  <li>• Return must be shipped within 7 days</li>
-                  <li>• Items must be unused with original tags</li>
-                  <li>• Keep your tracking number for reference</li>
-                  <li>• Refund will be issued to original payment method</li>
-                </ul>
+                <p className="font-semibold text-gray-900">Send us clear photos</p>
+                <p className="text-sm text-gray-600">Send photos of the item and your order number on WhatsApp, so our team can review the issue promptly.</p>
               </div>
-            </div>
+            </li>
+            <li className="flex gap-4 items-start">
+              <span className="w-8 h-8 flex-none rounded-full bg-gray-100 text-gray-900 font-bold text-sm flex items-center justify-center">2</span>
+              <div>
+                <p className="font-semibold text-gray-900">Keep the item as it is</p>
+                <p className="text-sm text-gray-600">Keep it unworn, unwashed and in its original condition while it&apos;s being assessed.</p>
+              </div>
+            </li>
+            <li className="flex gap-4 items-start">
+              <span className="w-8 h-8 flex-none rounded-full bg-gray-100 text-gray-900 font-bold text-sm flex items-center justify-center">3</span>
+              <div>
+                <p className="font-semibold text-gray-900">We contact you</p>
+                <p className="text-sm text-gray-600">After reviewing the information, our team contacts you with the appropriate resolution.</p>
+              </div>
+            </li>
+          </ol>
+
+          <div className="space-y-3">
+            <a
+              href={`https://wa.me/${whatsappDigits}?text=${message}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full bg-gray-900 hover:bg-brand-bag-dark text-white py-4 rounded-lg font-semibold transition-colors"
+            >
+              <i className="ri-whatsapp-line text-lg" aria-hidden="true"></i>
+              Send photos on WhatsApp
+            </a>
+            <Link
+              href="/shop"
+              className="block text-center w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 py-4 rounded-lg font-semibold transition-colors"
+            >
+              Continue shopping
+            </Link>
           </div>
         </div>
-      </main>
-    </>
+      </div>
+    </main>
+  );
+}
+
+export default function ReturnConfirmationPage() {
+  return (
+    <Suspense fallback={null}>
+      <Confirmation />
+    </Suspense>
   );
 }

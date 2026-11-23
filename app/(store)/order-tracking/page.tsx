@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { imgSrc } from '@/lib/img';
+import { deliveryEstimate } from '@/lib/delivery';
 
 function OrderTrackingContent() {
   const searchParams = useSearchParams();
@@ -260,10 +261,9 @@ function OrderTrackingContent() {
   const statusBadge = getStatusBadge();
   const trackingNumber = order.metadata?.tracking_number || '';
   const shippingAddress = order.shipping_address || {};
-  // Same promise as checkout: delivery within 48 hours, pickup ready within 24 hours
+  // Same promise as checkout (lib/delivery): business days, Mon–Sat
   const isPickup = order.shipping_method === 'pickup';
-  const estimatedDelivery = new Date(new Date(order.created_at).getTime() + (isPickup ? 24 : 48) * 60 * 60 * 1000)
-    .toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  const estimatedDelivery = deliveryEstimate(order).byLabel;
   const isUnpaid = order.payment_status !== 'paid' && !['cancelled', 'refunded'].includes(order.status);
 
   return (

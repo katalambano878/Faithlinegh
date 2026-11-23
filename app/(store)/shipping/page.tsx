@@ -4,40 +4,40 @@ import { pageMetadata, SITE_NAME } from '@/lib/seo';
 
 export const metadata: Metadata = pageMetadata({
   title: 'Shipping & Delivery',
-  description: `${SITE_NAME} delivery: free store pickup, doorstep delivery in Accra and delivery across Ghana within 48 hours.`,
+  description: `${SITE_NAME} delivery: 1–2 business days in Accra and Greater Accra, 2–4 business days to other regions, and store pickup within 2 hours of payment.`,
   path: '/shipping',
   keywords: ['delivery Ghana', 'delivery Accra', 'store pickup Accra', 'nationwide delivery Ghana'],
 });
 
 const OPTIONS = [
   {
-    title: 'Store pickup',
-    price: 'Free',
-    timing: 'Ready within 24 hours',
-    detail: 'We text you when your order is ready to collect. Bring your order number.',
-    icon: 'ri-store-2-line',
-  },
-  {
-    title: 'Doorstep delivery in Accra',
-    price: 'Fee confirmed by our team',
-    timing: 'Within 48 hours',
-    detail: 'Delivered to the address and landmark you give at checkout.',
+    title: 'Accra & Greater Accra',
+    price: 'Fee shared after you order',
+    timing: '1–2 business days',
+    detail: 'Delivered by our delivery riders to the address and landmark you give at checkout.',
     icon: 'ri-truck-line',
   },
   {
-    title: 'Delivery outside Accra',
-    price: 'Fee confirmed by our team',
-    timing: 'Within 48 hours',
-    detail: 'Sent to your nearest bus station (VIP, STC) or courier office. We text you the pickup details.',
+    title: 'Other regions',
+    price: 'Fee shared after you order',
+    timing: '2–4 business days',
+    detail: 'Sent through courier services. We text you the details when your order is on its way.',
     icon: 'ri-map-pin-line',
+  },
+  {
+    title: 'Order pickup',
+    price: 'Free',
+    timing: 'Within 2 hours of payment',
+    detail: 'Collect your order from our store within 2 hours after your payment is confirmed. Bring your order number.',
+    icon: 'ri-store-2-line',
   },
 ];
 
 const STEPS = [
   { title: 'You order and pay', detail: 'Pay for your items with Mobile Money or card. You get your order number straight away.' },
-  { title: 'We confirm delivery', detail: 'For delivery orders, we contact you with the fee for your area before we send anything.' },
-  { title: 'We pack your order', detail: 'You get a text when it is ready to collect or on its way.' },
-  { title: 'It reaches you', detail: 'Pickup within 24 hours, delivery within 48 hours.' },
+  { title: 'We share the delivery fee', detail: 'Delivery fees vary by location. We tell you the fee for your area after your order is placed and confirmed.' },
+  { title: 'We pack your order', detail: 'Every order is checked and packaged before it leaves us. You get a text when it is ready or on its way.' },
+  { title: 'It reaches you', detail: '1–2 business days in Accra, 2–4 business days elsewhere. Pickup orders are ready within 2 hours.' },
 ];
 
 export default function ShippingPage() {
@@ -45,14 +45,14 @@ export default function ShippingPage() {
     <main className="min-h-screen bg-white text-[#2B211B]">
       <div className="max-w-[880px] mx-auto px-4 sm:px-6 lg:px-10 pt-12 lg:pt-20 pb-20 lg:pb-28 flex flex-col gap-14 lg:gap-16">
         <header className="flex flex-col gap-4 max-w-[60ch]">
-          <h1 className="font-serif font-medium text-[38px] lg:text-[52px] leading-[1.05] tracking-[-0.01em] text-balance">Delivery and pickup</h1>
+          <h1 className="font-serif font-medium text-[38px] lg:text-[52px] leading-[1.05] tracking-[-0.01em] text-balance">Shipping &amp; delivery</h1>
           <p className="text-[17px] leading-relaxed text-[#4E423A]">
-            Collect from our store for free, or have your order delivered in Accra or anywhere in Ghana. Orders arrive within 48 hours.
+            We deliver across Ghana, Monday to Saturday. Orders in Accra and Greater Accra arrive in 1–2 business days, other regions in 2–4 business days, or you can collect from our store.
           </p>
         </header>
 
         <section aria-labelledby="options-h" className="flex flex-col gap-5">
-          <h2 id="options-h" className="font-serif font-medium text-[26px] lg:text-[30px]">Your options</h2>
+          <h2 id="options-h" className="font-serif font-medium text-[26px] lg:text-[30px]">Delivery timeline</h2>
           <ul className="flex flex-col divide-y divide-[#EFEAE3] border-y border-[#EFEAE3]">
             {OPTIONS.map(option => (
               <li key={option.title} className="py-6 flex gap-4 sm:gap-5 items-start">
@@ -72,10 +72,25 @@ export default function ShippingPage() {
           </ul>
         </section>
 
-        <section aria-labelledby="fees-h" className="bg-[#F7F4EF] rounded-[20px] p-6 sm:p-8 flex flex-col gap-3">
-          <h2 id="fees-h" className="font-serif font-medium text-[24px] lg:text-[26px]">How delivery fees work</h2>
+        <div className="grid sm:grid-cols-2 gap-4">
+          <section aria-labelledby="schedule-h" className="bg-[#F7F4EF] rounded-[20px] p-6 sm:p-8 flex flex-col gap-3">
+            <h2 id="schedule-h" className="font-serif font-medium text-[22px] lg:text-[24px]">Delivery schedule</h2>
+            <p className="text-[15px] leading-relaxed text-[#4E423A]">
+              Deliveries are available Monday to Saturday. We don&apos;t deliver on Sundays.
+            </p>
+          </section>
+          <section aria-labelledby="fees-h" className="bg-[#F7F4EF] rounded-[20px] p-6 sm:p-8 flex flex-col gap-3">
+            <h2 id="fees-h" className="font-serif font-medium text-[22px] lg:text-[24px]">Delivery fees</h2>
+            <p className="text-[15px] leading-relaxed text-[#4E423A]">
+              Delivery fees vary depending on your location. We tell you the fee for your area after your order has been placed and confirmed.
+            </p>
+          </section>
+        </div>
+
+        <section aria-labelledby="attempts-h" className="flex flex-col gap-3 border-l-[3px] border-[#5B4436] pl-5">
+          <h2 id="attempts-h" className="font-serif font-medium text-[22px] lg:text-[24px]">Delivery attempts</h2>
           <p className="text-[15px] leading-relaxed text-[#4E423A] max-w-[62ch]">
-            At checkout you pay for your items only. The delivery fee depends on where you are, so our team contacts you with the fee for your area before we send your order.
+            Please make sure your phone is reachable and someone is available to receive your order. Missed deliveries may attract an additional delivery fee.
           </p>
         </section>
 
@@ -95,13 +110,13 @@ export default function ShippingPage() {
         </section>
 
         <section aria-labelledby="help-h" className="flex flex-col gap-4 border-t border-[#EFEAE3] pt-10">
-          <h2 id="help-h" className="font-serif font-medium text-[24px] lg:text-[26px]">Track, return or ask</h2>
+          <h2 id="help-h" className="font-serif font-medium text-[24px] lg:text-[26px]">Track, report or ask</h2>
           <p className="text-[15px] leading-relaxed text-[#4E423A] max-w-[62ch]">
-            Track any order with its number. Items can be returned within 7 days; see the returns policy for details.
+            Track any order with its number. All purchases are final. If an item arrives damaged, defective or incorrect, tell us within 24 hours of delivery.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link href="/order-tracking" className="h-12 px-6 rounded-[14px] bg-[#5B4436] hover:bg-[#47362C] text-white font-semibold inline-flex items-center transition-colors">Track your order</Link>
-            <Link href="/returns" className="h-12 px-6 rounded-[14px] border-[1.5px] border-[#5B4436] font-semibold inline-flex items-center hover:bg-[#F7F4EF] transition-colors">Returns policy</Link>
+            <Link href="/returns" className="h-12 px-6 rounded-[14px] border-[1.5px] border-[#5B4436] font-semibold inline-flex items-center hover:bg-[#F7F4EF] transition-colors">Returns &amp; exchanges</Link>
             <Link href="/contact" className="h-12 px-6 rounded-[14px] border-[1.5px] border-[#5B4436] font-semibold inline-flex items-center hover:bg-[#F7F4EF] transition-colors">Contact us</Link>
           </div>
         </section>

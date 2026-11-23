@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { imgSrc } from '@/lib/img';
+import { useCMS } from '@/context/CMSContext';
 
 export default function ReturnsPortalPage() {
   const router = useRouter();
@@ -12,21 +13,21 @@ export default function ReturnsPortalPage() {
   const [email, setEmail] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [returnReasons, setReturnReasons] = useState<Record<string, string>>({});
-  const [returnType, setReturnType] = useState<'refund' | 'exchange'>('refund');
+  const [details, setDetails] = useState('');
+  const { getSetting } = useCMS();
+  const phone = getSetting('contact_phone') || '0541770961';
+  const whatsappDigits = phone.replace(/\D/g, '').replace(/^0/, '233');
   const [isLoading, setIsLoading] = useState(false);
   const [foundOrder, setFoundOrder] = useState<any>(null);
   const [lookupError, setLookupError] = useState('');
   const [submitError, setSubmitError] = useState('');
 
+  // All purchases are final: only problems caused on our side can be reported
+  // (Returns & Exchanges policy).
   const reasons = [
-    'Wrong size/fit',
-    'Wrong item received',
-    'Defective/damaged item',
-    'Not as described',
-    'Changed my mind',
-    'Better price elsewhere',
-    'No longer needed',
-    'Other'
+    'Damaged item',
+    'Defective item',
+    'Incorrect item (not what I ordered)',
   ];
 
   const handleFindOrder = async (e: React.FormEvent) => {
@@ -95,7 +96,8 @@ export default function ReturnsPortalPage() {
         body: JSON.stringify({
           orderNumber: orderNumber.trim(),
           email: email.trim(),
-          returnType,
+          returnType: 'review',
+          description: details.trim(),
           items: selectedItems.map(id => ({
             order_item_id: id,
             reason: returnReasons[id],
@@ -107,7 +109,7 @@ export default function ReturnsPortalPage() {
       if (!res.ok) {
         throw new Error(json.error || 'Failed to submit return request');
       }
-      router.push('/returns/confirmation');
+      router.push(`/returns/confirmation?order=${encodeURIComponent(json.order_number || orderNumber.trim())}`);
     } catch (err: any) {
       setSubmitError(err.message || 'Something went wrong. Please try again.');
     } finally {
@@ -118,8 +120,31 @@ export default function ReturnsPortalPage() {
   return (
     <main className="min-h-screen bg-white py-12">
         <div className="max-w-4xl mx-auto px-4">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Returns Portal</h1>
-          <p className="text-gray-600 mb-8">Start your return or exchange process</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Returns &amp; Exchanges</h1>
+          <p className="text-gray-600 mb-8 max-w-[62ch]">
+            At Faithline, we carefully check and package every order before dispatch. Please take a moment to review our Returns &amp; Exchanges Policy before placing your order.
+          </p>
+
+          <section aria-label="Returns and exchanges policy" className="mb-10 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-xl bg-[#F7F4EF] p-5">
+              <h2 className="font-semibold text-gray-900 mb-2">Refund policy</h2>
+              <p className="text-sm text-gray-700 leading-relaxed">All purchases are final. We do not offer refunds for change of mind, incorrect size selection or personal preference.</p>
+              <p className="text-sm text-gray-700 leading-relaxed mt-2">If an item is damaged, defective or incorrect due to an error on our part, we will review the matter and provide an appropriate resolution where applicable.</p>
+            </div>
+            <div className="rounded-xl bg-[#F7F4EF] p-5">
+              <h2 className="font-semibold text-gray-900 mb-2">Exchange policy</h2>
+              <p className="text-sm text-gray-700 leading-relaxed">We do not offer exchanges for size-related issues, change of mind or personal preference. To help you choose the best fit, please review our size guide and contact us for sizing help before you order.</p>
+              <p className="text-sm text-gray-700 leading-relaxed mt-2">Exchanges or replacements are only considered when Faithline has supplied an incorrect, damaged or defective item.</p>
+            </div>
+            <div className="rounded-xl border-2 border-[#5B4436]/25 p-5 sm:col-span-2">
+              <h2 className="font-semibold text-gray-900 mb-2">Damaged or incorrect items</h2>
+              <p className="text-sm text-gray-700 leading-relaxed">If you receive a damaged, defective or incorrect item, contact us <strong>within 24 hours of delivery</strong>. Include your order details and clear photographs of the item so our team can review the issue promptly. Please keep the item unworn, unwashed and in its original condition while it is being assessed. After reviewing the information, our team will contact you with the appropriate resolution.</p>
+              <p className="text-xs text-gray-500 mt-3">By completing a purchase, you acknowledge and agree to Faithline&apos;s Returns &amp; Exchanges Policy.</p>
+            </div>
+          </section>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Report a damaged or incorrect item</h2>
+          <p className="text-gray-600 mb-6">Find your order, tell us what&apos;s wrong, then send us clear photos.</p>
 
           <div className="mb-8">
             <div className="flex items-center justify-between">
@@ -195,14 +220,13 @@ export default function ReturnsPortalPage() {
 
               <div className="mt-8 p-4 bg-[#5B4436]/5 border border-[#5B4436]/20 rounded-lg">
                 <div className="flex items-start space-x-3">
-                  <i className="ri-information-line text-xl text-[#5B4436] mt-0.5"></i>
+                  <i className="ri-information-line text-xl text-[#5B4436] mt-0.5" aria-hidden="true"></i>
                   <div className="text-sm text-[#5B4436]">
-                    <p className="font-semibold mb-1">Delivery &amp; Returns</p>
+                    <p className="font-semibold mb-1">Before you start</p>
                     <ul className="space-y-1">
-                      <li>• Delivers within 24 - 48 hours nationwide</li>
-                      <li>• Pickup available at our store location</li>
-                      <li>• Contact us for any issues with your order</li>
-                      <li>• Exchange or replacement for defective items</li>
+                      <li>• Report within 24 hours of delivery</li>
+                      <li>• Have clear photos of the item ready</li>
+                      <li>• Keep the item unworn, unwashed and in its original condition</li>
                     </ul>
                   </div>
                 </div>
@@ -212,7 +236,7 @@ export default function ReturnsPortalPage() {
 
           {step === 2 && foundOrder && (
             <div className="bg-white rounded-xl shadow-sm p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Select Items to Return</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Which items have a problem?</h2>
               
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm text-gray-600">
@@ -240,7 +264,7 @@ export default function ReturnsPortalPage() {
                         {selectedItems.includes(item.id) && (
                           <div className="mt-4">
                             <label className="block text-sm font-semibold text-gray-900 mb-2">
-                              Reason for return *
+                              What&apos;s wrong? *
                             </label>
                             <select
                               value={returnReasons[item.id] || ''}
@@ -265,38 +289,18 @@ export default function ReturnsPortalPage() {
               </div>
 
               <div className="mb-8">
-                <label className="block text-sm font-semibold text-gray-900 mb-3">
-                  What would you like to do? *
+                <label htmlFor="problem-details" className="block text-sm font-semibold text-gray-900 mb-2">
+                  Describe the problem *
                 </label>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setReturnType('refund')}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
-                      returnType === 'refund'
-                        ? 'border-gray-900 bg-gray-100'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    <i className="ri-refund-line text-2xl text-gray-900 mb-2"></i>
-                    <p className="font-semibold text-gray-900">Get a Refund</p>
-                    <p className="text-sm text-gray-600 mt-1">Money back to original payment</p>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setReturnType('exchange')}
-                    className={`p-4 rounded-lg border-2 text-left transition-all ${
-                      returnType === 'exchange'
-                        ? 'border-gray-900 bg-gray-100'
-                        : 'border-gray-300 hover:border-gray-400'
-                    }`}
-                  >
-                    <i className="ri-exchange-line text-2xl text-gray-900 mb-2"></i>
-                    <p className="font-semibold text-gray-900">Exchange Item</p>
-                    <p className="text-sm text-gray-600 mt-1">Get a different size or color</p>
-                  </button>
-                </div>
+                <textarea
+                  id="problem-details"
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  rows={4}
+                  maxLength={1000}
+                  placeholder="For example: the bag strap arrived torn, or I received a black top instead of the white one I ordered."
+                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
+                />
               </div>
 
               <div className="flex space-x-4">
@@ -308,7 +312,7 @@ export default function ReturnsPortalPage() {
                 </button>
                 <button
                   onClick={() => setStep(3)}
-                  disabled={selectedItems.length === 0 || !selectedItems.every(id => returnReasons[id])}
+                  disabled={selectedItems.length === 0 || !selectedItems.every(id => returnReasons[id]) || details.trim().length < 5}
                   className="flex-1 py-4 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   Continue
@@ -322,7 +326,8 @@ export default function ReturnsPortalPage() {
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Review & Submit</h2>
 
               <div className="mb-8">
-                <h3 className="font-semibold text-gray-900 mb-4">Return Summary</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Summary</h3>
+                <p className="text-sm text-gray-700 mb-3 whitespace-pre-line">{details}</p>
                 <div className="space-y-3">
                   {foundOrder.items
                     .filter((item: any) => selectedItems.includes(item.id))
@@ -339,23 +344,19 @@ export default function ReturnsPortalPage() {
               </div>
 
               <div className="mb-8 p-6 border-2 border-gray-200 bg-gray-100 rounded-lg">
-                <h3 className="font-semibold text-gray-900 mb-4">Next Steps</h3>
+                <h3 className="font-semibold text-gray-900 mb-4">Next steps</h3>
                 <ol className="space-y-2 text-sm text-gray-700">
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">1.</span>
-                    <span>Our team reviews your request and contacts you within 24 hours</span>
+                    <span>Send clear photos of the item, with your order number, to us on WhatsApp (<a className="underline" href={`https://wa.me/${whatsappDigits}`} target="_blank" rel="noopener noreferrer">{phone}</a>)</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">2.</span>
-                    <span>Pack items securely in their original packaging</span>
+                    <span>Keep the item unworn, unwashed and in its original condition</span>
                   </li>
                   <li className="flex items-start space-x-2">
                     <span className="font-bold">3.</span>
-                    <span>We arrange pickup or share the drop-off location with you</span>
-                  </li>
-                  <li className="flex items-start space-x-2">
-                    <span className="font-bold">4.</span>
-                    <span>Your refund or exchange is processed once we receive the items</span>
+                    <span>Our team reviews the issue and contacts you with the appropriate resolution</span>
                   </li>
                 </ol>
               </div>
@@ -379,7 +380,7 @@ export default function ReturnsPortalPage() {
                   disabled={isLoading}
                   className="flex-1 py-4 bg-brand-brown hover:bg-brand-bag-dark text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
-                  {isLoading ? 'Submitting...' : 'Submit Return Request'}
+                  {isLoading ? 'Sending...' : 'Send report'}
                 </button>
               </div>
             </div>

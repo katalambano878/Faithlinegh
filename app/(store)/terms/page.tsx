@@ -180,12 +180,15 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">6. Returns & Refunds</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-6">6. Returns &amp; Exchanges</h2>
             <p className="text-gray-600 leading-relaxed mb-4">
-              We offer nationwide delivery across Ghana. Contact us for any order issues or product exchanges. See our Returns page for complete details.
+              All purchases are final. We do not offer refunds or exchanges for change of mind, incorrect size selection or personal preference.
+            </p>
+            <p className="text-gray-600 leading-relaxed mb-4">
+              If an item is damaged, defective or incorrect due to an error on our part, contact us within 24 hours of delivery with your order details and clear photographs. Keep the item unworn, unwashed and in its original condition while it is assessed. We will review the matter and provide an appropriate resolution where applicable.
             </p>
             <p className="text-gray-600 leading-relaxed">
-              Refunds are processed within 5-7 business days of receiving your return. Refunds are issued to the original payment method.
+              By completing a purchase, you acknowledge and agree to Faithline&apos;s Returns &amp; Exchanges Policy. See our <a href="/returns" className="underline">Returns page</a> for full details.
             </p>
           </section>
 

@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { checkRateLimit, getClientIdentifier, RATE_LIMITS } from '@/lib/rate-limit';
 
-const RETURN_WINDOW_DAYS = 30;
+// Returns & Exchanges policy: all purchases are final. Only damaged,
+// defective or incorrect items can be reported, within 24 hours of delivery.
+const REPORT_WINDOW_HOURS = 24;
+const ALLOWED_REASONS = new Set(['Damaged item', 'Defective item', 'Incorrect item (not what I ordered)']);
 
 /**
  * Public returns portal endpoint.
@@ -18,7 +21,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { orderNumber, email, items, returnType, description } = body || {};
+    const { orderNumber, email, items, description } = body || {};
 
     if (!orderNumber || !email || !Array.isArray(items) || items.length === 0) {
       return NextResponse.json({ error: 'Order number, email and at least one item are required' }, { status: 400 });
@@ -26,7 +29,7 @@ export async function POST(req: NextRequest) {
 
     const { data: order, error: orderError } = await supabaseAdmin
       .from('orders')
-      .select('id, order_number, email, status, user_id, created_at, order_items(id, product_name, quantity)')
+      .select('id, order_number, email, status, user_id, created_at, updated_at, metadata, order_items(id, product_name, quantity)')
       .eq('order_number', String(orderNumber).trim())
       .single();
 
@@ -42,15 +45,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Only delivered orders can be returned' }, { status: 400 });
     }
 
-    const ageDays = (Date.now() - new Date(order.created_at).getTime()) / (1000 * 60 * 60 * 24);
-    if (ageDays > RETURN_WINDOW_DAYS) {
-      return NextResponse.json({ error: `Returns are only accepted within ${RETURN_WINDOW_DAYS} days of purchase` }, { status: 400 });
+    // Delivery time: recorded when the admin marks the order delivered; older
+    // orders fall back to the last update (the most lenient choice).
+    const deliveredAt = new Date(order.metadata?.delivered_at || order.updated_at || order.created_at);
+    const hoursSince = (Date.now() - deliveredAt.getTime()) / (1000 * 60 * 60);
+    if (hoursSince > REPORT_WINDOW_HOURS) {
+      return NextResponse.json({
+        error: 'Damaged or incorrect items must be reported within 24 hours of delivery. If you think this is a mistake, please contact us on WhatsApp with your order number.',
+      }, { status: 400 });
     }
 
     // Validate every requested item belongs to this order
     const orderItemIds = new Set((order.order_items || []).map((i: any) => i.id));
     for (const item of items) {
-      if (!item.order_item_id || !orderItemIds.has(item.order_item_id) || !item.reason) {
+      if (!item.order_item_id || !orderItemIds.has(item.order_item_id) || !ALLOWED_REASONS.has(item.reason)) {
         return NextResponse.json({ error: 'Invalid return items' }, { status: 400 });
       }
     }
@@ -75,7 +83,7 @@ export async function POST(req: NextRequest) {
         user_id: order.user_id || null,
         status: 'pending',
         reason: reasonSummary || 'Not specified',
-        description: [returnType === 'exchange' ? 'Requested: exchange' : 'Requested: refund', description]
+        description: ['Reported: damaged / defective / incorrect item (awaiting photos and review)', String(description || '').slice(0, 1000)]
           .filter(Boolean).join('\n'),
       })
       .select('id, status')

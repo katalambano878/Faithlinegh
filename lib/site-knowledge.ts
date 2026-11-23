@@ -46,26 +46,33 @@ Support Hours: Monday to Saturday, 9 AM - 6 PM`,
     title: "Shipping & Delivery Policy",
     path: "/shipping",
     category: "shipping",
-    content: `Faithlinegh offers nationwide delivery across Ghana.
+    content: `Delivery timeline:
+- Accra & Greater Accra: delivered within 1–2 business days by our delivery riders.
+- Other regions: 2–4 business days via courier services.
+- Order pickup: customers can pick up their orders within 2 hours after payment confirmation.
 
-Shipping fees and delivery timelines depend on destination and are shown at checkout.
+Deliveries are available Monday to Saturday, excluding Sundays.
 
-Customers receive order updates and can track orders using order number and email.`,
-    keywords: ["shipping", "delivery", "nationwide", "ghana", "timeline", "tracking", "faithlinegh"],
+Delivery fees vary depending on location. The fee is communicated after the order has been placed and confirmed.
+
+Please keep your phone reachable and make sure someone is available to receive the order. Missed deliveries may attract an additional delivery fee.
+
+Customers can track orders using the order number and email.`,
+    keywords: ["shipping", "delivery", "nationwide", "ghana", "timeline", "tracking", "pickup", "sunday", "business days", "fee", "missed"],
   },
   {
     id: "returns-policy",
     title: "Returns & Refunds Policy",
     path: "/returns",
     category: "returns",
-    content: `Unused items in their original condition can be returned within 7 days of delivery.
+    content: `All purchases are final. Faithline does not offer refunds or exchanges for change of mind, incorrect size selection or personal preference.
 
-If something arrives damaged or wrong, contact us within 48 hours with photos and we put it right at no cost.
+If an item is damaged, defective or incorrect due to an error on Faithline's part, contact us within 24 hours of delivery with the order details and clear photographs of the item. Keep the item unworn, unwashed and in its original condition while it is assessed. The team reviews it and contacts the customer with the appropriate resolution.
 
-Items with signs of use, or custom/altered items, may not be returnable unless there is a quality issue.
+Exchanges or replacements are only considered when Faithline supplied an incorrect, damaged or defective item. Customers should check the size guide and ask for sizing help before ordering.
 
-Refunds go back to the original payment method after we receive and check the item.`,
-    keywords: ["returns", "refund", "exchange", "worn", "condition", "7 days", "damaged", "wrong item"],
+By completing a purchase, the customer agrees to the Returns & Exchanges Policy.`,
+    keywords: ["returns", "refund", "exchange", "size", "worn", "condition", "24 hours", "damaged", "defective", "wrong item", "final"],
   },
   {
     id: "payment-methods",
@@ -186,7 +193,7 @@ export function getSiteMapSummary(): string {
 - /cart — Shopping cart with coupon support
 - /checkout — Checkout flow (shipping → delivery → payment)
 - /order-tracking — Track orders by order number + email
-- /returns — Start a return request (7-day policy)
+- /returns — Returns & Exchanges policy, and report a damaged/incorrect item (within 24 hours of delivery)
 - /account — Profile, order history, addresses, security settings
 - /wishlist — Saved products
 - /about — Faithlinegh story and mission

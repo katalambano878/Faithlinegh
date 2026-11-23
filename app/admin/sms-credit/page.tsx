@@ -121,6 +121,13 @@ export default function BuySmsPage() {
             <p className="mt-2 text-sm text-[#EFE7DF]">Used for customer texts and the new-order alert.</p>
           </div>
 
+          {(billing.sms_left || 0) <= 0 && (
+            <div role="alert" className="rounded-xl border border-[#A3392B]/30 bg-[#A3392B]/5 p-4 text-sm text-[#7A2A20]">
+              <p className="font-semibold">Texts are paused</p>
+              <p className="mt-1">Your SMS balance is empty, so customers are not getting order texts and you are not getting the new-order alert. Buy a package below to turn them back on. Emails still go out.</p>
+            </div>
+          )}
+
           <p className="text-sm font-medium text-gray-700">Choose a package, then press Buy on it.</p>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" role="radiogroup" aria-label="SMS packages">
             {(billing.packages || []).map((pkg) => {

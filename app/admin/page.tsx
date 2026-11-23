@@ -8,6 +8,13 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 export default function AdminDashboard() {
   const [dateRange, setDateRange] = useState<'7days' | '30days'>('7days');
+  // Texts stop when the SMS balance is empty, so warn here too
+  const [smsEmpty, setSmsEmpty] = useState(false);
+  useEffect(() => {
+    adminRequest<{ configured?: boolean; sms_left?: number }>('/api/admin/sms-credit')
+      .then((b) => setSmsEmpty(Boolean(b?.configured) && (Number(b?.sms_left) || 0) <= 0))
+      .catch(() => {});
+  }, []);
   const [loading, setLoading] = useState(true);
 
   type Stat = { title: string; value: string; hint: string; icon: string; color: string; href?: string };
@@ -175,6 +182,12 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {smsEmpty && (
+          <Link href="/admin/sms-credit" role="alert" className="mb-6 flex items-start gap-3 rounded-xl border border-[#A3392B]/30 bg-[#A3392B]/5 p-4 text-sm text-[#7A2A20] hover:bg-[#A3392B]/10 transition-colors">
+            <i className="ri-message-2-line text-lg leading-none mt-0.5" aria-hidden="true"></i>
+            <span><strong className="font-semibold">Texts are paused.</strong> Your SMS balance is empty, so customers aren&apos;t getting order texts. Tap to buy SMS.</span>
+          </Link>
+        )}
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>

@@ -125,7 +125,16 @@ function formatPhoneNumber(phone: string): string {
 const TAYSEND_SMS_URL = (process.env.TAYSEND_API_URL || "https://api.taysend.com").replace(/\/+$/, "");
 const TAYSEND_FAILED_STATUSES = new Set(["failed", "rejected", "undelivered", "expired"]);
 
-async function sendViaTaysend(to: string, message: string, senderFallback?: string) {
+function taysendReady() {
+    const from = (process.env.TAYSEND_SENDER_ID || process.env.MOOLRE_SMS_SENDER_ID || "").trim();
+    return Boolean(process.env.TAYSEND_API_KEY?.trim() && from);
+}
+
+type TaysendResult =
+    | { status: 1; code: "SMS01"; provider: "taysend"; messageid: string; data: { messageid: string }[] }
+    | { status: 0; provider: "taysend"; error: string };
+
+async function sendViaTaysend(to: string, message: string, senderFallback?: string): Promise<TaysendResult | null> {
     const apiKey = process.env.TAYSEND_API_KEY?.trim();
     const from = (process.env.TAYSEND_SENDER_ID || senderFallback || process.env.MOOLRE_SMS_SENDER_ID || "").trim();
     if (!apiKey || !from) return null;
@@ -145,18 +154,23 @@ async function sendViaTaysend(to: string, message: string, senderFallback?: stri
         if (response.ok && result?.id && !TAYSEND_FAILED_STATUSES.has(status)) {
             return { status: 1, code: "SMS01", provider: "taysend", messageid: result.id, data: [{ messageid: result.id }] };
         }
-        console.warn("[SMS] Taysend failed, falling back:", result?.error?.message || result?.error || status || response.status);
-        return null;
+        const reason = String(result?.error?.message || result?.error || status || response.status);
+        console.warn("[SMS] Not sent:", reason);
+        return { status: 0, provider: "taysend", error: reason };
     } catch (error: any) {
-        console.warn("[SMS] Taysend failed, falling back:", error?.message || error);
-        return null;
+        console.warn("[SMS] Not sent:", error?.message || error);
+        return { status: 0, provider: "taysend", error: String(error?.message || error) };
     }
 }
 
 export async function sendSMS({
  to, message }: { to: string; message: string }) {
-        const viaTaysend = await sendViaTaysend(formatPhoneNumber(to), message);
-    if (viaTaysend) return viaTaysend;
+    // Texts are paid from the store's own SMS balance (Admin → Buy SMS). When
+    // that balance is empty, texts stop: we never fall back to the old Moolre
+    // SMS account, which is billed separately (owner's decision, 2026-11-23).
+    if (taysendReady()) {
+        return sendViaTaysend(formatPhoneNumber(to), message);
+    }
 
     // Moolre SMS API only requires X-API-VASKEY header for authentication
     // See: https://docs.moolre.com/#/send-sms

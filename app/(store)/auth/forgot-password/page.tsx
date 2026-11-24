@@ -105,7 +105,7 @@ export default function ForgotPasswordPage() {
                 className={`w-full px-4 py-3 border-2 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${
                   error ? 'border-[#5B4436]' : 'border-gray-300'
                 }`}
-                placeholder="you@example.com"
+                placeholder="Email address"
               />
               {error && (
                 <p className="text-sm text-[#5B4436] mt-2">{error}</p>

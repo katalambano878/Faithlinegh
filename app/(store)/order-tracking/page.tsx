@@ -208,7 +208,7 @@ function OrderTrackingContent() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600"
-                  placeholder="you@example.com"
+                  placeholder="Email address"
                 />
               </div>
 

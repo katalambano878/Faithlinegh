@@ -197,7 +197,7 @@ export default function ReturnsPortalPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-brown focus:border-brand-brown"
-                    placeholder="you@example.com"
+                    placeholder="Email address"
                     required
                   />
                 </div>

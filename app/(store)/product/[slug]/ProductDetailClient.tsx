@@ -14,6 +14,11 @@ import { useCart } from '@/context/CartContext';
 import { usePageTitle } from '@/hooks/usePageTitle';
 import { parseBundleTiers, computeBundlePrice, tierUnitPrice, tierSavings, BundleTier } from '@/lib/bundle-pricing';
 
+// Fix a known catalogue typo in colour names without editing product rows here.
+function displayColorName(name: string): string {
+  return (name || '').replace(/\bstipes\b/gi, 'stripes');
+}
+
 // Map common color names to hex values for the swatch preview
 function colorNameToHex(name: string): string {
   const map: Record<string, string> = {
@@ -103,7 +108,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         // Map variant colors from option2, and extract color_hex from metadata
         const rawVariants = (dataToTransform.product_variants || []).map((v: any) => ({
           ...v,
-          color: v.option2 || '',
+          color: displayColorName(v.option2 || ''),
           colorHex: v.metadata?.color_hex || ''
         }));
 
@@ -112,7 +117,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
         rawVariants.forEach((v: any) => {
           if (v.color) {
             if (!colorHexMap[v.color]) {
-              colorHexMap[v.color] = v.colorHex || colorNameToHex(v.color);
+              colorHexMap[v.color] = v.colorHex || colorNameToHex(displayColorName(v.color));
             }
           }
         });

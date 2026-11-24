@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { warmImageSizes } from '@/lib/image-warm';
 
 function getAccessToken(request: Request): string | null {
   const authHeader = request.headers.get('authorization');
@@ -82,6 +83,9 @@ export async function POST(request: Request) {
     }
 
     const { data: { publicUrl } } = supabaseAdmin.storage.from(bucket).getPublicUrl(path);
+    if ((file.type || '').startsWith('image/') || /\.(jpe?g|png|webp|jfif)$/i.test(path)) {
+      warmImageSizes(`/storage/v1/object/public/${bucket}/${path}`);
+    }
     return NextResponse.json({ url: publicUrl });
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Upload failed' }, { status: 500 });

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { localImagePath } from '@/lib/img';
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { cachedQuery } from '@/lib/query-cache';
@@ -420,7 +421,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                             <span className="absolute inset-0 flex items-center justify-center bg-black/20"><i className="ri-play-fill text-white text-lg"></i></span>
                           </>
                         ) : (
-                          <Image src={image} alt="" fill className="object-contain p-1" sizes="80px" quality={60} />
+                          <Image src={localImagePath(image)} alt="" fill className="object-contain p-1" sizes="80px" quality={60} />
                         )}
                       </button>
                     );
@@ -434,7 +435,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                 ) : mainImageSrc ? (
                   <Image
                     key={mainImageSrc}
-                    src={mainImageSrc}
+                    src={localImagePath(mainImageSrc)}
                     alt={selectedColor ? `${product.name} in ${selectedColor}` : product.name}
                     fill
                     className="object-contain p-3 sm:p-5 lg:p-6 animate-[fadeIn_200ms_ease-out]"
@@ -508,7 +509,7 @@ export default function ProductDetailClient({ slug }: { slug: string }) {
                             className={`relative w-10 h-10 lg:w-9 lg:h-9 rounded-full overflow-hidden border border-[#2B211B]/15 transition-shadow cursor-pointer ${selected ? 'shadow-[0_0_0_2px_#fff,0_0_0_3.5px_#5B4436]' : 'hover:shadow-[0_0_0_2px_#fff,0_0_0_3.5px_#D8CFC3]'} ${out ? 'opacity-50' : ''}`}
                             style={img ? undefined : { backgroundColor: product.colorHexMap?.[color] || colorNameToHex(color) }}
                           >
-                            {img && <Image src={img} alt="" fill className="object-cover scale-[2.2]" sizes="40px" quality={50} />}
+                            {img && <Image src={localImagePath(img)} alt="" fill className="object-cover scale-[2.2]" sizes="40px" quality={50} />}
                             {out && <span aria-hidden="true" className="absolute left-1/2 -top-1 w-[1.5px] h-12 bg-[#2B211B] -translate-x-1/2 rotate-45"></span>}
                           </button>
                         );

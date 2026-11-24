@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { localImagePath } from '@/lib/img';
 import { useRouter } from 'next/navigation';
 
 export type ArrivalItem = {
@@ -76,7 +77,7 @@ export default function ArrivalsAccordion({ items }: { items: ArrivalItem[] }) {
               }`}
             >
               <Image
-                src={item.image}
+                src={localImagePath(item.image)}
                 alt={item.name}
                 fill
                 sizes="(max-width:640px) 100vw, 40vw"

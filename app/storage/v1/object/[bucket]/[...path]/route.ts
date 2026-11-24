@@ -3,6 +3,7 @@ import { createStorageClient } from "@/lib/db/storage";
 import { isPlainPostgres } from "@/lib/db/mode";
 import { resolveRestActor } from "@/lib/db/rest-auth";
 import { authorizeStorageWrite } from "@/lib/db/rest-acl";
+import { warmImageSizes } from "@/lib/image-warm";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -44,6 +45,9 @@ export async function POST(
   }
 
   const { data: pub } = storage.from(bucket).getPublicUrl(objectPath);
+  if (contentType.startsWith("image/")) {
+    warmImageSizes(`/storage/v1/object/public/${bucket}/${objectPath}`);
+  }
   return NextResponse.json({
     Key: `${bucket}/${objectPath}`,
     Id: data?.path,

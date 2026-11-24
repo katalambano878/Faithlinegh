@@ -16,6 +16,13 @@ export function canOptimize(src: unknown): src is string {
   return !/\.(svg|gif)(\?|$)/i.test(path);
 }
 
+/** Our own photo URLs as a site path (/storage/...), so Next's resizer reads
+ *  them inside the server instead of over the internet, and every page asks
+ *  for the same cached copy. Other URLs are returned unchanged. */
+export function localImagePath<T extends string | null | undefined>(src: T): T {
+  return (typeof src === 'string' ? src.replace(OWN_ORIGIN, '') : src) as T;
+}
+
 function resized(path: string, w: number, q: number) {
   return `/_next/image?url=${encodeURIComponent(path)}&w=${w}&q=${q}`;
 }

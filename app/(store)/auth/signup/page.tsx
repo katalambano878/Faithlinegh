@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import PasswordStrengthMeter from '@/components/PasswordStrengthMeter';
 import { supabase } from '@/lib/supabase';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import GoogleSignInButton from '@/components/GoogleSignInButton';
 
 function getFriendlyError(message: string): string {
   const lower = message.toLowerCase();
@@ -355,33 +356,7 @@ function SignupForm() {
             </button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-gray-500">Or sign up with</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-4">
-              <button
-                disabled
-                className="flex items-center justify-center space-x-2 border-2 border-gray-200 bg-gray-50 py-3 rounded-lg cursor-not-allowed opacity-60"
-              >
-                <i className="ri-google-fill text-xl text-[#5B4436] grayscale opacity-50"></i>
-                <span className="font-medium text-gray-400">Google</span>
-              </button>
-              <button
-                disabled
-                className="flex items-center justify-center space-x-2 border-2 border-gray-200 bg-gray-50 py-3 rounded-lg cursor-not-allowed opacity-60"
-              >
-                <i className="ri-facebook-fill text-xl text-[#5B4436] grayscale opacity-50"></i>
-                <span className="font-medium text-gray-400">Facebook</span>
-              </button>
-            </div>
-          </div>
+          <GoogleSignInButton dividerLabel="Or sign up with" redirect={redirectTo} />
 
           <p className="mt-8 text-center text-gray-600">
             Already have an account?{' '}

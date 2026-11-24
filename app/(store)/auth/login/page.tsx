@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useRecaptcha } from '@/hooks/useRecaptcha';
+import GoogleSignInButton, { googleErrorMessage } from '@/components/GoogleSignInButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +19,12 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
   const { getToken, verifying } = useRecaptcha();
+
+  // Message when Google sign-in sends the customer back with an error
+  useEffect(() => {
+    const msg = googleErrorMessage(new URLSearchParams(window.location.search).get('error'));
+    if (msg) setAuthError(msg);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +68,8 @@ export default function LoginPage() {
       }
 
       if (data.session) {
-        router.push('/account');
+        const r = new URLSearchParams(window.location.search).get('redirect') || '';
+        router.push(r.startsWith('/') && !r.startsWith('//') ? r : '/account');
         router.refresh(); // Refresh to update auth state in other components
       }
     } catch (error: any) {
@@ -162,33 +170,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-4">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="px-3 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button
-                disabled
-                className="flex items-center justify-center space-x-1.5 border border-gray-200 bg-gray-50 py-2 rounded-lg cursor-not-allowed opacity-60"
-              >
-                <i className="ri-google-fill text-lg text-[#5B4436] grayscale opacity-50"></i>
-                <span className="text-xs font-medium text-gray-400">Google</span>
-              </button>
-              <button
-                disabled
-                className="flex items-center justify-center space-x-1.5 border border-gray-200 bg-gray-50 py-2 rounded-lg cursor-not-allowed opacity-60"
-              >
-                <i className="ri-facebook-fill text-lg text-[#5B4436] grayscale opacity-50"></i>
-                <span className="text-xs font-medium text-gray-400">Facebook</span>
-              </button>
-            </div>
-          </div>
+          <GoogleSignInButton dividerLabel="Or continue with" />
 
           <p className="mt-5 text-center text-sm text-gray-600">
             Don't have an account?{' '}

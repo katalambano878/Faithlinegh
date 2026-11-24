@@ -217,11 +217,18 @@ export async function signUpWithPassword(opts: {
   );
 
   // Ensure profile row exists (app expects profiles.id = auth.users.id)
+  const fullName =
+    (typeof meta.full_name === "string" && meta.full_name.trim()) ||
+    [meta.first_name, meta.last_name].filter((v) => typeof v === "string" && v.trim()).join(" ").trim() ||
+    email.split("@")[0];
   await query(
-    `INSERT INTO profiles (id, email, full_name, role, created_at, updated_at)
-     VALUES ($1, $2, $3, 'customer', now(), now())
-     ON CONFLICT (id) DO NOTHING`,
-    [id, email, (meta.full_name as string) || email.split("@")[0]]
+    `INSERT INTO profiles (id, email, full_name, phone, role, created_at, updated_at)
+     VALUES ($1, $2, $3, $4, 'customer', now(), now())
+     ON CONFLICT (id) DO UPDATE SET
+       full_name = COALESCE(NULLIF(profiles.full_name, ''), EXCLUDED.full_name),
+       phone = COALESCE(NULLIF(profiles.phone, ''), EXCLUDED.phone),
+       updated_at = now()`,
+    [id, email, fullName, typeof meta.phone === "string" && meta.phone.trim() ? meta.phone.trim() : null]
   ).catch(() => {});
 
   const { rows } = await query(`SELECT * FROM auth.users WHERE id = $1`, [id]);
@@ -356,4 +363,113 @@ export async function resetPasswordWithToken(
     return { ok: false, error: "This reset link has expired or was already used. Ask for a new one." };
   }
   return { ok: true, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// Google sign-in. Google has already checked the email, so a verified Google
+// email signs in to the account with that email, or makes a new one.
+// ---------------------------------------------------------------------------
+
+export interface GoogleProfile {
+  sub: string;
+  email: string;
+  emailVerified: boolean;
+  name?: string;
+  givenName?: string;
+  familyName?: string;
+  picture?: string;
+}
+
+export async function signInWithGoogle(
+  p: GoogleProfile
+): Promise<{ session: SessionTokens | null; isNew: boolean; error: string | null }> {
+  const email = String(p.email || "").trim().toLowerCase();
+  if (!p.sub || !email) return { session: null, isNew: false, error: "Google did not share an email address." };
+  if (!p.emailVerified) {
+    return { session: null, isNew: false, error: "This Google account's email is not verified." };
+  }
+
+  const fullName = (p.name || [p.givenName, p.familyName].filter(Boolean).join(" ")).trim();
+  const { rows: found } = await query(
+    `SELECT id FROM auth.users
+      WHERE deleted_at IS NULL
+        AND (raw_app_meta_data->>'google_sub' = $1 OR lower(email) = $2)
+      ORDER BY (raw_app_meta_data->>'google_sub' = $1) DESC NULLS LAST
+      LIMIT 1`,
+    [p.sub, email]
+  );
+
+  let id: string;
+  let isNew = false;
+  if (found[0]) {
+    id = found[0].id;
+    // Link Google to the account and keep any name/photo already saved.
+    await query(
+      `UPDATE auth.users
+          SET raw_app_meta_data = COALESCE(raw_app_meta_data, '{}'::jsonb)
+                || jsonb_build_object(
+                     'google_sub', $2::text,
+                     'providers', (
+                       SELECT jsonb_agg(DISTINCT v) FROM jsonb_array_elements_text(
+                         COALESCE(raw_app_meta_data->'providers', '[]'::jsonb) || '["google"]'::jsonb
+                       ) AS v
+                     )
+                   ),
+              raw_user_meta_data = jsonb_strip_nulls(jsonb_build_object(
+                     'full_name', NULLIF($3, ''), 'first_name', NULLIF($4, ''),
+                     'last_name', NULLIF($5, ''), 'avatar_url', NULLIF($6, '')
+                   )) || COALESCE(raw_user_meta_data, '{}'::jsonb),
+              email_confirmed_at = COALESCE(email_confirmed_at, now()),
+              last_sign_in_at = now(),
+              updated_at = now()
+        WHERE id = $1`,
+      [id, p.sub, fullName, p.givenName || "", p.familyName || "", p.picture || ""]
+    );
+    await query(
+      `INSERT INTO profiles (id, email, full_name, avatar_url, role, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'customer', now(), now())
+       ON CONFLICT (id) DO UPDATE SET
+         full_name = COALESCE(NULLIF(profiles.full_name, ''), EXCLUDED.full_name),
+         avatar_url = COALESCE(profiles.avatar_url, EXCLUDED.avatar_url)`,
+      [id, email, fullName || email.split("@")[0], p.picture || null]
+    ).catch(() => {});
+  } else {
+    id = randomUUID();
+    isNew = true;
+    const meta = {
+      full_name: fullName || undefined,
+      first_name: p.givenName || undefined,
+      last_name: p.familyName || undefined,
+      avatar_url: p.picture || undefined,
+    };
+    // No password: they sign in with Google, or set one with "Forgot password".
+    await query(
+      `INSERT INTO auth.users (
+         id, instance_id, aud, role, email, encrypted_password,
+         email_confirmed_at, last_sign_in_at, raw_app_meta_data, raw_user_meta_data,
+         created_at, updated_at, confirmation_token, recovery_token,
+         email_change_token_new, email_change
+       ) VALUES (
+         $1, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+         $2, NULL, now(), now(),
+         jsonb_build_object('provider', 'google', 'providers', '["google"]'::jsonb, 'google_sub', $3::text),
+         $4::jsonb, now(), now(), '', '', '', ''
+       )`,
+      [id, email, p.sub, JSON.stringify(meta)]
+    );
+    await query(
+      `INSERT INTO profiles (id, email, full_name, avatar_url, role, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, 'customer', now(), now())
+       ON CONFLICT (id) DO UPDATE SET
+         full_name = COALESCE(NULLIF(profiles.full_name, ''), EXCLUDED.full_name),
+         avatar_url = COALESCE(profiles.avatar_url, EXCLUDED.avatar_url),
+         updated_at = now()`,
+      [id, email, fullName || email.split("@")[0], p.picture || null]
+    ).catch(() => {});
+  }
+
+  const { rows } = await query(`SELECT * FROM auth.users WHERE id = $1`, [id]);
+  if (!rows[0]) return { session: null, isNew, error: "Could not sign in. Please try again." };
+  const session = await mintSession(rows[0]);
+  return { session, isNew, error: null };
 }

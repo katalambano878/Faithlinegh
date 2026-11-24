@@ -215,7 +215,7 @@ export default function ContactPage() {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-carton/30 focus:border-brand-carton text-sm transition-colors bg-gray-50 focus:bg-white"
-                        placeholder="john@example.com"
+                        placeholder="Email address"
                       />
                     </div>
                   </div>

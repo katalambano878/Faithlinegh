@@ -101,7 +101,7 @@ export default function LoginPage() {
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className={`w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-gray-600 focus:border-gray-600 ${errors.email ? 'border-[#5B4436]' : 'border-gray-300'
                   }`}
-                placeholder="you@example.com"
+                placeholder="Email address"
               />
               {errors.email && (
                 <p className="text-sm text-[#5B4436] mt-2">{errors.email}</p>

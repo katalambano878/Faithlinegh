@@ -1,10 +1,12 @@
-import { Resend } from 'resend';
 import { supabaseAdmin as supabase } from '@/lib/supabase-admin';
 import { escapeHtml } from '@/lib/sanitize';
 
-const resend = new Resend(process.env.RESEND_API_KEY || 'missing_api_key');
+const POSTAL_API_URL = (process.env.POSTAL_API_URL || 'https://postal.zoepayhub.com').replace(/\/+$/, '');
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@faithline.com';
-const EMAIL_FROM = process.env.EMAIL_FROM || 'Faithlinegh <noreply@faithlinegh.com>';
+const _rawFrom = process.env.EMAIL_FROM?.trim() || 'noreply@faithlinegh.com';
+const EMAIL_FROM = _rawFrom.includes('<') ? _rawFrom : `Faithlinegh <${_rawFrom}>`;
+// Customer replies land in support@, which Postal forwards to the admin's Gmail.
+const EMAIL_REPLY_TO = process.env.EMAIL_REPLY_TO?.trim() || 'support@faithlinegh.com';
 const BRAND = {
     name: process.env.NEXT_PUBLIC_SITE_NAME || 'Faithlinegh',
     color: '#171717',
@@ -87,21 +89,28 @@ function maskPhone(phone: string): string {
 }
 
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
-    if (!process.env.RESEND_API_KEY) {
-        console.warn('[Email] RESEND_API_KEY not configured');
+    const postalKey = process.env.POSTAL_API_KEY?.trim();
+    if (!postalKey) {
+        console.warn('[Email] POSTAL_API_KEY not configured');
         return null;
     }
+    const masked = to.split('@')[0] + '@***';
     try {
-        const data = await resend.emails.send({
-            from: EMAIL_FROM,
-            to,
-            subject,
-            html,
+        const response = await fetch(`${POSTAL_API_URL}/api/v1/send/message`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Server-API-Key': postalKey },
+            body: JSON.stringify({ to: [to], from: EMAIL_FROM, reply_to: EMAIL_REPLY_TO, subject, html_body: html }),
+            signal: AbortSignal.timeout(15000),
         });
-        console.log('[Email] Sent successfully to:', to.split('@')[0] + '@***');
+        const data = await response.json().catch(() => null);
+        if (!response.ok || data?.status !== 'success') {
+            console.error('[Email] Not sent to', masked, '-', data?.data?.message || data?.data?.code || response.statusText);
+            return null;
+        }
+        console.log('[Email] Sent to', masked, 'message', data?.data?.message_id);
         return data;
     } catch (error: any) {
-        console.error('[Email] Failed:', error.message);
+        console.error('[Email] Not sent to', masked, '-', error?.message);
         return null;
     }
 }
